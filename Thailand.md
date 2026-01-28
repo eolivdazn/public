@@ -1,5 +1,5 @@
 
------- Thailandia --------
+------ Thailandia ---------
 
 Thu,  12  Feb 09:55 GVA -> 09:35 SIN 13/02
 Tue,  03  Ma  20:50 BKK -> 06:25 GVA 03/03
