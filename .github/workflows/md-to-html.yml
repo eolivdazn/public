@@ -10,29 +10,35 @@ on:
 permissions:
   contents: read
   pages: write
-  id-token: write  # necessário para deploy-pages
+  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: github-pages
-
+    environment: github-pages   # obrigatório
 
     steps:
+      # 1️⃣ Clonar repositório
       - name: Checkout repository
         uses: actions/checkout@v3
 
+      # 2️⃣ Instalar Pandoc para converter Markdown
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
+      # 3️⃣ Converter Thailand.md para HTML
       - name: Convert Markdown to HTML
-        run: pandoc Thailand.md -f markdown -t html -s -o index.html
+        run: |
+          mkdir -p site
+          pandoc Thailand.md -f markdown -t html -s -o site/index.html
 
-      - name: Upload GitHub Pages artifact
+      # 4️⃣ Upload do artifact para GitHub Pages
+      - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./   # caminho onde está index.html
+          path: ./site  # index.html está agora no root do artifact
 
+      # 5️⃣ Deploy do artifact para GitHub Pages
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
