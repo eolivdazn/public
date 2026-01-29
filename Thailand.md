@@ -26,12 +26,12 @@ title: "✈️ Thailandia Trip"
   🎟️ [RedBus](https://www.redbus.sg/) – 70 SGD / €40
 
 ### Notes
-<div class="grid-3">
+
 - Sagohouse
 - Night Hawk
 - The Store
 - Junior The Pocket Bar
-</div>
+
 
 ## 🇲🇾 Kuala Lumpur
 
