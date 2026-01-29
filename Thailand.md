@@ -13,13 +13,14 @@ title: "✈️ Thailandia Trip"
 
 ## 🇸🇬 Singapore
 
-- **13 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)  
+- **13 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)
+  💰 €317.11 (Agoda)
   🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
 
-- **14 Feb** 🏨 The Quay Hotel(Agoda)
+- **14 Feb**  
 
-- **15 Feb** 🏨 The Quay Hotel
-  💰 €317.11
+- **15 Feb**  
+  
 
 - **16 Feb** 🚌 Bus  
   SIN Golden → KL Berjaya Times Square  
@@ -35,12 +36,11 @@ title: "✈️ Thailandia Trip"
 
 ## 🇲🇾 Kuala Lumpur
 
-- **16 Feb** 🏨 [THE FACE Style Hotel](https://www.google.com/maps/search/?api=1&query=THE+FACE+Style+Hotel+Kuala+Lumpur) (Agoda)  
+- **16 Feb** 🏨 [THE FACE Style Hotel](https://www.google.com/maps/search/?api=1&query=THE+FACE+Style+Hotel+Kuala+Lumpur) (Agoda)
+  💰 CHF 131.89  
   🍸 Mesa on 51
 
-- **17 Feb** 🏨 THE FACE Style Hotel
-  💰 CHF 131.89  
-  🛍 Pavilion Kuala Lumpur / 🍜 Jalan Alor Food Street
+- **17 Feb**  🛍 Pavilion Kuala Lumpur / 🍜 Jalan Alor Food Street
 
 - **18 Feb** ✈️ Flight  
   KL (T2) → Krabi (17:05 → 17:25)  
@@ -48,14 +48,12 @@ title: "✈️ Thailandia Trip"
 
 ## 🇹🇭 Krabi / Ao Nang
 
-- **18 Feb** 🏨 [Frank Ao Nang Krabi Resort](https://www.google.com/maps/search/?api=1&query=Frank+Ao+Nang+Krabi+Resort) (Agoda)  
+- **18 Feb** 🏨 [Frank Ao Nang Krabi Resort](https://www.google.com/maps/search/?api=1&query=Frank+Ao+Nang+Krabi+Resort) (Agoda)
+  💰 CHF 126.90   
   📍 Meet at KoKo Hostel at 9:00 PM
 
-- **19 Feb** 🏝 Ao Nang  
-  🏨 Frank Ao Nang Krabi Resort
-  💰 CHF 126.90  
-  🚤 Island tour
-
+- **19 Feb** 🚤 Island tour
+  
 - **20 Feb** ⛴ Ferry Ao Nang → Phuket  
   🌊 Green Planet  
   10:00 (Nopparat Thara Pier) → 11:30 (Laem Hin Pier)  
