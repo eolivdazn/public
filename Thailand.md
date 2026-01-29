@@ -25,6 +25,12 @@ title: "✈️ Thailandia Trip"
   SIN Golden → KL Berjaya Times Square  
   🎟️ [RedBus](https://www.redbus.sg/) – 70 SGD / €40
 
+### Notes
+- Sagohouse
+- Night Hawk
+- The Store
+- Junior The Pocket Bar
+
 ## 🇲🇾 Kuala Lumpur
 
 - **16 Feb** 🏨 THE FACE Style Hotel (Agoda)  
@@ -76,9 +82,4 @@ title: "✈️ Thailandia Trip"
 - **02 Mar** 🏙 Bangkok
 - **03 Mar** ✈️ BKK → GVA (Edu)
 
-## 🍸 Bangkok Nightlife
 
-- Sagohouse
-- Night Hawk
-- The Store
-- Junior The Pocket Bar
