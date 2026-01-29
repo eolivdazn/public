@@ -70,7 +70,7 @@ title: "✈️ Thailandia Trip"
 - **24 Feb** 🌴 Phuket
 - **25 Feb** 🌴 Phuket
 
-- **26 Feb** 🚐 Phuket → Bangkok (BKK)
+- **26 Feb** ✈️ Phuket → Bangkok (BKK) need to be booked
 
 ## 🇹🇭 Bangkok
 
