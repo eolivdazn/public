@@ -61,7 +61,7 @@ title: "✈️ Thailandia Trip"
 
 ## 🇹🇭 Phuket
 
-- **20 Feb** 🏨 [Room in Tambon Choeng Thale](https://maps.app.goo.gl/ucA8bHDQcFG3Uzix7)  
+- **20 Feb** 🏨 [Room in Tambon Choeng Thale](https://maps.app.goo.gl/ucA8bHDQcFG3Uzix7)  (Airbnb)
   💰 Total cost: €387.99
 
 - **21 Feb** 🌴 Phuket
