@@ -16,9 +16,9 @@ title: "✈️ Thailandia Trip"
 - **13 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)  
   🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
 
-- **14 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore) (Agoda)
+- **14 Feb** 🏨 The Quay Hotel(Agoda)
 
-- **15 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)  
+- **15 Feb** 🏨 The Quay Hotel
   💰 €317.11
 
 - **16 Feb** 🚌 Bus  
@@ -36,7 +36,7 @@ title: "✈️ Thailandia Trip"
 - **16 Feb** 🏨 [THE FACE Style Hotel](https://www.google.com/maps/search/?api=1&query=THE+FACE+Style+Hotel+Kuala+Lumpur) (Agoda)  
   🍸 Mesa on 51
 
-- **17 Feb** 🏨 [THE FACE Style Hotel](https://www.google.com/maps/search/?api=1&query=THE+FACE+Style+Hotel+Kuala+Lumpur)  
+- **17 Feb** 🏨 THE FACE Style Hotel
   💰 CHF 131.89  
   🛍 Pavilion Kuala Lumpur / 🍜 Jalan Alor Food Street
 
@@ -50,7 +50,7 @@ title: "✈️ Thailandia Trip"
   📍 Meet at KoKo Hostel at 9:00 PM
 
 - **19 Feb** 🏝 Ao Nang  
-  🏨 [Frank Ao Nang Krabi Resort](https://www.google.com/maps/search/?api=1&query=Frank+Ao+Nang+Krabi+Resort)  
+  🏨 Frank Ao Nang Krabi Resort
   💰 CHF 126.90  
   🚤 Island tour
 
@@ -61,7 +61,7 @@ title: "✈️ Thailandia Trip"
 
 ## 🇹🇭 Phuket
 
-- **20 Feb** 🏨 [Room in Tambon Choeng Thale](https://www.google.com/maps/search/?api=1&query=Tambon+Choeng+Thale+Phuket)  
+- **20 Feb** 🏨 [Room in Tambon Choeng Thale](https://maps.app.goo.gl/ucA8bHDQcFG3Uzix7)  
   💰 Total cost: €387.99
 
 - **21 Feb** 🌴 Phuket
