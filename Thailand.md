@@ -1,37 +1,64 @@
+## Thailandia
 
------- Thailandia ---------
+- **Thu 12 Feb** – Flight GVA → SIN (09:55 → 09:35 on 13/02)
+- **Tue 03 Mar** – Flight BKK → GVA (20:50 → 06:25 on 03/03)  
+  CHF 568.00
 
-Thu,  12  Feb 09:55 GVA -> 09:35 SIN 13/02
-Tue,  03  Ma  20:50 BKK -> 06:25 GVA 03/03
-CHF 568.00
+- **13 Feb** – Singapore (SIN), The Quay Hotel  
+  [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
 
-13 SIN The Quay Hotel [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
-14 SIN The Quay Hotel Agoda
-15 SIN The Quay Hotel 317,11 EUR
-16  -> BUS  SIN golden -> KL Berjaya Times Square [redbus](https://www.redbus.sg/) 70 sgd / 40 euros
+- **14 Feb** – Singapore (SIN), The Quay Hotel (Agoda)
 
-16 KL THE FACE Style Hotel Agoda - Mesa on 51
-17 KL THE FACE Style Hotel CHF 131.89  Pavilion Kuala Lumpur shopping / Jalan Alor Food Street
-18 -> voo KL 17:05 t2 -> Krabi 17:25 € 143.81 Krabi 604276715
+- **15 Feb** – Singapore (SIN), The Quay Hotel  
+  €317.11
 
-18 Ao Nang Frank Ao Nang Krabi Resort Agoda - Meet at KoKo Hostel at 9 PM
-19 Ao Nang Frank Ao Nang Krabi Resort Ao Nang 126,90 CHF -> island tour 
-20 -> Ferry Ao Nang
-Green Planet - 10:00 (Nopparat Thara Pier) > 11:30Laem Hin Pier - THB 861.30 / 23 Eur
+- **16 Feb** – Bus SIN Golden → KL Berjaya Times Square  
+  [RedBus](https://www.redbus.sg/) – 70 SGD / €40
 
-20 Phuket Room in Tambon Choeng Thale Total cost: € 387.99
-21 Phuket
-22 Phuket
-23 Phuket
-24 Phuket 
-25 Phuket 
-26 Phuket -> BKK
+- **16 Feb** – Kuala Lumpur (KL), THE FACE Style Hotel (Agoda)  
+  Mesa on 51
 
-26 BKK
-27 BKK
-28 BKK
-01 BKK Rita -> GVA
-02 BKK
-03 BKK Edu -> GVA
+- **17 Feb** – Kuala Lumpur (KL), THE FACE Style Hotel  
+  CHF 131.89  
+  Pavilion Kuala Lumpur Shopping / Jalan Alor Food Street
 
-Sagohouse > night hawk > the store > junior the pocket bar 
+- **18 Feb** – Flight KL (T2) → Krabi (17:05 → 17:25)  
+  €143.81 – Booking ref: 604276715
+
+- **18 Feb** – Ao Nang, Frank Ao Nang Krabi Resort (Agoda)  
+  Meet at KoKo Hostel at 9:00 PM
+
+- **19 Feb** – Ao Nang, Frank Ao Nang Krabi Resort  
+  CHF 126.90  
+  Island tour
+
+- **20 Feb** – Ferry Ao Nang → Phuket  
+  Green Planet – 10:00 (Nopparat Thara Pier) → 11:30 (Laem Hin Pier)  
+  THB 861.30 / €23
+
+- **20 Feb** – Phuket, Room in Tambon Choeng Thale  
+  Total cost: €387.99
+
+- **21 Feb** – Phuket
+- **22 Feb** – Phuket
+- **23 Feb** – Phuket
+- **24 Feb** – Phuket
+- **25 Feb** – Phuket
+
+- **26 Feb** – Phuket → Bangkok (BKK)
+
+- **26 Feb** – Bangkok (BKK)
+- **27 Feb** – Bangkok (BKK)
+- **28 Feb** – Bangkok (BKK)
+
+- **01 Mar** – Bangkok (BKK) → GVA (Rita)
+- **02 Mar** – Bangkok (BKK)
+- **03 Mar** – Bangkok (BKK) → GVA (Edu)
+
+---
+
+**Singapure bars / nightlife**
+- Sagohouse
+- Night Hawk
+- The Store
+- Junior The Pocket Bar
