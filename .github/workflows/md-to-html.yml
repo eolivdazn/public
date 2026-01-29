@@ -30,7 +30,7 @@ jobs:
       - name: Convert Markdown to HTML
         run: |
           mkdir -p site
-          pandoc Thailand.md -f markdown -t html -s -o site/index.html
+          pandoc Thailand.md -f markdown -t html -s -o site/index.html --css=assets/css/style.css
 
       # 4️⃣ Upload do artifact para GitHub Pages
       - name: Upload Pages artifact
