@@ -13,12 +13,12 @@ title: "✈️ Thailandia Trip"
 
 ## 🇸🇬 Singapore
 
-- **13 Feb** 🏨 The Quay Hotel  
+- **13 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)  
   🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
 
-- **14 Feb** 🏨 The Quay Hotel (Agoda)
+- **14 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore) (Agoda)
 
-- **15 Feb** 🏨 The Quay Hotel  
+- **15 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)  
   💰 €317.11
 
 - **16 Feb** 🚌 Bus  
@@ -33,10 +33,10 @@ title: "✈️ Thailandia Trip"
 
 ## 🇲🇾 Kuala Lumpur
 
-- **16 Feb** 🏨 THE FACE Style Hotel (Agoda)  
+- **16 Feb** 🏨 [THE FACE Style Hotel](https://www.google.com/maps/search/?api=1&query=THE+FACE+Style+Hotel+Kuala+Lumpur) (Agoda)  
   🍸 Mesa on 51
 
-- **17 Feb** 🏨 THE FACE Style Hotel  
+- **17 Feb** 🏨 [THE FACE Style Hotel](https://www.google.com/maps/search/?api=1&query=THE+FACE+Style+Hotel+Kuala+Lumpur)  
   💰 CHF 131.89  
   🛍 Pavilion Kuala Lumpur / 🍜 Jalan Alor Food Street
 
@@ -46,11 +46,11 @@ title: "✈️ Thailandia Trip"
 
 ## 🇹🇭 Krabi / Ao Nang
 
-- **18 Feb** 🏨 Frank Ao Nang Krabi Resort (Agoda)  
+- **18 Feb** 🏨 [Frank Ao Nang Krabi Resort](https://www.google.com/maps/search/?api=1&query=Frank+Ao+Nang+Krabi+Resort) (Agoda)  
   📍 Meet at KoKo Hostel at 9:00 PM
 
 - **19 Feb** 🏝 Ao Nang  
-  🏨 Frank Ao Nang Krabi Resort  
+  🏨 [Frank Ao Nang Krabi Resort](https://www.google.com/maps/search/?api=1&query=Frank+Ao+Nang+Krabi+Resort)  
   💰 CHF 126.90  
   🚤 Island tour
 
@@ -61,7 +61,7 @@ title: "✈️ Thailandia Trip"
 
 ## 🇹🇭 Phuket
 
-- **20 Feb** 🏨 Room in Tambon Choeng Thale  
+- **20 Feb** 🏨 [Room in Tambon Choeng Thale](https://www.google.com/maps/search/?api=1&query=Tambon+Choeng+Thale+Phuket)  
   💰 Total cost: €387.99
 
 - **21 Feb** 🌴 Phuket
@@ -81,5 +81,3 @@ title: "✈️ Thailandia Trip"
 - **01 Mar** ✈️ BKK → GVA (Rita)
 - **02 Mar** 🏙 Bangkok
 - **03 Mar** ✈️ BKK → GVA (Edu)
-
-
