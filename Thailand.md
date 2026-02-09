@@ -28,6 +28,7 @@ title: "✈️ Thailandia Trip"
   - 🏋️[crossfit](https://www.crossfiturbanedge.com/)
   - 🚶[Forest walk](https://travellinghan.com/2025/07/16/mount-faber-the-southern-ridges-a-wonderful-walk-in-singapore/)
   - 🚦 Shows are at 8pm and 9pm, with an additional show at 10pm on Fridays and Saturdays.
+  - 🍽️ Satay Street @ Lau Pa Sat
 
 - **15 Feb**  
   
