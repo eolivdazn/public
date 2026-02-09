@@ -32,7 +32,7 @@ title: "✈️ Thailandia Trip"
   - 🚶[Forest walk](https://travellinghan.com/2025/07/16/mount-faber-the-southern-ridges-a-wonderful-walk-in-singapore/)
   - 🚦 Shows are at 8pm and 9pm, with an additional show at 10pm on Fridays and Saturdays.
   - 🍽️ Satay Street @ Lau Pa Sat  / Maxwell Food Centre / Chinatown Complex Food Centre
-
+- https://vm.tiktok.com/ZGdmTG8t6/
 
 - **15 Feb**  
   
