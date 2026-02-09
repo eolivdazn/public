@@ -58,6 +58,7 @@ title: "✈️ Thailandia Trip"
 - **17 Feb**  
 - 🛍 Pavilion Kuala Lumpur / 🍜 Jalan Alor Food Street
 - Food tour 
+- imersive Kl
 
 - **18 Feb** ✈️ Flight  
   KL (T2) → Krabi (17:05 → 17:25)  
