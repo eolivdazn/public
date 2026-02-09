@@ -15,9 +15,19 @@ title: "✈️ Thailandia Trip"
 
 - **13 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)
   💰 €317.11 (Agoda)
-  🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
 
-- **14 Feb**  
+- **14 Feb**
+ 🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
+![Singapore Free Walking Tours](https://static.wixstatic.com/media/f0e24e_5ace658e282b4b33aa2290c5181c7126~mv2.png)
+
+  - 🚲 [Bike rent](https://www.helloride-global.com/)
+  - 🌴 Warner/Sentosa
+  - 🏚️ [nationalgallery](https://www.nationalgallery.sg/sg/en.html)
+  - 🌳 [gardensbythebay](https://www.gardensbythebay.com.sg/)
+  - ⛵[cruise](https://rivercruise.com.sg/)
+  - 🏋️[crossfit](https://www.crossfiturbanedge.com/)
+  - 🚶[Forest walk](https://travellinghan.com/2025/07/16/mount-faber-the-southern-ridges-a-wonderful-walk-in-singapore/)
+  - 🚦 Shows are at 8pm and 9pm, with an additional show at 10pm on Fridays and Saturdays.
 
 - **15 Feb**  
   
