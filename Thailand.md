@@ -55,7 +55,9 @@ title: "✈️ Thailandia Trip"
   💰 CHF 131.89  
   🍸 Mesa on 51
 
-- **17 Feb**  🛍 Pavilion Kuala Lumpur / 🍜 Jalan Alor Food Street
+- **17 Feb**  
+- 🛍 Pavilion Kuala Lumpur / 🍜 Jalan Alor Food Street
+- Food tour 
 
 - **18 Feb** ✈️ Flight  
   KL (T2) → Krabi (17:05 → 17:25)  
