@@ -12,6 +12,9 @@ title: "✈️ Thailandia Trip"
   💰 CHF 568.00
 
 ## 🇸🇬 Singapore
+ - 1 SGD a 0,66 EUR
+ - 5  Eur 7,5 SGD / 10 Eur 15 SGD
+  
 
 - **13 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)
   💰 €317.11 (Agoda)
@@ -28,7 +31,8 @@ title: "✈️ Thailandia Trip"
   - 🏋️[crossfit](https://www.crossfiturbanedge.com/)
   - 🚶[Forest walk](https://travellinghan.com/2025/07/16/mount-faber-the-southern-ridges-a-wonderful-walk-in-singapore/)
   - 🚦 Shows are at 8pm and 9pm, with an additional show at 10pm on Fridays and Saturdays.
-  - 🍽️ Satay Street @ Lau Pa Sat
+  - 🍽️ Satay Street @ Lau Pa Sat  / Maxwell Food Centre / Chinatown Complex Food Centre
+
 
 - **15 Feb**  
   
