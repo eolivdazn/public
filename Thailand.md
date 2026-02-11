@@ -16,8 +16,9 @@ title: "✈️ Thailandia Trip"
  - 5  Eur 7,5 SGD / 10 Eur 15 SGD
   
 
-- **13 Feb** 🏨 [The Quay Hotel](https://www.google.com/maps/search/?api=1&query=The+Quay+Hotel+Singapore)
-  💰 €317.11 (Agoda)
+- **13 Feb** 🏨 [ibis budget Singapore Clarke Quay
+](https://maps.app.goo.gl/RW1eysar6z89QPxf8)
+  💰 €317.11 (Accor) Paid
 
 - **14 Feb**
  🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
@@ -79,7 +80,7 @@ title: "✈️ Thailandia Trip"
 
 ## 🇹🇭 Phuket
 
-- **20 Feb** 🏨 [Room in Tambon Choeng Thale](https://maps.app.goo.gl/ucA8bHDQcFG3Uzix7)  (Airbnb)
+- **20 Feb** 🏨 [Room in Tambon Choeng Thale](https://maps.app.goo.gl/ucA8bHDQcFG3Uzix7)  (Airbnb) Paid
   💰 Total cost: €387.99
 
 - **21 Feb** 🌴 Phuket
