@@ -1,4 +1,4 @@
-name: Deploy Thailand.md to GitHub Pages
+name: Deploy Markdown files to GitHub Pages
 
 on:
   push:
@@ -24,11 +24,31 @@ jobs:
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
-      # 3️⃣ Converter Thailand.md para HTML
+      # 3️⃣ Converter todos os arquivos Markdown para HTML
       - name: Convert Markdown to HTML
         run: |
+          set -euo pipefail
           mkdir -p site
-          pandoc Thailand.md -f markdown -t html -s -o site/index.html
+
+          # Usa Thailand.md como home quando existir; caso contrario usa o primeiro .md
+          if [ -f "Thailand.md" ]; then
+            home_md="Thailand.md"
+          else
+            home_md="$(find . -maxdepth 1 -type f -name '*.md' | head -n 1)"
+          fi
+
+          if [ -z "${home_md:-}" ]; then
+            echo "No markdown files found at repo root."
+            exit 1
+          fi
+
+          pandoc "$home_md" -f markdown -t html -s -o site/index.html
+
+          for md in *.md; do
+            [ -f "$md" ] || continue
+            base="${md%.md}"
+            pandoc "$md" -f markdown -t html -s -o "site/${base}.html"
+          done
 
       # 4️⃣ Upload do artifact para GitHub Pages
       - name: Upload Pages artifact
