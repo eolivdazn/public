@@ -491,6 +491,33 @@ a:hover {
   display: block;
 }
 
+.expense-entry-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.expense-entry-delete {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.expense-entry-delete:hover:not(:disabled) {
+  color: var(--danger, #c0392b);
+  border-color: var(--danger, #c0392b);
+}
+
+.expense-entry-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .expense-entry span,
 .expense-entry p {
   margin: 4px 0 0;

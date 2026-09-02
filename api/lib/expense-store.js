@@ -112,7 +112,12 @@ function createExpenseStore({ container } = {}) {
     return entry;
   }
 
-  return { listEntries, addEntry };
+  async function removeEntry(tripSlug, id) {
+    const targetContainer = await getContainer();
+    await targetContainer.item(id, tripSlug).delete();
+  }
+
+  return { listEntries, addEntry, removeEntry };
 }
 
 let defaultStore = null;
@@ -127,5 +132,6 @@ module.exports = {
   createExpenseStore,
   normalizeExpenseInput,
   listEntries: (tripSlug) => getDefaultStore().listEntries(tripSlug),
-  addEntry: (payload) => getDefaultStore().addEntry(payload)
+  addEntry: (payload) => getDefaultStore().addEntry(payload),
+  removeEntry: (tripSlug, id) => getDefaultStore().removeEntry(tripSlug, id)
 };

@@ -348,6 +348,7 @@ export function App() {
   const [liveExpenseError, setLiveExpenseError] = useState("");
   const [expenseStatus, setExpenseStatus] = useState("");
   const [savingExpense, setSavingExpense] = useState(false);
+  const [deletingEntryId, setDeletingEntryId] = useState(null);
   const [isExpenseSectionOpen, setIsExpenseSectionOpen] = useState(false);
   const isYearFilterDisabled = activeTrip !== "all";
 
@@ -580,6 +581,30 @@ export function App() {
       setExpenseStatus(submitError.message || "Could not save expense.");
     } finally {
       setSavingExpense(false);
+    }
+  }
+
+  async function handleExpenseDelete(entry) {
+    setDeletingEntryId(entry.id);
+    setExpenseStatus("");
+
+    try {
+      const response = await fetch(
+        `/api/expenses?id=${encodeURIComponent(entry.id)}&tripSlug=${encodeURIComponent(entry.tripSlug)}`,
+        { method: "DELETE" }
+      );
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.error || `Could not delete expense (${response.status}).`);
+      }
+
+      setAllLiveEntries((current) => current.filter((item) => item.id !== entry.id));
+      setExpenseStatus("Expense deleted.");
+    } catch (deleteError) {
+      setExpenseStatus(deleteError.message || "Could not delete expense.");
+    } finally {
+      setDeletingEntryId(null);
     }
   }
 
@@ -840,9 +865,20 @@ export function App() {
                               <span>{entry.date}</span>
                               {entry.description ? <p>{entry.description}</p> : null}
                             </div>
-                            <strong>
-                              {formatCurrency(entry.amount, entry.currency || selectedExpenseSnapshot.baseCurrency)}
-                            </strong>
+                            <div className="expense-entry-actions">
+                              <strong>
+                                {formatCurrency(entry.amount, entry.currency || selectedExpenseSnapshot.baseCurrency)}
+                              </strong>
+                              <button
+                                type="button"
+                                className="expense-entry-delete"
+                                disabled={deletingEntryId === entry.id}
+                                onClick={() => handleExpenseDelete(entry)}
+                                aria-label={`Delete expense: ${entry.category} on ${entry.date}`}
+                              >
+                                {deletingEntryId === entry.id ? "Removing..." : "Remove"}
+                              </button>
+                            </div>
                           </li>
                         ))}
                       </ul>

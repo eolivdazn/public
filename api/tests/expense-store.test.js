@@ -27,6 +27,17 @@ function createFakeContainer() {
           }
         };
       }
+    },
+    item(id, partitionKey) {
+      return {
+        async delete() {
+          const index = items.findIndex((entry) => entry.id === id && entry.tripSlug === partitionKey);
+          if (index === -1) {
+            throw new Error("Entity not found.");
+          }
+          items.splice(index, 1);
+        }
+      };
     }
   };
 }
@@ -80,4 +91,9 @@ test("store persists and filters expenses by tripSlug", async () => {
   assert.equal(filtered.length, 1);
   assert.equal(filtered[0].tripSlug, "algarve2026");
   assert.equal(filtered[0].amount, 12.34);
+
+  await expenseStore.removeEntry("algarve2026", first.id);
+  const afterRemoval = await expenseStore.listEntries();
+  assert.equal(afterRemoval.length, 1);
+  assert.equal(afterRemoval[0].id, second.id);
 });
