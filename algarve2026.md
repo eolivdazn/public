@@ -11,6 +11,14 @@ places:
     country: Portugal
     startDate: "2026-09-13"
     endDate: "2026-09-19"
+expenses:
+  baseCurrency: EUR
+  partySize: 2
+  categories:
+    flights: 300
+    hotel: 1100
+    food: 0
+    entertainment: 0
 ---
 ## 🏖️ Algarve – Salgados Trip
 - **13–19 Sep** 🏨 [Algarve Marriott Salgados Golf Resort & Conference Center (ex NAU Salgados Palace)](https://www.marriott.com/en-us/hotels/faosp-algarve-marriott-salgados-golf-resort-and-conference-center/overview/)

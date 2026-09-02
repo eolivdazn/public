@@ -10,6 +10,14 @@ places:
     country: Egypt
     startDate: "2027-01-23"
     endDate: "2027-01-31"
+expenses:
+  baseCurrency: EUR
+  partySize: 2
+  categories:
+    flights: 200
+    hotel: 800
+    food: 0
+    entertainment: 0
 ---
 ## 🏖️ El Gouna Trip
 - **Sat 23 Jan** ✈️ Flight

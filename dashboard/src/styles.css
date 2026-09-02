@@ -2,10 +2,12 @@
   color-scheme: light;
   --bg: #f6f8fc;
   --surface: #ffffff;
+  --surface-alt: #eef3ff;
   --border: #d8e1f0;
   --text: #18243b;
   --muted: #5b6b85;
   --accent: #2f63ff;
+  --accent-soft: #dbe5ff;
 }
 
 * {
@@ -46,6 +48,16 @@ a:hover {
   margin: 0 0 10px;
 }
 
+.eyebrow {
+  display: inline-block;
+  margin-bottom: 8px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
 .header p {
   margin: 0;
   color: var(--muted);
@@ -55,6 +67,92 @@ a:hover {
 .back-link {
   white-space: nowrap;
   font-weight: 600;
+}
+
+.toolbar {
+  margin-bottom: 18px;
+}
+
+.toolbar-row {
+  display: flex;
+  gap: 16px;
+  align-items: end;
+  flex-wrap: wrap;
+}
+
+.trip-filter-block {
+  min-width: 280px;
+}
+
+.field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.segmented-control {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.segmented-control button,
+.year-summary-card {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.segmented-control button {
+  padding: 9px 14px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.trip-filter-block select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 14px;
+  font: inherit;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.trip-filter-block select:focus {
+  outline: 2px solid var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.segmented-control button:hover,
+.year-summary-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.segmented-control button:disabled,
+.year-summary-card:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+  transform: none;
+  border-color: var(--border);
+}
+
+.segmented-control button:disabled:hover,
+.year-summary-card:disabled:hover {
+  border-color: var(--border);
+  transform: none;
+}
+
+.segmented-control .is-active,
+.year-summary-card.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #ffffff;
 }
 
 .stats-grid {
@@ -83,6 +181,87 @@ a:hover {
   color: var(--muted);
 }
 
+.stat-hint {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.section-stack {
+  margin-bottom: 18px;
+}
+
+.section-heading-row {
+  margin-bottom: 14px;
+}
+
+.section-heading-row h2 {
+  margin: 0 0 6px;
+}
+
+.section-copy {
+  margin: 0;
+  color: var(--muted);
+}
+
+.year-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.year-summary-card {
+  width: 100%;
+  text-align: left;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.year-summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.year-summary-top span,
+.year-summary-card p {
+  color: var(--muted);
+}
+
+.year-summary-card.is-active .year-summary-top span,
+.year-summary-card.is-active p {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.year-summary-bar {
+  height: 8px;
+  border-radius: 999px;
+  background: #edf1f7;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.year-summary-card.is-active .year-summary-bar {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.year-summary-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #5f86ff, var(--accent));
+}
+
+.year-summary-card.is-active .year-summary-bar span {
+  background: #ffffff;
+}
+
+.year-summary-card p {
+  margin: 0;
+}
+
 .year-block {
   margin-bottom: 18px;
 }
@@ -103,6 +282,10 @@ a:hover {
   margin: 12px 0;
 }
 
+.finance-grid {
+  margin-bottom: 18px;
+}
+
 .tag-list {
   list-style: none;
   padding: 0;
@@ -113,11 +296,45 @@ a:hover {
 }
 
 .tag-list li {
-  background: #eef3ff;
+  background: var(--surface-alt);
   border: 1px solid #cad8ff;
   border-radius: 999px;
   padding: 7px 11px;
   font-size: 0.92rem;
+}
+
+.finance-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+}
+
+.finance-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.finance-list li:last-child {
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.finance-list span {
+  color: var(--muted);
+}
+
+.finance-list strong {
+  text-align: right;
+}
+
+.finance-list.compact {
+  gap: 10px;
 }
 
 .table-wrap {

@@ -38,6 +38,45 @@
       "type": "string",
       "const": "inclusive"
     },
+    "expenses": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": ["baseCurrency", "categories"],
+      "properties": {
+        "baseCurrency": {
+          "type": "string",
+          "minLength": 1
+        },
+        "partySize": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 2
+        },
+        "categories": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "flights": {
+              "type": "number",
+              "minimum": 0
+            },
+            "hotel": {
+              "type": "number",
+              "minimum": 0
+            },
+            "food": {
+              "type": "number",
+              "minimum": 0
+            },
+            "entertainment": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "required": ["flights", "hotel", "food", "entertainment"]
+        }
+      }
+    },
     "places": {
       "type": "array",
       "minItems": 1,
