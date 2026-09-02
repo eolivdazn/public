@@ -24,31 +24,52 @@ jobs:
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
-      # 3️⃣ Converter todos os arquivos Markdown para HTML
+      # 3️⃣ Converter todos os arquivos Markdown para HTML e gerar um indice
       - name: Convert Markdown to HTML
         run: |
           set -euo pipefail
           mkdir -p site
 
-          # Usa Thailand.md como home quando existir; caso contrario usa o primeiro .md
-          if [ -f "Thailand.md" ]; then
-            home_md="Thailand.md"
-          else
-            home_md="$(find . -maxdepth 1 -type f -name '*.md' | head -n 1)"
-          fi
+          shopt -s nullglob
+          md_files=(*.md)
 
-          if [ -z "${home_md:-}" ]; then
+          if [ ${#md_files[@]} -eq 0 ]; then
             echo "No markdown files found at repo root."
             exit 1
           fi
 
-          pandoc "$home_md" -f markdown -t html -s -o site/index.html
-
-          for md in *.md; do
-            [ -f "$md" ] || continue
+          # Converte cada markdown para uma pagina html.
+          for md in "${md_files[@]}"; do
             base="${md%.md}"
             pandoc "$md" -f markdown -t html -s -o "site/${base}.html"
           done
+
+          # Gera index.html com links para todas as paginas criadas.
+          {
+            cat <<'HTML'
+          <!doctype html>
+          <html lang="en">
+          <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <title>Travel Pages</title>
+          </head>
+          <body>
+            <h1>Travel Pages</h1>
+            <ul>
+          HTML
+
+            for md in "${md_files[@]}"; do
+              base="${md%.md}"
+              printf '      <li><a href="%s.html">%s</a></li>\n' "$base" "$base"
+            done
+
+            cat <<'HTML'
+            </ul>
+          </body>
+          </html>
+          HTML
+          } > site/index.html
 
       # 4️⃣ Upload do artifact para GitHub Pages
       - name: Upload Pages artifact
