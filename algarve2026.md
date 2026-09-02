@@ -1,5 +1,16 @@
 ---
 title: "🏖️ Algarve – Salgados Trip 2026"
+schema: travel-dashboard/v1
+tripType: vacation
+startDate: "2026-09-13"
+endDate: "2026-09-19"
+dateCounting: inclusive
+places:
+  - city: Guia
+    region: Algarve
+    country: Portugal
+    startDate: "2026-09-13"
+    endDate: "2026-09-19"
 ---
 ## 🏖️ Algarve – Salgados Trip
 - **13–19 Sep** 🏨 [Algarve Marriott Salgados Golf Resort & Conference Center (ex NAU Salgados Palace)](https://www.marriott.com/en-us/hotels/faosp-algarve-marriott-salgados-golf-resort-and-conference-center/overview/)

@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.com/travel.schema.json",
+  "title": "Travel Dashboard Frontmatter",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "title",
+    "schema",
+    "tripType",
+    "startDate",
+    "endDate",
+    "dateCounting",
+    "places"
+  ],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "schema": {
+      "type": "string",
+      "const": "travel-dashboard/v1"
+    },
+    "tripType": {
+      "type": "string",
+      "const": "vacation"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "endDate": {
+      "type": "string",
+      "format": "date"
+    },
+    "dateCounting": {
+      "type": "string",
+      "const": "inclusive"
+    },
+    "places": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "required": ["city", "country", "startDate", "endDate"],
+        "properties": {
+          "city": {
+            "type": "string",
+            "minLength": 1
+          },
+          "region": {
+            "type": "string"
+          },
+          "country": {
+            "type": "string",
+            "minLength": 1
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,24 @@
+{
+  "name": "travel-dashboard-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build:site": "node scripts/build-site.mjs",
+    "build:dashboard": "vite build",
+    "build": "npm run build:site && npm run build:dashboard",
+    "dev:dashboard": "vite",
+    "preview:dashboard": "vite preview",
+    "test": "node --test scripts/travel-data.test.mjs"
+  },
+  "dependencies": {
+    "gray-matter": "^4.0.3",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite": "^5.4.8"
+  }
+}
+

@@ -1,5 +1,15 @@
 ---
 title: "🏖️ El Gouna Trip 2027"
+schema: travel-dashboard/v1
+tripType: vacation
+startDate: "2027-01-23"
+endDate: "2027-01-31"
+dateCounting: inclusive
+places:
+  - city: El Gouna
+    country: Egypt
+    startDate: "2027-01-23"
+    endDate: "2027-01-31"
 ---
 ## 🏖️ El Gouna Trip
 - **Sat 23 Jan** ✈️ Flight

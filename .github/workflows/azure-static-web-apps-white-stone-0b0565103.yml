@@ -20,62 +20,23 @@ jobs:
           submodules: true
           lfs: false
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
-      - name: Build static site from Markdown
-        run: |
-          set -euo pipefail
-          mkdir -p site
+      - name: Build static pages and dashboard data
+        run: npm run build:site
 
-          shopt -s nullglob
-          md_files=()
-          for md in *.md; do
-            [ -f "$md" ] || continue
-            [ "$md" = "README.md" ] && continue
-            md_files+=("$md")
-          done
-
-          if [ ${#md_files[@]} -eq 0 ]; then
-            echo "No markdown files found at repo root (excluding README.md)."
-            exit 1
-          fi
-
-          for md in "${md_files[@]}"; do
-            base="${md%.md}"
-            pandoc "$md" -f markdown -t html -s -o "site/${base}.html"
-          done
-
-          {
-            cat <<'HTML'
-          <!doctype html>
-          <html lang="en">
-          <head>
-            <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1">
-            <title>Travel Pages</title>
-          </head>
-          <body>
-            <h1>Travel Pages</h1>
-            <ul>
-          HTML
-
-            for md in "${md_files[@]}"; do
-              base="${md%.md}"
-              printf '      <li><a href="%s.html">%s</a></li>\n' "$base" "$base"
-            done
-
-            cat <<'HTML'
-            </ul>
-          </body>
-          </html>
-          HTML
-          } > site/index.html
-
-          # SWA reads config from the deployed app root.
-          if [ -f "staticwebapp.config.json" ]; then
-            cp staticwebapp.config.json site/staticwebapp.config.json
-          fi
+      - name: Build React dashboard
+        run: npm run build:dashboard
 
       - name: Build And Deploy
         id: builddeploy
