@@ -31,10 +31,15 @@ jobs:
           mkdir -p site
 
           shopt -s nullglob
-          md_files=(*.md)
+          md_files=()
+          for md in *.md; do
+            [ -f "$md" ] || continue
+            [ "$md" = "README.md" ] && continue
+            md_files+=("$md")
+          done
 
           if [ ${#md_files[@]} -eq 0 ]; then
-            echo "No markdown files found at repo root."
+            echo "No markdown files found at repo root (excluding README.md)."
             exit 1
           fi
 
