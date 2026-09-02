@@ -21,3 +21,18 @@
 - Build React dashboard: `npm run build:dashboard`
 - Full build: `npm run build`
 
+## Expenses API (Cosmos DB)
+
+`api/` is an Azure Functions app (managed by Static Web Apps) backed by an Azure Cosmos DB
+account, exposing `GET /api/expenses/{tripSlug?}` and `POST /api/expenses`.
+
+- Local dev: `cd api && npm install && cp local.settings.json.example local.settings.json`,
+  fill in `COSMOS_CONNECTION_STRING`, then `npm start` (requires Azure Functions Core Tools).
+- Cosmos DB setup: create a database (`COSMOS_DATABASE_ID`, default `travel-dashboard`) and a
+  container (`COSMOS_CONTAINER_ID`, default `expenses`) with partition key `/tripSlug`.
+- Deployed app settings: set `COSMOS_CONNECTION_STRING`, `COSMOS_DATABASE_ID`, and
+  `COSMOS_CONTAINER_ID` on the Static Web App itself, e.g.:
+  `az staticwebapp appsettings set --name <swa-name> --setting-names COSMOS_CONNECTION_STRING="<value>" COSMOS_DATABASE_ID=travel-dashboard COSMOS_CONTAINER_ID=expenses`
+- `staticwebapp.config.json` already gates `/*` (which includes `/api/*`) behind GitHub login,
+  so the Functions endpoints don't need their own auth check.
+
