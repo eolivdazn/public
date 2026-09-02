@@ -1,11 +1,11 @@
 # Public Pages Links
 
-## GitHub Pages
+## Azure Static Web App
 
-- Home: [https://eolivdazn.github.io/public/](https://eolivdazn.github.io/public/)
-- Thailand: [https://eolivdazn.github.io/public/Thailand.html](https://eolivdazn.github.io/public/Thailand.html)
-- El Gouna: [https://eolivdazn.github.io/public/el-gouna.html](https://eolivdazn.github.io/public/el-gouna.html)
+- Home: [https://white-stone-0b0565103.5.azurestaticapps.net/](https://white-stone-0b0565103.5.azurestaticapps.net/)
+- Thailand: [https://white-stone-0b0565103.5.azurestaticapps.net/Thailand.html](https://white-stone-0b0565103.5.azurestaticapps.net/Thailand.html)
+- El Gouna: [https://white-stone-0b0565103.5.azurestaticapps.net/el-gouna.html](https://white-stone-0b0565103.5.azurestaticapps.net/el-gouna.html)
 
-## Actions Workflow.
+## Actions Workflow
 
-- Deploy workflow: [md-to-html.yml](https://github.com/eolivdazn/public/actions/workflows/md-to-html.yml)
+- Deploy workflow: [Azure Static Web Apps CI/CD](https://github.com/eolivdazn/public/actions/workflows/azure-static-web-apps-white-stone-0b0565103.yml)
