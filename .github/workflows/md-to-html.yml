@@ -13,7 +13,7 @@ permissions:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    environment: github-pages   # obrigatório
+    environment: github-pages
 
     steps:
       # 1️⃣ Clonar repositório
