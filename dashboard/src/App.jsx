@@ -57,9 +57,82 @@ function extractCountriesFromCities(cities) {
   return [...new Set((cities || []).map((city) => city.split(", ").slice(1).join(", ")).filter(Boolean))].sort();
 }
 
-function filterYearItemByTrip(yearItem, tripSlug) {
+function liveEntriesForYear(entries, year) {
+  return (entries || []).filter((entry) => new Date(`${entry.date}T00:00:00Z`).getUTCFullYear() === Number(year));
+}
+
+function combineTripYearSlice(tripSlice, liveEntriesInYear) {
+  const tripLiveEntries = (liveEntriesInYear || []).filter((entry) => entry.tripSlug === tripSlice.slug);
+  if (tripLiveEntries.length === 0) {
+    return tripSlice;
+  }
+
+  const liveSummary = aggregateExpenseEntries(tripLiveEntries);
+  const baseExpenses = tripSlice.expenses || {};
+  const categories = createEmptyExpenseCategories();
+  for (const category of Object.keys(categories)) {
+    categories[category] = roundMoney((baseExpenses.categories?.[category] || 0) + (liveSummary.categories[category] || 0));
+  }
+  const partySize = baseExpenses.partySize || 2;
+  const total = roundMoney((baseExpenses.total || 0) + liveSummary.total);
+
+  return {
+    ...tripSlice,
+    expenses: {
+      ...baseExpenses,
+      categories,
+      total,
+      totalPerPerson: partySize > 0 ? roundMoney(total / partySize) : 0
+    },
+    liveCount: liveSummary.count
+  };
+}
+
+function summarizeYearTrips(trips) {
+  const expenseCategories = createEmptyExpenseCategories();
+  let totalTrackedSpend = 0;
+  let totalPerPersonSpend = 0;
+  let trackedTripCount = 0;
+  let expenseCurrency = null;
+  const partySizes = [];
+
+  for (const trip of trips) {
+    totalTrackedSpend = roundMoney(totalTrackedSpend + (trip.expenses?.total || 0));
+    totalPerPersonSpend = roundMoney(totalPerPersonSpend + (trip.expenses?.totalPerPerson || 0));
+    for (const category of Object.keys(expenseCategories)) {
+      expenseCategories[category] = roundMoney(expenseCategories[category] + (trip.expenses?.categories?.[category] || 0));
+    }
+    if (trip.expenses?.isTracked) {
+      trackedTripCount += 1;
+      partySizes.push(trip.expenses.partySize || 2);
+      expenseCurrency ||= trip.expenses.baseCurrency || null;
+    }
+  }
+
+  return { totalTrackedSpend, totalPerPersonSpend, expenseCategories, trackedTripCount, partySizes, expenseCurrency };
+}
+
+function filterYearItemByTrip(yearItem, tripSlug, liveEntries) {
+  const yearLiveEntries = liveEntriesForYear(liveEntries, yearItem.year);
+
   if (tripSlug === "all") {
-    return yearItem;
+    const combinedTrips = (yearItem.trips || []).map((trip) => combineTripYearSlice(trip, yearLiveEntries));
+    const totals = summarizeYearTrips(combinedTrips);
+
+    return {
+      ...yearItem,
+      totalTrackedSpend: totals.totalTrackedSpend,
+      totalPerPersonSpend: totals.totalPerPersonSpend,
+      expenseCategories: totals.expenseCategories,
+      expenseCurrency: yearItem.expenseCurrency || totals.expenseCurrency,
+      averageSpendPerTrip: yearItem.trackedTripCount > 0 ? roundMoney(totals.totalTrackedSpend / yearItem.trackedTripCount) : 0,
+      averagePerPersonSpendPerTrip:
+        yearItem.trackedTripCount > 0 ? roundMoney(totals.totalPerPersonSpend / yearItem.trackedTripCount) : 0,
+      averageSpendPerDay: yearItem.totalVacationDays > 0 ? roundMoney(totals.totalTrackedSpend / yearItem.totalVacationDays) : 0,
+      averagePerPersonSpendPerDay:
+        yearItem.totalVacationDays > 0 ? roundMoney(totals.totalPerPersonSpend / yearItem.totalVacationDays) : 0,
+      trips: combinedTrips
+    };
   }
 
   const trip = (yearItem.trips || []).find((item) => item.slug === tripSlug);
@@ -67,34 +140,34 @@ function filterYearItemByTrip(yearItem, tripSlug) {
     return null;
   }
 
-  const cities = [...new Set(trip.cities || [])].sort();
+  const combinedTrip = combineTripYearSlice(trip, yearLiveEntries);
+  const cities = [...new Set(combinedTrip.cities || [])].sort();
   const countries = extractCountriesFromCities(cities);
-  const tripCount = 1;
-  const trackedTripCount = trip.expenses?.isTracked ? 1 : 0;
-  const totalTrackedSpend = trip.expenses?.total || 0;
-  const totalPerPersonSpend = trip.expenses?.totalPerPerson || 0;
-  const partySize = trip.expenses?.partySize || 2;
+  const trackedTripCount = combinedTrip.expenses?.isTracked ? 1 : 0;
+  const totalTrackedSpend = combinedTrip.expenses?.total || 0;
+  const totalPerPersonSpend = combinedTrip.expenses?.totalPerPerson || 0;
+  const partySize = combinedTrip.expenses?.partySize || 2;
 
   return {
     ...yearItem,
-    totalVacationDays: trip.vacationDays,
+    totalVacationDays: combinedTrip.vacationDays,
     totalTrackedSpend,
     totalPerPersonSpend,
-    expenseCategories: trip.expenses?.categories || { flights: 0, hotel: 0, food: 0, entertainment: 0 },
-    expenseCurrency: trip.expenses?.baseCurrency || null,
-    partySizes: trip.expenses?.isTracked ? [partySize] : [],
+    expenseCategories: combinedTrip.expenses?.categories || createEmptyExpenseCategories(),
+    expenseCurrency: combinedTrip.expenses?.baseCurrency || null,
+    partySizes: combinedTrip.expenses?.isTracked ? [partySize] : [],
     trackedTripCount,
     averageSpendPerTrip: trackedTripCount > 0 ? totalTrackedSpend : 0,
     averagePerPersonSpendPerTrip: trackedTripCount > 0 ? totalPerPersonSpend : 0,
-    averageSpendPerDay: trip.vacationDays > 0 ? Math.round((totalTrackedSpend / trip.vacationDays) * 100) / 100 : 0,
+    averageSpendPerDay: combinedTrip.vacationDays > 0 ? roundMoney(totalTrackedSpend / combinedTrip.vacationDays) : 0,
     averagePerPersonSpendPerDay:
-      trip.vacationDays > 0 ? Math.round((totalPerPersonSpend / trip.vacationDays) * 100) / 100 : 0,
-    tripCount,
+      combinedTrip.vacationDays > 0 ? roundMoney(totalPerPersonSpend / combinedTrip.vacationDays) : 0,
+    tripCount: 1,
     cityCount: cities.length,
     countryCount: countries.length,
     cities,
     countries,
-    trips: [trip]
+    trips: [combinedTrip]
   };
 }
 
@@ -219,7 +292,8 @@ function calculateTripExpenseSnapshot(trip, liveEntries) {
 }
 
 async function fetchExpenseEntries(tripSlug) {
-  const response = await fetch(`/api/expenses?tripSlug=${encodeURIComponent(tripSlug)}`);
+  const url = tripSlug ? `/api/expenses?tripSlug=${encodeURIComponent(tripSlug)}` : "/api/expenses";
+  const response = await fetch(url);
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
@@ -269,7 +343,7 @@ export function App() {
     date: new Date().toISOString().slice(0, 10),
     description: ""
   }));
-  const [liveExpenseEntries, setLiveExpenseEntries] = useState([]);
+  const [allLiveEntries, setAllLiveEntries] = useState([]);
   const [liveExpenseLoading, setLiveExpenseLoading] = useState(false);
   const [liveExpenseError, setLiveExpenseError] = useState("");
   const [expenseStatus, setExpenseStatus] = useState("");
@@ -311,6 +385,34 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+    setLiveExpenseLoading(true);
+    setLiveExpenseError("");
+
+    fetchExpenseEntries()
+      .then((entries) => {
+        if (active) {
+          setAllLiveEntries(entries);
+        }
+      })
+      .catch((fetchError) => {
+        if (active) {
+          setAllLiveEntries([]);
+          setLiveExpenseError(fetchError.message || "Unable to load live expenses.");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLiveExpenseLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     if (activeTrip !== "all" && activeYear !== "all") {
       setActiveYear("all");
     }
@@ -320,8 +422,8 @@ export function App() {
   const trips = useMemo(() => tripsFromData(data), [data]);
 
   const tripScopedYears = useMemo(() => {
-    return years.map((item) => filterYearItemByTrip(item, activeTrip)).filter(Boolean);
-  }, [activeTrip, years]);
+    return years.map((item) => filterYearItemByTrip(item, activeTrip, allLiveEntries)).filter(Boolean);
+  }, [activeTrip, allLiveEntries, years]);
 
   const filteredYears = useMemo(() => {
     return activeYear === "all"
@@ -350,7 +452,7 @@ export function App() {
 
   const dynamicSummary = useMemo(() => {
     if (activeYear === "all" && activeTrip === "all") {
-      return overallSummary;
+      return tripScopedYears.length > 0 ? summaryFromYears(tripScopedYears) : overallSummary;
     }
     return summaryFromYears(filteredYears.length > 0 ? filteredYears : tripScopedYears);
   }, [activeTrip, activeYear, filteredYears, overallSummary, tripScopedYears]);
@@ -367,6 +469,10 @@ export function App() {
   const selectedExpenseTrip = useMemo(() => {
     return trips.find((trip) => trip.slug === selectedExpenseTripSlug) || null;
   }, [selectedExpenseTripSlug, trips]);
+
+  const liveExpenseEntries = useMemo(() => {
+    return selectedExpenseTripSlug ? allLiveEntries.filter((entry) => entry.tripSlug === selectedExpenseTripSlug) : [];
+  }, [allLiveEntries, selectedExpenseTripSlug]);
 
   const recentLiveExpenseEntries = useMemo(() => {
     return [...liveExpenseEntries].slice(-5).reverse();
@@ -420,39 +526,6 @@ export function App() {
     });
   }, [selectedExpenseTrip]);
 
-  useEffect(() => {
-    if (!selectedExpenseTripSlug) {
-      setLiveExpenseEntries([]);
-      return;
-    }
-
-    let active = true;
-    setLiveExpenseLoading(true);
-    setLiveExpenseError("");
-
-    fetchExpenseEntries(selectedExpenseTripSlug)
-      .then((entries) => {
-        if (active) {
-          setLiveExpenseEntries(entries);
-        }
-      })
-      .catch((fetchError) => {
-        if (active) {
-          setLiveExpenseEntries([]);
-          setLiveExpenseError(fetchError.message || "Unable to load live expenses.");
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLiveExpenseLoading(false);
-        }
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [selectedExpenseTripSlug]);
-
   async function handleExpenseSubmit(event) {
     event.preventDefault();
 
@@ -493,8 +566,9 @@ export function App() {
         throw new Error(result?.error || `Could not save expense (${response.status}).`);
       }
 
-      const entries = await fetchExpenseEntries(selectedExpenseTrip.slug);
-      setLiveExpenseEntries(entries);
+      if (result?.entry) {
+        setAllLiveEntries((current) => [...current, result.entry]);
+      }
       setExpenseForm((current) => ({
         ...current,
         amount: "",
