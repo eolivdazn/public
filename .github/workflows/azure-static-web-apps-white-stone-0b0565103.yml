@@ -72,6 +72,11 @@ jobs:
           HTML
           } > site/index.html
 
+          # SWA reads config from the deployed app root.
+          if [ -f "staticwebapp.config.json" ]; then
+            cp staticwebapp.config.json site/staticwebapp.config.json
+          fi
+
       - name: Build And Deploy
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
