@@ -4,8 +4,6 @@ on:
   push:
     branches:
       - main
-    paths:
-      - "Thailand.md"
 
 permissions:
   contents: read
