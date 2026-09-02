@@ -1,0 +1,131 @@
+const { CosmosClient } = require("@azure/cosmos");
+const crypto = require("node:crypto");
+
+function validateIsoDate(value, fieldName) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    throw new Error(`'${fieldName}' must be a YYYY-MM-DD string.`);
+  }
+  const parsed = new Date(`${value}T00:00:00Z`);
+  if (Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value) {
+    throw new Error(`'${fieldName}' must be a valid YYYY-MM-DD date.`);
+  }
+  return value;
+}
+
+function generateId() {
+  if (typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `exp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+function normalizeExpenseInput(payload) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Request body must be a JSON object.");
+  }
+
+  const tripSlug = typeof payload.tripSlug === "string" ? payload.tripSlug.trim() : "";
+  const category = typeof payload.category === "string" ? payload.category.trim() : "";
+  const amount = Number(payload.amount);
+  const currency = typeof payload.currency === "string" ? payload.currency.trim() : "";
+  const description = typeof payload.description === "string" ? payload.description.trim() : "";
+  const date = payload.date ? validateIsoDate(payload.date, "date") : new Date().toISOString().slice(0, 10);
+
+  if (!tripSlug) {
+    throw new Error("'tripSlug' is required.");
+  }
+  if (!category) {
+    throw new Error("'category' is required.");
+  }
+  if (!Number.isFinite(amount) || amount < 0) {
+    throw new Error("'amount' must be a number greater than or equal to 0.");
+  }
+
+  return {
+    id: generateId(),
+    tripSlug,
+    category,
+    amount: Math.round(amount * 100) / 100,
+    currency: currency || null,
+    date,
+    description: description || null,
+    createdAt: new Date().toISOString()
+  };
+}
+
+function stripCosmosMetadata(resource) {
+  const { _rid, _self, _etag, _attachments, _ts, ...entry } = resource;
+  return entry;
+}
+
+function createExpenseStore({ container } = {}) {
+  let containerPromise = container ? Promise.resolve(container) : null;
+
+  function getContainer() {
+    if (!containerPromise) {
+      containerPromise = (async () => {
+        const connectionString = process.env.COSMOS_DB_CONNECTION_STRING;
+        if (!connectionString) {
+          throw new Error("'COSMOS_DB_CONNECTION_STRING' environment variable is required.");
+        }
+        const databaseName = process.env.COSMOS_DB_DATABASE_NAME || "travel-dashboard";
+        const containerName = process.env.COSMOS_DB_CONTAINER_NAME || "expenses";
+
+        const client = new CosmosClient(connectionString);
+        const { database } = await client.databases.createIfNotExists({ id: databaseName });
+        const { container: resolvedContainer } = await database.containers.createIfNotExists({
+          id: containerName,
+          partitionKey: { paths: ["/tripSlug"] }
+        });
+        return resolvedContainer;
+      })();
+    }
+    return containerPromise;
+  }
+
+  async function listEntries(tripSlug = null) {
+    const targetContainer = await getContainer();
+    let resources;
+    if (tripSlug) {
+      const result = await targetContainer.items
+        .query(
+          {
+            query: "SELECT * FROM c WHERE c.tripSlug = @tripSlug",
+            parameters: [{ name: "@tripSlug", value: tripSlug }]
+          },
+          { partitionKey: tripSlug }
+        )
+        .fetchAll();
+      resources = result.resources;
+    } else {
+      const result = await targetContainer.items.readAll().fetchAll();
+      resources = result.resources;
+    }
+
+    return resources.map(stripCosmosMetadata).sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+  }
+
+  async function addEntry(payload) {
+    const entry = normalizeExpenseInput(payload);
+    const targetContainer = await getContainer();
+    await targetContainer.items.create(entry);
+    return entry;
+  }
+
+  return { listEntries, addEntry };
+}
+
+let defaultStore = null;
+function getDefaultStore() {
+  if (!defaultStore) {
+    defaultStore = createExpenseStore();
+  }
+  return defaultStore;
+}
+
+module.exports = {
+  createExpenseStore,
+  normalizeExpenseInput,
+  listEntries: (tripSlug) => getDefaultStore().listEntries(tripSlug),
+  addEntry: (payload) => getDefaultStore().addEntry(payload)
+};

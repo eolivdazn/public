@@ -7,6 +7,21 @@ const EXPENSE_LABELS = {
   entertainment: "Entertainment"
 };
 
+const EXPENSE_CATEGORY_OPTIONS = Object.entries(EXPENSE_LABELS).map(([value, label]) => ({ value, label }));
+
+function createEmptyExpenseCategories() {
+  return {
+    flights: 0,
+    hotel: 0,
+    food: 0,
+    entertainment: 0
+  };
+}
+
+function roundMoney(value) {
+  return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+}
+
 function card(label, value, hint) {
   return (
     <article className="stat-card" key={label}>
@@ -153,6 +168,67 @@ function partySizeLabel(partySizes) {
   return `Mixed: ${partySizes.join(", ")} people`;
 }
 
+function aggregateExpenseEntries(entries) {
+  const categories = createEmptyExpenseCategories();
+  let total = 0;
+
+  for (const entry of entries || []) {
+    const amount = Number(entry.amount) || 0;
+    total = roundMoney(total + amount);
+    if (Object.prototype.hasOwnProperty.call(categories, entry.category)) {
+      categories[entry.category] = roundMoney(categories[entry.category] + amount);
+    }
+  }
+
+  return {
+    count: Array.isArray(entries) ? entries.length : 0,
+    total,
+    categories
+  };
+}
+
+function calculateTripExpenseSnapshot(trip, liveEntries) {
+  if (!trip) {
+    return null;
+  }
+
+  const staticCategories = trip.expenses?.categories || createEmptyExpenseCategories();
+  const liveSummary = aggregateExpenseEntries(liveEntries);
+  const partySize = trip.expenses?.partySize || 2;
+  const staticTotal = trip.expenses?.total || 0;
+  const combinedCategories = createEmptyExpenseCategories();
+
+  for (const category of Object.keys(combinedCategories)) {
+    combinedCategories[category] = roundMoney((staticCategories[category] || 0) + (liveSummary.categories[category] || 0));
+  }
+
+  const combinedTotal = roundMoney(staticTotal + liveSummary.total);
+
+  return {
+    baseCurrency: trip.expenses?.baseCurrency || null,
+    partySize,
+    staticCategories,
+    staticTotal,
+    liveCategories: liveSummary.categories,
+    liveCount: liveSummary.count,
+    liveTotal: liveSummary.total,
+    combinedCategories,
+    combinedTotal,
+    combinedPerPerson: partySize > 0 ? roundMoney(combinedTotal / partySize) : 0
+  };
+}
+
+async function fetchExpenseEntries(tripSlug) {
+  const response = await fetch(`/api/expenses?tripSlug=${encodeURIComponent(tripSlug)}`);
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(payload?.error || `Could not load live expenses (${response.status}).`);
+  }
+
+  return Array.isArray(payload?.entries) ? payload.entries : [];
+}
+
 function yearSummaryCards(years, activeYear, onSelectYear, disabled) {
   const maxDays = Math.max(...years.map((item) => item.totalVacationDays), 1);
 
@@ -186,6 +262,19 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [activeYear, setActiveYear] = useState("all");
   const [activeTrip, setActiveTrip] = useState("all");
+  const [expenseTripSlug, setExpenseTripSlug] = useState("");
+  const [expenseForm, setExpenseForm] = useState(() => ({
+    category: "food",
+    amount: "",
+    date: new Date().toISOString().slice(0, 10),
+    description: ""
+  }));
+  const [liveExpenseEntries, setLiveExpenseEntries] = useState([]);
+  const [liveExpenseLoading, setLiveExpenseLoading] = useState(false);
+  const [liveExpenseError, setLiveExpenseError] = useState("");
+  const [expenseStatus, setExpenseStatus] = useState("");
+  const [savingExpense, setSavingExpense] = useState(false);
+  const [isExpenseSectionOpen, setIsExpenseSectionOpen] = useState(false);
   const isYearFilterDisabled = activeTrip !== "all";
 
   useEffect(() => {
@@ -273,6 +362,153 @@ export function App() {
     return trips.find((trip) => trip.slug === activeTrip)?.title || "Selected trip";
   }, [activeTrip, trips]);
 
+  const selectedExpenseTripSlug = activeTrip !== "all" ? activeTrip : expenseTripSlug;
+
+  const selectedExpenseTrip = useMemo(() => {
+    return trips.find((trip) => trip.slug === selectedExpenseTripSlug) || null;
+  }, [selectedExpenseTripSlug, trips]);
+
+  const recentLiveExpenseEntries = useMemo(() => {
+    return [...liveExpenseEntries].slice(-5).reverse();
+  }, [liveExpenseEntries]);
+
+  const selectedExpenseSnapshot = useMemo(
+    () => calculateTripExpenseSnapshot(selectedExpenseTrip, liveExpenseEntries),
+    [liveExpenseEntries, selectedExpenseTrip]
+  );
+
+  useEffect(() => {
+    if (!trips.length) {
+      return;
+    }
+
+    if (activeTrip !== "all") {
+      if (expenseTripSlug !== activeTrip) {
+        setExpenseTripSlug(activeTrip);
+      }
+      return;
+    }
+
+    if (!expenseTripSlug || !trips.some((trip) => trip.slug === expenseTripSlug)) {
+      setExpenseTripSlug(trips[0].slug);
+    }
+  }, [activeTrip, expenseTripSlug, trips]);
+
+  useEffect(() => {
+    if (!selectedExpenseTrip) {
+      return;
+    }
+
+    setExpenseForm((current) => {
+      const currency = selectedExpenseTrip.expenses?.baseCurrency || "EUR";
+      return current.date && current.category
+        ? {
+            ...current,
+            description: current.description || "",
+            amount: current.amount || "",
+            date: current.date,
+            category: current.category,
+            currency
+          }
+        : {
+            category: "food",
+            amount: "",
+            date: new Date().toISOString().slice(0, 10),
+            description: "",
+            currency
+          };
+    });
+  }, [selectedExpenseTrip]);
+
+  useEffect(() => {
+    if (!selectedExpenseTripSlug) {
+      setLiveExpenseEntries([]);
+      return;
+    }
+
+    let active = true;
+    setLiveExpenseLoading(true);
+    setLiveExpenseError("");
+
+    fetchExpenseEntries(selectedExpenseTripSlug)
+      .then((entries) => {
+        if (active) {
+          setLiveExpenseEntries(entries);
+        }
+      })
+      .catch((fetchError) => {
+        if (active) {
+          setLiveExpenseEntries([]);
+          setLiveExpenseError(fetchError.message || "Unable to load live expenses.");
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setLiveExpenseLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [selectedExpenseTripSlug]);
+
+  async function handleExpenseSubmit(event) {
+    event.preventDefault();
+
+    if (!selectedExpenseTrip) {
+      setExpenseStatus("Select a trip first.");
+      return;
+    }
+
+    const amount = Number(expenseForm.amount);
+    if (!Number.isFinite(amount) || amount < 0) {
+      setExpenseStatus("Enter a valid amount.");
+      return;
+    }
+
+    const payload = {
+      tripSlug: selectedExpenseTrip.slug,
+      category: expenseForm.category,
+      amount,
+      currency: selectedExpenseTrip.expenses?.baseCurrency || "EUR",
+      date: expenseForm.date,
+      description: expenseForm.description
+    };
+
+    setSavingExpense(true);
+    setExpenseStatus("");
+
+    try {
+      const response = await fetch("/api/expenses", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+      });
+      const result = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        throw new Error(result?.error || `Could not save expense (${response.status}).`);
+      }
+
+      const entries = await fetchExpenseEntries(selectedExpenseTrip.slug);
+      setLiveExpenseEntries(entries);
+      setExpenseForm((current) => ({
+        ...current,
+        amount: "",
+        description: "",
+        date: new Date().toISOString().slice(0, 10)
+      }));
+      setExpenseStatus("Expense saved.");
+    } catch (submitError) {
+      setExpenseStatus(submitError.message || "Could not save expense.");
+    } finally {
+      setSavingExpense(false);
+    }
+  }
+
   if (loading) {
     return (
       <main className="container">
@@ -349,6 +585,202 @@ export function App() {
             </select>
           </div>
         </div>
+      </section>
+
+      <section className="panel expense-accordion">
+        <button
+          className="expense-toggle-button"
+          type="button"
+          aria-expanded={isExpenseSectionOpen}
+          onClick={() => setIsExpenseSectionOpen((open) => !open)}
+        >
+          <span>Add / view expenses</span>
+          <span className="expense-toggle-icon">{isExpenseSectionOpen ? "−" : "+"}</span>
+        </button>
+
+        {isExpenseSectionOpen ? (
+          <div className="expense-accordion-body">
+            <div className="expense-grid">
+              <article className="panel expense-form-panel">
+                <div className="section-heading-row">
+                  <div>
+                    <h2>Add expense</h2>
+                    <p className="section-copy">
+                      Log food and entertainment during the trip. Static flights and hotel stay in the markdown file.
+                    </p>
+                  </div>
+                </div>
+
+                <form className="expense-form" onSubmit={handleExpenseSubmit}>
+                  <div className="expense-form-grid">
+                    <label className="expense-field">
+                      <span>Trip</span>
+                      <select
+                        value={selectedExpenseTripSlug || ""}
+                        disabled={activeTrip !== "all"}
+                        onChange={(event) => setExpenseTripSlug(event.target.value)}
+                      >
+                        {trips.map((trip) => (
+                          <option key={trip.slug} value={trip.slug}>
+                            {trip.title}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="expense-field">
+                      <span>Category</span>
+                      <select
+                        value={expenseForm.category}
+                        onChange={(event) =>
+                          setExpenseForm((current) => ({ ...current, category: event.target.value }))
+                        }
+                      >
+                        {EXPENSE_CATEGORY_OPTIONS.map((option) => (
+                          <option key={option.value} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <label className="expense-field">
+                      <span>Amount</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={expenseForm.amount}
+                        onChange={(event) =>
+                          setExpenseForm((current) => ({ ...current, amount: event.target.value }))
+                        }
+                        placeholder="0.00"
+                      />
+                    </label>
+
+                    <label className="expense-field">
+                      <span>Date</span>
+                      <input
+                        type="date"
+                        value={expenseForm.date}
+                        onChange={(event) => setExpenseForm((current) => ({ ...current, date: event.target.value }))}
+                      />
+                    </label>
+                  </div>
+
+                  <label className="expense-field expense-field-full">
+                    <span>Description</span>
+                    <textarea
+                      rows="3"
+                      value={expenseForm.description}
+                      onChange={(event) =>
+                        setExpenseForm((current) => ({ ...current, description: event.target.value }))
+                      }
+                      placeholder="Dinner, taxi, museum, coffee..."
+                    />
+                  </label>
+
+                  <div className="expense-form-actions">
+                    <button type="submit" disabled={!selectedExpenseTrip || savingExpense}>
+                      {savingExpense ? "Saving..." : "Save expense"}
+                    </button>
+                    <p className="expense-form-note">
+                      {selectedExpenseTrip
+                        ? `Currency: ${selectedExpenseTrip.expenses?.baseCurrency || "EUR"} · Party size: ${selectedExpenseTrip.expenses?.partySize || 2}`
+                        : "Select a trip to enable the form."}
+                    </p>
+                  </div>
+
+                  {expenseStatus ? <p className="status success">{expenseStatus}</p> : null}
+                </form>
+              </article>
+
+              <article className="panel expense-live-panel">
+                <div className="section-heading-row">
+                  <div>
+                    <h2>Live trip expenses</h2>
+                    <p className="section-copy">
+                      {selectedExpenseTrip ? `Tracking ${selectedExpenseTrip.title}.` : "Pick a trip to load live expenses."}
+                    </p>
+                  </div>
+                </div>
+
+                {selectedExpenseSnapshot ? (
+                  <>
+                    <ul className="finance-list compact expense-summary-list">
+                      <li>
+                        <span>Static planned</span>
+                        <strong>{formatCurrency(selectedExpenseSnapshot.staticTotal, selectedExpenseSnapshot.baseCurrency)}</strong>
+                      </li>
+                      <li>
+                        <span>Live added</span>
+                        <strong>{formatCurrency(selectedExpenseSnapshot.liveTotal, selectedExpenseSnapshot.baseCurrency)}</strong>
+                      </li>
+                      <li>
+                        <span>Combined total</span>
+                        <strong>{formatCurrency(selectedExpenseSnapshot.combinedTotal, selectedExpenseSnapshot.baseCurrency)}</strong>
+                      </li>
+                      <li>
+                        <span>Per person</span>
+                        <strong>
+                          {formatCurrency(selectedExpenseSnapshot.combinedPerPerson, selectedExpenseSnapshot.baseCurrency)}
+                        </strong>
+                      </li>
+                      <li>
+                        <span>Live entries</span>
+                        <strong>{selectedExpenseSnapshot.liveCount}</strong>
+                      </li>
+                    </ul>
+
+                    <div className="expense-live-breakdown">
+                      {Object.entries(EXPENSE_LABELS).map(([key, label]) => (
+                        <div className="expense-breakdown-item" key={key}>
+                          <span>{label}</span>
+                          <strong>
+                            {formatCurrency(
+                              selectedExpenseSnapshot.combinedCategories[key] || 0,
+                              selectedExpenseSnapshot.baseCurrency
+                            )}
+                          </strong>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="expense-entries-header">
+                      <h3>Recent entries</h3>
+                      {liveExpenseLoading ? <span className="expense-muted">Refreshing...</span> : null}
+                    </div>
+
+                    {liveExpenseError ? <p className="status error">{liveExpenseError}</p> : null}
+
+                    {!liveExpenseLoading && !liveExpenseError && recentLiveExpenseEntries.length === 0 ? (
+                      <p className="status">No live expenses recorded yet.</p>
+                    ) : null}
+
+                    {!liveExpenseLoading && !liveExpenseError && recentLiveExpenseEntries.length > 0 ? (
+                      <ul className="expense-entry-list">
+                        {recentLiveExpenseEntries.map((entry) => (
+                          <li className="expense-entry" key={entry.id}>
+                            <div>
+                              <strong>{entry.category}</strong>
+                              <span>{entry.date}</span>
+                              {entry.description ? <p>{entry.description}</p> : null}
+                            </div>
+                            <strong>
+                              {formatCurrency(entry.amount, entry.currency || selectedExpenseSnapshot.baseCurrency)}
+                            </strong>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </>
+                ) : (
+                  <p className="status">Select a trip to view live expense totals.</p>
+                )}
+              </article>
+            </div>
+          </div>
+        ) : null}
       </section>
 
       <section className="stats-grid">
