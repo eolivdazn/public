@@ -334,6 +334,7 @@ export function App() {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("finance");
   const [activeYear, setActiveYear] = useState("all");
   const [activeTrip, setActiveTrip] = useState("all");
   const [expenseTripSlug, setExpenseTripSlug] = useState("");
@@ -418,6 +419,12 @@ export function App() {
       setActiveYear("all");
     }
   }, [activeTrip, activeYear]);
+
+  useEffect(() => {
+    if (activeView === "finance" && activeYear !== "all") {
+      setActiveYear("all");
+    }
+  }, [activeView, activeYear]);
 
   const years = useMemo(() => yearsFromData(data), [data]);
   const trips = useMemo(() => tripsFromData(data), [data]);
@@ -644,29 +651,24 @@ export function App() {
       <section className="toolbar panel">
         <div className="toolbar-row">
           <div>
-            <label className="field-label" htmlFor="year-filter">
+            <label className="field-label" htmlFor="page-switch">
               View
             </label>
-            <div className="segmented-control" id="year-filter">
+            <div className="segmented-control" id="page-switch">
               <button
-                className={activeYear === "all" ? "is-active" : ""}
+                className={activeView === "finance" ? "is-active" : ""}
                 type="button"
-                disabled={isYearFilterDisabled}
-                onClick={() => setActiveYear("all")}
+                onClick={() => setActiveView("finance")}
               >
-                Total
+                Finance
               </button>
-              {years.map((yearItem) => (
-                <button
-                  className={String(activeYear) === String(yearItem.year) ? "is-active" : ""}
-                  key={yearItem.year}
-                  type="button"
-                  disabled={isYearFilterDisabled}
-                  onClick={() => setActiveYear(yearItem.year)}
-                >
-                  {yearItem.year}
-                </button>
-              ))}
+              <button
+                className={activeView === "summary" ? "is-active" : ""}
+                type="button"
+                onClick={() => setActiveView("summary")}
+              >
+                Summary by year
+              </button>
             </div>
           </div>
 
@@ -684,8 +686,41 @@ export function App() {
             </select>
           </div>
         </div>
+
+        {activeView === "summary" ? (
+          <div className="toolbar-row">
+            <div>
+              <label className="field-label" htmlFor="year-filter">
+                Year
+              </label>
+              <div className="segmented-control" id="year-filter">
+                <button
+                  className={activeYear === "all" ? "is-active" : ""}
+                  type="button"
+                  disabled={isYearFilterDisabled}
+                  onClick={() => setActiveYear("all")}
+                >
+                  Total
+                </button>
+                {years.map((yearItem) => (
+                  <button
+                    className={String(activeYear) === String(yearItem.year) ? "is-active" : ""}
+                    key={yearItem.year}
+                    type="button"
+                    disabled={isYearFilterDisabled}
+                    onClick={() => setActiveYear(yearItem.year)}
+                  >
+                    {yearItem.year}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </section>
 
+      {activeView === "finance" ? (
+      <>
       <section className="panel expense-accordion">
         <button
           className="expense-toggle-button"
@@ -895,18 +930,12 @@ export function App() {
 
       <section className="stats-grid">
         {card(
-          activeYear === "all" ? "Total vacation days" : `Vacation days in ${activeYear}`,
-          dynamicSummary.totalVacationDays,
-          activeTrip === "all" ? (activeYear === "all" ? "All recorded trips" : "Selected yearly view") : activeTripLabel
-        )}
-        {card(
           activeYear === "all" ? "Tracked spend" : `Spend in ${activeYear}`,
           formatCurrency(dynamicSummary.totalTrackedSpend || 0, dynamicSummary.expenseCurrency),
           dynamicSummary.trackedTripCount > 0
             ? `${dynamicSummary.trackedTripCount} trip${dynamicSummary.trackedTripCount === 1 ? "" : "s"} with shared costs`
             : "No costs added yet"
         )}
-        {card("Trips", dynamicSummary.totalTrips)}
         {card(
           "Per person spend",
           formatCurrency(dynamicSummary.totalPerPersonSpend || 0, dynamicSummary.expenseCurrency),
@@ -922,8 +951,6 @@ export function App() {
           formatCurrency(dynamicSummary.averageSpendPerDay || 0, dynamicSummary.expenseCurrency),
           "Group cost divided by vacation days"
         )}
-        {card("Cities", dynamicSummary.uniqueCities?.length || 0)}
-        {card("Countries", dynamicSummary.uniqueCountries?.length || 0)}
       </section>
 
       <section className="year-grid finance-grid">
@@ -972,6 +999,21 @@ export function App() {
             </li>
           </ul>
         </article>
+      </section>
+      </>
+      ) : null}
+
+      {activeView === "summary" ? (
+      <>
+      <section className="stats-grid">
+        {card(
+          activeYear === "all" ? "Total vacation days" : `Vacation days in ${activeYear}`,
+          dynamicSummary.totalVacationDays,
+          activeTrip === "all" ? (activeYear === "all" ? "All recorded trips" : "Selected yearly view") : activeTripLabel
+        )}
+        {card("Trips", dynamicSummary.totalTrips)}
+        {card("Cities", dynamicSummary.uniqueCities?.length || 0)}
+        {card("Countries", dynamicSummary.uniqueCountries?.length || 0)}
       </section>
 
       <section className="panel section-stack">
@@ -1109,6 +1151,8 @@ export function App() {
           </article>
         </section>
       ))}
+      </>
+      ) : null}
     </main>
   );
 }
