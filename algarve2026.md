@@ -15,7 +15,7 @@ expenses:
   baseCurrency: EUR
   partySize: 2
   categories:
-    flights: 300
+    flights: 220
     hotel: 1100
     food: 0
     entertainment: 0
