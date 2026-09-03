@@ -899,6 +899,9 @@ export function App() {
                               <strong>{entry.category}</strong>
                               <span>{entry.date}</span>
                               {entry.description ? <p>{entry.description}</p> : null}
+                              {entry.createdBy?.userDetails ? (
+                                <span className="expense-muted">added by {entry.createdBy.userDetails}</span>
+                              ) : null}
                             </div>
                             <div className="expense-entry-actions">
                               <strong>

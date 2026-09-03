@@ -182,10 +182,31 @@ Expenses are persisted in Azure Cosmos DB (NoSQL API). The function requires:
 - `COSMOS_DB_CONNECTION_STRING` (required)
 - `COSMOS_DB_DATABASE_NAME` (optional, default `travel-dashboard`)
 - `COSMOS_DB_CONTAINER_NAME` (optional, default `expenses`)
+- `COSMOS_EXPENSE_AUDIT_CONTAINER_NAME` (optional, default `expense-audit`)
 
 Locally, set these in an untracked `api/local.settings.json` (used by
 `func start` / `swa start`). On the deployed Static Web App, add them under
 **Configuration → Application settings** in the Azure Portal.
+
+**Who created/deleted an expense.** Every route is already gated behind
+`allowedRoles: ["approved"]` in `staticwebapp.config.json`, so by the time a
+request reaches `api/expenses` it has already been authenticated by the SWA
+auth layer, which injects an `x-ms-client-principal` header (base64 JSON with
+`userId`/`userDetails`/`identityProvider`/`userRoles`) into the request.
+`api/lib/client-principal.js` decodes it; `api/expenses/index.js` reads it
+once per request and passes it down as `actor`. On `POST`, the actor is
+stored as `createdBy: { userId, userDetails }` on the expense document
+itself (shown as "added by ..." in the dashboard). On `DELETE`, since Cosmos
+removes the document, there's nothing left to attach `createdBy` to — instead
+both create and delete actions are recorded in a second Cosmos container,
+`expense-audit` (partition key `/tripSlug`, one document per action:
+`{ action, expenseId, tripSlug, actor, at }`; there's no API endpoint to read
+it yet, so inspect it via Cosmos Data Explorer in the Portal). Recording an
+audit entry is best-effort — a failure there logs a warning but doesn't fail
+the request, since the expense itself was already created/deleted.
+Running `cd api && func start` alone (no `swa start` in front) means no auth
+layer injects the header, so `actor` will be `null` and `createdBy` stays
+`null` in that mode.
 
 Example request:
 

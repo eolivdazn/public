@@ -1,6 +1,9 @@
 const { addEntry, listEntries, removeEntry } = require("../lib/expense-store");
+const { getClientPrincipal } = require("../lib/client-principal");
 
 module.exports = async function expenseApi(context, req) {
+  const actor = getClientPrincipal(req);
+
   try {
     if (req.method === "GET") {
       const tripSlug = typeof req.query.tripSlug === "string" && req.query.tripSlug.trim() ? req.query.tripSlug.trim() : null;
@@ -22,7 +25,7 @@ module.exports = async function expenseApi(context, req) {
 
     if (req.method === "POST") {
       const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-      const entry = await addEntry(body);
+      const entry = await addEntry(body, actor);
       const entries = await listEntries(entry.tripSlug);
 
       context.res = {
@@ -56,7 +59,7 @@ module.exports = async function expenseApi(context, req) {
         return;
       }
 
-      await removeEntry(tripSlug, id);
+      await removeEntry(tripSlug, id, actor);
       const entries = await listEntries(tripSlug);
 
       context.res = {

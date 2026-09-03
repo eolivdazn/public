@@ -42,6 +42,19 @@ function createFakeContainer() {
   };
 }
 
+function createFakeAuditContainer() {
+  const records = [];
+  return {
+    records,
+    items: {
+      async create(record) {
+        records.push(record);
+        return { resource: record };
+      }
+    }
+  };
+}
+
 test("normalizeExpenseInput validates and fills defaults", () => {
   const entry = store.normalizeExpenseInput({
     tripSlug: "algarve2026",
@@ -58,20 +71,35 @@ test("normalizeExpenseInput validates and fills defaults", () => {
   assert.equal(entry.description, "Dinner");
   assert.match(entry.date, /^\d{4}-\d{2}-\d{2}$/);
   assert.match(entry.createdAt, /^\d{4}-\d{2}-\d{2}T/);
+  assert.equal(entry.createdBy, null);
+});
+
+test("normalizeExpenseInput records the actor as createdBy when provided", () => {
+  const entry = store.normalizeExpenseInput(
+    { tripSlug: "algarve2026", category: "food", amount: 10 },
+    { userId: "u1", userDetails: "eduardo.oliveira", identityProvider: "github", userRoles: ["approved"] }
+  );
+
+  assert.deepEqual(entry.createdBy, { userId: "u1", userDetails: "eduardo.oliveira" });
 });
 
 test("store persists and filters expenses by tripSlug", async () => {
   const fakeContainer = createFakeContainer();
-  const expenseStore = store.createExpenseStore({ container: fakeContainer });
+  const fakeAuditContainer = createFakeAuditContainer();
+  const expenseStore = store.createExpenseStore({ container: fakeContainer, auditContainer: fakeAuditContainer });
+  const actor = { userId: "u1", userDetails: "eduardo.oliveira" };
 
-  const first = await expenseStore.addEntry({
-    tripSlug: "algarve2026",
-    category: "food",
-    amount: 12.34,
-    currency: "EUR",
-    date: "2026-09-14",
-    description: "Lunch"
-  });
+  const first = await expenseStore.addEntry(
+    {
+      tripSlug: "algarve2026",
+      category: "food",
+      amount: 12.34,
+      currency: "EUR",
+      date: "2026-09-14",
+      description: "Lunch"
+    },
+    actor
+  );
   const second = await expenseStore.addEntry({
     tripSlug: "el-gouna2027",
     category: "food",
@@ -83,6 +111,7 @@ test("store persists and filters expenses by tripSlug", async () => {
 
   assert.ok(first.id);
   assert.ok(second.id);
+  assert.deepEqual(first.createdBy, actor);
 
   const all = await expenseStore.listEntries();
   assert.equal(all.length, 2);
@@ -92,8 +121,18 @@ test("store persists and filters expenses by tripSlug", async () => {
   assert.equal(filtered[0].tripSlug, "algarve2026");
   assert.equal(filtered[0].amount, 12.34);
 
-  await expenseStore.removeEntry("algarve2026", first.id);
+  await expenseStore.removeEntry("algarve2026", first.id, actor);
   const afterRemoval = await expenseStore.listEntries();
   assert.equal(afterRemoval.length, 1);
   assert.equal(afterRemoval[0].id, second.id);
+
+  assert.equal(fakeAuditContainer.records.length, 3);
+  assert.deepEqual(
+    fakeAuditContainer.records.map((record) => record.action),
+    ["create", "create", "delete"]
+  );
+  const deleteRecord = fakeAuditContainer.records.find((record) => record.action === "delete");
+  assert.equal(deleteRecord.expenseId, first.id);
+  assert.equal(deleteRecord.tripSlug, "algarve2026");
+  assert.deepEqual(deleteRecord.actor, actor);
 });

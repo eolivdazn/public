@@ -19,7 +19,7 @@ function generateId() {
   return `exp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
-function normalizeExpenseInput(payload) {
+function normalizeExpenseInput(payload, actor = null) {
   if (!payload || typeof payload !== "object") {
     throw new Error("Request body must be a JSON object.");
   }
@@ -49,6 +49,7 @@ function normalizeExpenseInput(payload) {
     currency: currency || null,
     date,
     description: description || null,
+    createdBy: actor ? { userId: actor.userId, userDetails: actor.userDetails } : null,
     createdAt: new Date().toISOString()
   };
 }
@@ -58,8 +59,20 @@ function stripCosmosMetadata(resource) {
   return entry;
 }
 
-function createExpenseStore({ container } = {}) {
+function normalizeAuditRecord({ action, expenseId, tripSlug, actor }) {
+  return {
+    id: generateId(),
+    action,
+    expenseId,
+    tripSlug,
+    actor: actor ? { userId: actor.userId, userDetails: actor.userDetails } : null,
+    at: new Date().toISOString()
+  };
+}
+
+function createExpenseStore({ container, auditContainer } = {}) {
   let containerPromise = container ? Promise.resolve(container) : null;
+  let auditContainerPromise = auditContainer ? Promise.resolve(auditContainer) : null;
 
   function getContainer() {
     if (!containerPromise) {
@@ -81,6 +94,37 @@ function createExpenseStore({ container } = {}) {
       })();
     }
     return containerPromise;
+  }
+
+  function getAuditContainer() {
+    if (!auditContainerPromise) {
+      auditContainerPromise = (async () => {
+        const connectionString = process.env.COSMOS_DB_CONNECTION_STRING;
+        if (!connectionString) {
+          throw new Error("'COSMOS_DB_CONNECTION_STRING' environment variable is required.");
+        }
+        const databaseName = process.env.COSMOS_DB_DATABASE_NAME || "travel-dashboard";
+        const containerName = process.env.COSMOS_EXPENSE_AUDIT_CONTAINER_NAME || "expense-audit";
+
+        const client = new CosmosClient(connectionString);
+        const { database } = await client.databases.createIfNotExists({ id: databaseName });
+        const { container: resolvedContainer } = await database.containers.createIfNotExists({
+          id: containerName,
+          partitionKey: { paths: ["/tripSlug"] }
+        });
+        return resolvedContainer;
+      })();
+    }
+    return auditContainerPromise;
+  }
+
+  async function recordAudit(details) {
+    try {
+      const targetAuditContainer = await getAuditContainer();
+      await targetAuditContainer.items.create(normalizeAuditRecord(details));
+    } catch (error) {
+      console.warn(`Failed to record expense audit entry (${details.action} ${details.expenseId}): ${error.message}`);
+    }
   }
 
   async function listEntries(tripSlug = null) {
@@ -105,16 +149,18 @@ function createExpenseStore({ container } = {}) {
     return resources.map(stripCosmosMetadata).sort((left, right) => left.createdAt.localeCompare(right.createdAt));
   }
 
-  async function addEntry(payload) {
-    const entry = normalizeExpenseInput(payload);
+  async function addEntry(payload, actor = null) {
+    const entry = normalizeExpenseInput(payload, actor);
     const targetContainer = await getContainer();
     await targetContainer.items.create(entry);
+    await recordAudit({ action: "create", expenseId: entry.id, tripSlug: entry.tripSlug, actor });
     return entry;
   }
 
-  async function removeEntry(tripSlug, id) {
+  async function removeEntry(tripSlug, id, actor = null) {
     const targetContainer = await getContainer();
     await targetContainer.item(id, tripSlug).delete();
+    await recordAudit({ action: "delete", expenseId: id, tripSlug, actor });
   }
 
   return { listEntries, addEntry, removeEntry };
@@ -132,6 +178,6 @@ module.exports = {
   createExpenseStore,
   normalizeExpenseInput,
   listEntries: (tripSlug) => getDefaultStore().listEntries(tripSlug),
-  addEntry: (payload) => getDefaultStore().addEntry(payload),
-  removeEntry: (tripSlug, id) => getDefaultStore().removeEntry(tripSlug, id)
+  addEntry: (payload, actor) => getDefaultStore().addEntry(payload, actor),
+  removeEntry: (tripSlug, id, actor) => getDefaultStore().removeEntry(tripSlug, id, actor)
 };
