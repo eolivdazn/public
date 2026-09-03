@@ -1,22 +1,23 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
-import { buildDashboardData, computeTripLinks, loadTrips } from "./lib/travel-data.mjs";
+import { buildDashboardData, computeTripLinks, loadTripEntries } from "./lib/travel-data.mjs";
 
 const sourceDir = process.cwd();
 const outputDir = path.join(sourceDir, "site");
 const skipPandoc = process.argv.includes("--skip-pandoc");
+const backLinkPartial = path.join(sourceDir, "scripts", "templates", "trip-page-back-link.html");
 
 function ensureEmptyDir(dirPath) {
   fs.rmSync(dirPath, { recursive: true, force: true });
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
-function convertMarkdownToHtml(mdFile) {
-  const outputFile = path.join(outputDir, `${path.basename(mdFile, ".md")}.html`);
+function convertMarkdownToHtml(mdFile, slug) {
+  const outputFile = path.join(outputDir, `${slug}.html`);
   const result = spawnSync(
     "pandoc",
-    [mdFile, "-f", "markdown", "-t", "html", "-s", "-o", outputFile],
+    [mdFile, "-f", "markdown", "-t", "html", "-s", "-B", backLinkPartial, "-o", outputFile],
     { stdio: "inherit" }
   );
 
@@ -25,22 +26,13 @@ function convertMarkdownToHtml(mdFile) {
   }
 }
 
-function buildTripPages() {
+function buildTripPages(tripEntries) {
   if (skipPandoc) {
     return;
   }
 
-  const markdownFiles = fs
-    .readdirSync(sourceDir)
-    .filter((name) => name.endsWith(".md") && name !== "README.md")
-    .sort();
-
-  if (markdownFiles.length === 0) {
-    throw new Error("No markdown files found at repo root (excluding README.md).");
-  }
-
-  for (const fileName of markdownFiles) {
-    convertMarkdownToHtml(fileName);
+  for (const { fileName, trip } of tripEntries) {
+    convertMarkdownToHtml(fileName, trip.slug);
   }
 }
 
@@ -95,9 +87,11 @@ function copyStaticConfig() {
 
 function main() {
   ensureEmptyDir(outputDir);
-  buildTripPages();
 
-  const trips = loadTrips(sourceDir);
+  const tripEntries = loadTripEntries(sourceDir);
+  buildTripPages(tripEntries);
+
+  const trips = tripEntries.map(({ trip }) => trip);
   const dashboardData = buildDashboardData(trips);
   const links = computeTripLinks(trips);
 

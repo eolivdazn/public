@@ -200,11 +200,17 @@ function validatePlace(place, trip, index, fileName) {
   };
 }
 
-function validateTrip(metadata, slug, fileName) {
+function validateTrip(metadata, fileName) {
   const title = typeof metadata.title === "string" ? metadata.title.trim() : "";
   if (!title) {
     throw new Error(`${fileName}: 'title' is required.`);
   }
+
+  const slug = typeof metadata.slug === "string" ? metadata.slug.trim() : "";
+  if (!/^[a-z0-9-]+$/.test(slug)) {
+    throw new Error(`${fileName}: 'slug' is required and must contain only lowercase letters, digits and hyphens.`);
+  }
+
   if (metadata.schema !== SCHEMA_VERSION) {
     throw new Error(`${fileName}: 'schema' must be '${SCHEMA_VERSION}'.`);
   }
@@ -221,6 +227,11 @@ function validateTrip(metadata, slug, fileName) {
     throw new Error(`${fileName}: endDate cannot be before startDate.`);
   }
 
+  const year = metadata.year;
+  if (!Number.isInteger(year) || year < Number(startDate.slice(0, 4)) || year > Number(endDate.slice(0, 4))) {
+    throw new Error(`${fileName}: 'year' is required and must be an integer within the trip's start/end year range.`);
+  }
+
   if (!Array.isArray(metadata.places) || metadata.places.length === 0) {
     throw new Error(`${fileName}: 'places' must be a non-empty array.`);
   }
@@ -235,6 +246,7 @@ function validateTrip(metadata, slug, fileName) {
     tripType: "vacation",
     startDate,
     endDate,
+    year,
     vacationDays: inclusiveDays(startDate, endDate),
     years: splitDaysByYear(startDate, endDate),
     places,
@@ -243,7 +255,7 @@ function validateTrip(metadata, slug, fileName) {
   };
 }
 
-export function loadTrips(sourceDir) {
+export function loadTripEntries(sourceDir) {
   const entries = fs.readdirSync(sourceDir, { withFileTypes: true });
   const markdownFiles = entries
     .filter((entry) => entry.isFile() && entry.name.endsWith(".md") && entry.name !== "README.md")
@@ -254,13 +266,22 @@ export function loadTrips(sourceDir) {
     throw new Error("No markdown trip files were found.");
   }
 
+  const seenSlugs = new Map();
   return markdownFiles.map((fileName) => {
-    const slug = fileName.slice(0, -3);
     const filePath = path.join(sourceDir, fileName);
     const raw = fs.readFileSync(filePath, "utf-8");
     const { data } = matter(raw);
-    return validateTrip(data, slug, fileName);
+    const trip = validateTrip(data, fileName);
+    if (seenSlugs.has(trip.slug)) {
+      throw new Error(`${fileName}: duplicate 'slug' value '${trip.slug}', already used by ${seenSlugs.get(trip.slug)}.`);
+    }
+    seenSlugs.set(trip.slug, fileName);
+    return { fileName, trip };
   });
+}
+
+export function loadTrips(sourceDir) {
+  return loadTripEntries(sourceDir).map(({ trip }) => trip);
 }
 
 export function buildDashboardData(trips) {

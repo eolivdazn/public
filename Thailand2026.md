@@ -1,9 +1,11 @@
 ---
-title: "✈️ Thailandia Trip"
+title: "✈️ Thailand"
+slug: thailand2026
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-02-12"
 endDate: "2026-03-03"
+year: 2026
 dateCounting: inclusive
 places:
   - city: Singapore

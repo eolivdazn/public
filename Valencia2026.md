@@ -1,9 +1,11 @@
 ---
-title: "🏙️ Valencia Trip 2026"
+title: "🏙️ Valencia"
+slug: valencia2026
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-10-16"
 endDate: "2026-10-19"
+year: 2026
 dateCounting: inclusive
 places:
   - city: Valencia

@@ -1,9 +1,11 @@
 ---
-title: "🏖️ Algarve – Salgados Trip 2026"
+title: "🏖️ Algarve"
+slug: algarve2026
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-09-13"
 endDate: "2026-09-19"
+year: 2026
 dateCounting: inclusive
 places:
   - city: Guia

@@ -7,6 +7,7 @@
 - Thailand: [https://white-stone-0b0565103.5.azurestaticapps.net/thailand2026.html](https://white-stone-0b0565103.5.azurestaticapps.net/thailand2026.html)
 - El Gouna: [https://white-stone-0b0565103.5.azurestaticapps.net/el-gouna2027.html](https://white-stone-0b0565103.5.azurestaticapps.net/el-gouna2027.html)
 - Algarve: [https://white-stone-0b0565103.5.azurestaticapps.net/algarve2026.html](https://white-stone-0b0565103.5.azurestaticapps.net/algarve2026.html)
+- Valencia: [https://white-stone-0b0565103.5.azurestaticapps.net/valencia2026.html](https://white-stone-0b0565103.5.azurestaticapps.net/valencia2026.html)
 
 ## Actions Workflow
 
@@ -35,14 +36,20 @@ Markdown trip files (*.md, YAML frontmatter validated against travel.schema.json
 ```
 
 **Static site generation.** Each trip is a Markdown file at the repo root with
-YAML frontmatter (dates, places, `expenses.categories`, `expenses.partySize`,
-etc.), validated and parsed by `scripts/lib/travel-data.mjs`. Running
-`npm run build:site` (`scripts/build-site.mjs`) converts each trip's body to
-HTML via `pandoc` (skippable with `--skip-pandoc`) and aggregates all trips
-into `site/dashboard-data.json` — per-year buckets (a trip spanning New
-Year's has its expenses split proportionally across years), an overall
-`summary`, and the full `trips` list. It also copies `staticwebapp.config.json`
-into `site/` so it deploys alongside the static content.
+YAML frontmatter (`slug`, `year`, dates, places, `expenses.categories`,
+`expenses.partySize`, etc.), validated and parsed by
+`scripts/lib/travel-data.mjs`. `slug` and `year` are explicit frontmatter
+fields, not derived from the filename — `slug` (lowercase letters, digits and
+hyphens) is the trip's canonical id, used for the generated `<slug>.html`
+filename and as `tripSlug` in the expenses API; `year` is the trip's primary
+year and must fall within `startDate`'s/`endDate`'s year. Duplicate slugs
+across files are rejected. Running `npm run build:site`
+(`scripts/build-site.mjs`) converts each trip's body to HTML via `pandoc`
+(skippable with `--skip-pandoc`) and aggregates all trips into
+`site/dashboard-data.json` — per-year buckets (a trip spanning New Year's has
+its expenses split proportionally across years), an overall `summary`, and
+the full `trips` list. It also copies `staticwebapp.config.json` into `site/`
+so it deploys alongside the static content.
 
 **Dashboard (React SPA).** `dashboard/src/App.jsx` is the entire UI, built by
 Vite into `site/dashboard/`. On load it fetches the static

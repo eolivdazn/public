@@ -1,9 +1,11 @@
 ---
-title: "🏖️ El Gouna Trip 2027"
+title: "🏖️ El Gouna"
+slug: el-gouna2027
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2027-01-23"
 endDate: "2027-01-31"
+year: 2027
 dateCounting: inclusive
 places:
   - city: El Gouna
