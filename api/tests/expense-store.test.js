@@ -74,6 +74,12 @@ test("normalizeExpenseInput validates and fills defaults", () => {
   assert.equal(entry.createdBy, null);
 });
 
+test("normalizeExpenseInput rejects a zero or missing amount", () => {
+  assert.throws(() => store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 0 }), /greater than 0/);
+  assert.throws(() => store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: "" }), /greater than 0/);
+  assert.throws(() => store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: -5 }), /greater than 0/);
+});
+
 test("normalizeExpenseInput records the actor as createdBy when provided", () => {
   const entry = store.normalizeExpenseInput(
     { tripSlug: "algarve2026", category: "food", amount: 10 },

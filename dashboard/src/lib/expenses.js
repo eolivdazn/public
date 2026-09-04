@@ -66,7 +66,9 @@ export function combineTripYearSlice(tripSlice, liveEntriesInYear) {
       ...baseExpenses,
       categories,
       total,
-      totalPerPerson: partySize > 0 ? roundMoney(total / partySize) : 0
+      totalPerPerson: partySize > 0 ? roundMoney(total / partySize) : 0,
+      isTracked: true,
+      baseCurrency: baseExpenses.baseCurrency || "EUR"
     },
     liveCount: liveSummary.count
   };
@@ -88,9 +90,10 @@ export function calculateTripExpenseSnapshot(trip, liveEntries) {
   }
 
   const combinedTotal = roundMoney(staticTotal + liveSummary.total);
+  const baseCurrency = trip.expenses?.baseCurrency || (liveSummary.count > 0 ? "EUR" : null);
 
   return {
-    baseCurrency: trip.expenses?.baseCurrency || null,
+    baseCurrency,
     partySize,
     staticCategories,
     staticTotal,

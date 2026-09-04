@@ -37,8 +37,8 @@ function normalizeExpenseInput(payload, actor = null) {
   if (!category) {
     throw new Error("'category' is required.");
   }
-  if (!Number.isFinite(amount) || amount < 0) {
-    throw new Error("'amount' must be a number greater than or equal to 0.");
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("'amount' must be a number greater than 0.");
   }
 
   return {

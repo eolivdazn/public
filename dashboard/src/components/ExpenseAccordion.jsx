@@ -27,8 +27,8 @@ export function ExpenseAccordion({
     }
 
     const amount = Number(formValues.amount);
-    if (!Number.isFinite(amount) || amount < 0) {
-      setExpenseStatus("Enter a valid amount.");
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setExpenseStatus("Enter a valid amount greater than zero.");
       return false;
     }
 

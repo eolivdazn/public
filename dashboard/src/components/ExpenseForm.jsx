@@ -86,8 +86,9 @@ export function ExpenseForm({
           <FormField label="Amount">
             <input
               type="number"
-              min="0"
+              min="0.01"
               step="0.01"
+              required
               value={expenseForm.amount}
               onChange={(event) => setExpenseForm((current) => ({ ...current, amount: event.target.value }))}
               placeholder="0.00"

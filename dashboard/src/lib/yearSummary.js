@@ -49,9 +49,11 @@ export function filterYearItemByTrip(yearItem, tripSlug, liveEntries) {
       totalPerPersonSpend: totals.totalPerPersonSpend,
       expenseCategories: totals.expenseCategories,
       expenseCurrency: yearItem.expenseCurrency || totals.expenseCurrency,
-      averageSpendPerTrip: yearItem.trackedTripCount > 0 ? roundMoney(totals.totalTrackedSpend / yearItem.trackedTripCount) : 0,
+      trackedTripCount: totals.trackedTripCount,
+      partySizes: totals.partySizes,
+      averageSpendPerTrip: totals.trackedTripCount > 0 ? roundMoney(totals.totalTrackedSpend / totals.trackedTripCount) : 0,
       averagePerPersonSpendPerTrip:
-        yearItem.trackedTripCount > 0 ? roundMoney(totals.totalPerPersonSpend / yearItem.trackedTripCount) : 0,
+        totals.trackedTripCount > 0 ? roundMoney(totals.totalPerPersonSpend / totals.trackedTripCount) : 0,
       averageSpendPerDay: yearItem.totalVacationDays > 0 ? roundMoney(totals.totalTrackedSpend / yearItem.totalVacationDays) : 0,
       averagePerPersonSpendPerDay:
         yearItem.totalVacationDays > 0 ? roundMoney(totals.totalPerPersonSpend / yearItem.totalVacationDays) : 0,

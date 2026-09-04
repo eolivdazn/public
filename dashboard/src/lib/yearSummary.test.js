@@ -5,9 +5,11 @@ import {
   tripsFromData,
   extractCountriesFromCities,
   summarizeYearTrips,
+  filterYearItemByTrip,
   summaryFromYears,
   partySizeLabel
 } from "./yearSummary.js";
+import { createEmptyExpenseCategories } from "./expenses.js";
 
 test("yearsFromData and tripsFromData default to empty arrays", () => {
   assert.deepEqual(yearsFromData(null), []);
@@ -30,6 +32,37 @@ test("summarizeYearTrips sums tracked trips only for party sizes and currency", 
   assert.equal(result.trackedTripCount, 1);
   assert.deepEqual(result.partySizes, [2]);
   assert.equal(result.expenseCurrency, "EUR");
+});
+
+test("filterYearItemByTrip('all') recomputes trackedTripCount and partySizes from live entries, not just the static snapshot", () => {
+  const yearItem = {
+    year: 2026,
+    totalVacationDays: 20,
+    trackedTripCount: 1,
+    partySizes: [2],
+    expenseCurrency: "EUR",
+    trips: [
+      {
+        slug: "algarve2026",
+        expenses: { total: 1000, totalPerPerson: 500, partySize: 2, baseCurrency: "EUR", isTracked: true, categories: { flights: 200, hotel: 800, food: 0, entertainment: 0 } }
+      },
+      {
+        slug: "thailand2026",
+        expenses: { total: 0, totalPerPerson: 0, partySize: 2, baseCurrency: null, isTracked: false, categories: createEmptyExpenseCategories() }
+      }
+    ]
+  };
+  const liveEntries = [
+    { tripSlug: "thailand2026", date: "2026-02-13", category: "flights", amount: 1000 },
+    { tripSlug: "thailand2026", date: "2026-02-13", category: "food", amount: 12 }
+  ];
+
+  const result = filterYearItemByTrip(yearItem, "all", liveEntries);
+
+  assert.equal(result.trackedTripCount, 2);
+  assert.deepEqual(result.partySizes, [2, 2]);
+  assert.equal(result.totalTrackedSpend, 2012);
+  assert.equal(result.averageSpendPerTrip, 1006);
 });
 
 test("summaryFromYears aggregates unique cities, countries and trips across years", () => {
