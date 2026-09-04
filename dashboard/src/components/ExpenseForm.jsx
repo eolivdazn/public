@@ -193,15 +193,17 @@ export function ExpenseForm({
   }
 
   function acceptDescriptionSuggestion(localId) {
-    const photo = expenseForm.photos.find((item) => item.localId === localId);
-    if (!photo?.suggestion) {
-      return;
-    }
-    setExpenseForm((current) => ({
-      ...current,
-      description: photo.suggestion,
-      photos: current.photos.map((item) => (item.localId === localId ? { ...item, suggestion: null } : item))
-    }));
+    setExpenseForm((current) => {
+      const photo = current.photos.find((item) => item.localId === localId);
+      if (!photo?.suggestion) {
+        return current;
+      }
+      return {
+        ...current,
+        description: current.description ? `${current.description}, ${photo.suggestion}` : photo.suggestion,
+        photos: current.photos.map((item) => (item.localId === localId ? { ...item, suggestion: null } : item))
+      };
+    });
   }
 
   function dismissDescriptionSuggestion(localId) {
