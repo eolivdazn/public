@@ -4,7 +4,7 @@ import { StarRating } from "./StarRating";
 import { EXPENSE_CATEGORY_OPTIONS } from "../lib/expenses.js";
 import { validateReceiptFile, compressImage } from "../lib/imageCompression.js";
 import { requestCurrentLocation } from "../lib/geolocation.js";
-import { suggestFoodDescription } from "../lib/api.js";
+import { suggestFoodDescription, fetchAiSuggestionsStatus } from "../lib/api.js";
 
 function defaultFormValues() {
   return {
@@ -58,8 +58,13 @@ export function ExpenseForm({
   const [suggestingDescription, setSuggestingDescription] = useState(false);
   const [suggestionError, setSuggestionError] = useState("");
   const [descriptionSuggestion, setDescriptionSuggestion] = useState(null);
+  const [aiSuggestionsEnabled, setAiSuggestionsEnabled] = useState(false);
   const fileInputRef = useRef(null);
   const isEditing = Boolean(editingEntry);
+
+  useEffect(() => {
+    fetchAiSuggestionsStatus().then(setAiSuggestionsEnabled);
+  }, []);
 
   useEffect(() => {
     setExpenseForm(formValuesFromEntry(editingEntry));
@@ -288,7 +293,7 @@ export function ExpenseForm({
                   </button>
                 </p>
               ) : null}
-              {receiptPreviewUrl ? (
+              {receiptPreviewUrl && aiSuggestionsEnabled ? (
                 <div className="expense-description-suggestion">
                   <button type="button" onClick={handleSuggestDescription} disabled={suggestingDescription}>
                     {suggestingDescription ? "Thinking..." : "✨ Suggest description"}

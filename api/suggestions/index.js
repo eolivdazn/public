@@ -1,20 +1,38 @@
 const { RECEIPT_CONTENT_TYPES } = require("../lib/expense-store");
-const { requestFoodDescriptionSuggestion } = require("../lib/ai-suggestions");
+const { requestFoodDescriptionSuggestion, isAiSuggestionsEnabled } = require("../lib/ai-suggestions");
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 
 module.exports = async function suggestionsApi(context, req) {
   try {
+    if (req.method === "GET") {
+      context.res = {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+        body: { enabled: isAiSuggestionsEnabled() }
+      };
+      return;
+    }
+
     if (req.method !== "POST") {
       context.res = {
         status: 405,
         headers: {
           "Content-Type": "application/json",
-          Allow: "POST"
+          Allow: "GET, POST"
         },
         body: {
           error: "Method not allowed."
         }
+      };
+      return;
+    }
+
+    if (!isAiSuggestionsEnabled()) {
+      context.res = {
+        status: 503,
+        headers: { "Content-Type": "application/json" },
+        body: { error: "AI suggestions are currently disabled." }
       };
       return;
     }

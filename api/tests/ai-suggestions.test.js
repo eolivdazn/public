@@ -1,7 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 
-const { requestFoodDescriptionSuggestion } = require("../lib/ai-suggestions");
+const { requestFoodDescriptionSuggestion, isAiSuggestionsEnabled } = require("../lib/ai-suggestions");
 
 function withEnv(values, fn) {
   const previous = {};
@@ -35,6 +35,21 @@ function createFakeFetch(responseFactory) {
   fetchImpl.calls = calls;
   return fetchImpl;
 }
+
+test("isAiSuggestionsEnabled defaults to true when unset", async () => {
+  await withEnv({ AI_SUGGESTIONS_ENABLED: undefined }, async () => {
+    assert.equal(isAiSuggestionsEnabled(), true);
+  });
+});
+
+test("isAiSuggestionsEnabled is false only when explicitly set to 'false'", async () => {
+  await withEnv({ AI_SUGGESTIONS_ENABLED: "false" }, async () => {
+    assert.equal(isAiSuggestionsEnabled(), false);
+  });
+  await withEnv({ AI_SUGGESTIONS_ENABLED: "true" }, async () => {
+    assert.equal(isAiSuggestionsEnabled(), true);
+  });
+});
 
 test("requestFoodDescriptionSuggestion throws when Azure OpenAI env vars are missing", async () => {
   await withEnv({ AZURE_OPENAI_ENDPOINT: undefined, AZURE_OPENAI_API_KEY: undefined }, async () => {

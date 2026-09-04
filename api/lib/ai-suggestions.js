@@ -1,6 +1,10 @@
 const DEFAULT_DEPLOYMENT = "gpt-4.1-mini";
 const DEFAULT_API_VERSION = "2024-08-01-preview";
 
+function isAiSuggestionsEnabled() {
+  return process.env.AI_SUGGESTIONS_ENABLED !== "false";
+}
+
 async function requestFoodDescriptionSuggestion(buffer, contentType, { fetchImpl = fetch } = {}) {
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
   const apiKey = process.env.AZURE_OPENAI_API_KEY;
@@ -54,4 +58,4 @@ async function requestFoodDescriptionSuggestion(buffer, contentType, { fetchImpl
   return suggestion;
 }
 
-module.exports = { requestFoodDescriptionSuggestion };
+module.exports = { requestFoodDescriptionSuggestion, isAiSuggestionsEnabled };

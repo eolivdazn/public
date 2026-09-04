@@ -115,6 +115,16 @@ export async function uploadReceipt(tripSlug, blob) {
   return result;
 }
 
+export async function fetchAiSuggestionsStatus() {
+  try {
+    const response = await fetch("/api/suggestions");
+    const result = await response.json().catch(() => null);
+    return Boolean(response.ok && result?.enabled);
+  } catch {
+    return false;
+  }
+}
+
 export async function suggestFoodDescription(blob) {
   const base64Data = await blobToBase64(blob);
 
