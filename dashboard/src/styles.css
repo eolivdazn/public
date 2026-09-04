@@ -33,7 +33,7 @@ a:hover {
 .container {
   max-width: 1120px;
   margin: 0 auto;
-  padding: 28px 16px 40px;
+  padding: 10px 8px 40px;
 }
 
 .header {
@@ -108,8 +108,6 @@ a:hover {
 }
 
 .expense-accordion-body {
-  padding: 0 16px 16px;
-  border-top: 1px solid var(--border);
 }
 
 .expense-accordion-body .expense-grid {
@@ -629,7 +627,7 @@ a:hover {
 
 .expense-photo-gallery {
   display: flex;
-  flex-wrap: wrap;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
   margin-top: 8px;
 }

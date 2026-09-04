@@ -3,7 +3,7 @@ import { FormField } from "./FormField";
 import { StarRating } from "./StarRating";
 import { EXPENSE_CATEGORY_OPTIONS, MAX_PHOTOS_PER_EXPENSE } from "../lib/expenses.js";
 import { validateReceiptFile, compressImage } from "../lib/imageCompression.js";
-import { requestCurrentLocation } from "../lib/geolocation.js";
+import { extractPhotoLocation } from "../lib/geolocation.js";
 import { suggestFoodDescription, fetchAiSuggestionsStatus } from "../lib/api.js";
 
 function defaultFormValues() {
@@ -114,8 +114,7 @@ export function ExpenseForm({
       setReceiptError(`Maximum ${MAX_PHOTOS_PER_EXPENSE} photos reached. Some photos were not added.`);
     }
 
-    const needsLocation = !expenseForm.location;
-    let addedAnyPhoto = false;
+    let needsLocation = !expenseForm.location;
 
     for (const file of accepted) {
       const validation = validateReceiptFile(file);
@@ -124,13 +123,21 @@ export function ExpenseForm({
         continue;
       }
 
+      let location = null;
+      if (needsLocation) {
+        location = await extractPhotoLocation(file);
+        if (location) {
+          needsLocation = false;
+        }
+      }
+
       try {
         const compressed = await compressImage(file);
         const previewUrl = URL.createObjectURL(compressed);
         const localId = crypto.randomUUID();
-        addedAnyPhoto = true;
         setExpenseForm((current) => ({
           ...current,
+          location: current.location || location,
           photos: [
             ...current.photos,
             {
@@ -146,13 +153,6 @@ export function ExpenseForm({
         }));
       } catch (compressionError) {
         setReceiptError(compressionError.message || "Could not process the selected image.");
-      }
-    }
-
-    if (needsLocation && addedAnyPhoto) {
-      const location = await requestCurrentLocation();
-      if (location) {
-        setExpenseForm((current) => (current.location ? current : { ...current, location }));
       }
     }
   }
@@ -363,7 +363,7 @@ export function ExpenseForm({
                             onClick={() => handleSuggestDescription(photo.localId)}
                             disabled={photo.suggesting}
                           >
-                            {photo.suggesting ? "Thinking..." : "✨ Suggest description"}
+                            {photo.suggesting ? "Thinking..." : "✨ Description"}
                           </button>
                           {photo.suggestionError ? <p className="status error">{photo.suggestionError}</p> : null}
                           {photo.suggestion ? (

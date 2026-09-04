@@ -3,9 +3,9 @@ import { StarRating } from "./StarRating";
 
 export function ExpenseEntryRow({ entry, currencyFallback, deleting, editing, onDelete, onEdit }) {
   return (
-    <li className={`expense-entry${editing ? " is-editing" : ""}`}>
+    <li className={`expense-entry${editing ? " is-editing" : ""}`} >
       <div>
-        <strong>{entry.category}</strong>
+        <strong>{entry.category}: {formatCurrency(entry.amount, entry.currency || currencyFallback)} </strong>
         <span>{entry.date}</span>
         {entry.description ? <p>{entry.description}</p> : null}
         {entry.createdBy?.userDetails ? <span className="expense-muted">added by {entry.createdBy.userDetails}</span> : null}
@@ -33,7 +33,6 @@ export function ExpenseEntryRow({ entry, currencyFallback, deleting, editing, on
         ) : null}
       </div>
       <div className="expense-entry-actions">
-        <strong>{formatCurrency(entry.amount, entry.currency || currencyFallback)}</strong>
         <div className="expense-entry-buttons">
           <button
             type="button"
