@@ -1,4 +1,4 @@
-const { addEntry, listEntries, removeEntry } = require("../lib/expense-store");
+const { addEntry, listEntries, updateEntry, removeEntry } = require("../lib/expense-store");
 const { getClientPrincipal } = require("../lib/client-principal");
 
 module.exports = async function expenseApi(context, req) {
@@ -25,8 +25,9 @@ module.exports = async function expenseApi(context, req) {
 
     if (req.method === "POST") {
       const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-      const entry = await addEntry(body, actor);
-      const entries = await listEntries(entry.tripSlug);
+      const createdEntry = await addEntry(body, actor);
+      const entries = await listEntries(createdEntry.tripSlug);
+      const entry = entries.find((item) => item.id === createdEntry.id) || createdEntry;
 
       context.res = {
         status: 201,
@@ -42,7 +43,7 @@ module.exports = async function expenseApi(context, req) {
       return;
     }
 
-    if (req.method === "DELETE") {
+    if (req.method === "PUT") {
       const id = typeof req.query.id === "string" ? req.query.id.trim() : "";
       const tripSlug = typeof req.query.tripSlug === "string" ? req.query.tripSlug.trim() : "";
 
@@ -59,7 +60,44 @@ module.exports = async function expenseApi(context, req) {
         return;
       }
 
-      await removeEntry(tripSlug, id, actor);
+      const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+      await updateEntry(tripSlug, id, body, actor);
+      const entries = await listEntries(tripSlug);
+      const entry = entries.find((item) => item.id === id);
+
+      context.res = {
+        status: 200,
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: {
+          message: "Expense updated.",
+          entry,
+          count: entries.length
+        }
+      };
+      return;
+    }
+
+    if (req.method === "DELETE") {
+      const id = typeof req.query.id === "string" ? req.query.id.trim() : "";
+      const tripSlug = typeof req.query.tripSlug === "string" ? req.query.tripSlug.trim() : "";
+      const receiptBlobName = typeof req.query.receiptBlobName === "string" && req.query.receiptBlobName.trim() ? req.query.receiptBlobName.trim() : null;
+
+      if (!id || !tripSlug) {
+        context.res = {
+          status: 400,
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: {
+            error: "'id' and 'tripSlug' query parameters are required."
+          }
+        };
+        return;
+      }
+
+      await removeEntry(tripSlug, id, actor, receiptBlobName);
       const entries = await listEntries(tripSlug);
 
       context.res = {
@@ -79,7 +117,7 @@ module.exports = async function expenseApi(context, req) {
       status: 405,
       headers: {
         "Content-Type": "application/json",
-        Allow: "GET, POST, DELETE"
+        Allow: "GET, POST, PUT, DELETE"
       },
       body: {
         error: "Method not allowed."

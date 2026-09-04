@@ -7,7 +7,7 @@ import { formatCurrency } from "../lib/format.js";
 
 const PAGE_SIZE = 4;
 
-export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error, entries, onDeleteEntry }) {
+export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error, entries, onDeleteEntry, onEditEntry, editingEntryId }) {
   const [deletingId, setDeletingId] = useState(null);
   const [page, setPage] = useState(1);
 
@@ -71,7 +71,9 @@ export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error
                     entry={entry}
                     currencyFallback={snapshot.baseCurrency}
                     deleting={deletingId === entry.id}
+                    editing={editingEntryId === entry.id}
                     onDelete={handleDelete}
+                    onEdit={onEditEntry}
                   />
                 ))}
               </ul>

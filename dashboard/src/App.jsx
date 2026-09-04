@@ -178,6 +178,10 @@ export function App() {
     setAllLiveEntries((current) => [...current, entry]);
   }
 
+  function updateLiveEntry(entry) {
+    setAllLiveEntries((current) => current.map((item) => (item.id === entry.id ? entry : item)));
+  }
+
   function removeLiveEntry(entryId) {
     setAllLiveEntries((current) => current.filter((item) => item.id !== entryId));
   }
@@ -228,6 +232,7 @@ export function App() {
           liveLoading={liveExpenseLoading}
           liveError={liveExpenseError}
           addLiveEntry={addLiveEntry}
+          updateLiveEntry={updateLiveEntry}
           removeLiveEntry={removeLiveEntry}
           dynamicSummary={dynamicSummary}
           activeYear={activeYear}

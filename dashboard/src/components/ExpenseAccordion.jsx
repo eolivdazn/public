@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ExpenseForm } from "./ExpenseForm";
 import { ExpenseLivePanel } from "./ExpenseLivePanel";
-import { postExpenseEntry, deleteExpenseEntry } from "../lib/api.js";
+import { postExpenseEntry, updateExpenseEntry, deleteExpenseEntry, uploadReceipt } from "../lib/api.js";
 
 export function ExpenseAccordion({
   trips,
@@ -14,11 +14,23 @@ export function ExpenseAccordion({
   liveLoading,
   liveError,
   addLiveEntry,
+  updateLiveEntry,
   removeLiveEntry
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [expenseStatus, setExpenseStatus] = useState("");
   const [savingExpense, setSavingExpense] = useState(false);
+  const [editingEntry, setEditingEntry] = useState(null);
+
+  function handleEditStart(entry) {
+    setEditingEntry(entry);
+    setExpenseStatus("");
+  }
+
+  function handleEditCancel() {
+    setEditingEntry(null);
+    setExpenseStatus("");
+  }
 
   async function handleExpenseSubmit(formValues) {
     if (!selectedExpenseTrip) {
@@ -32,19 +44,48 @@ export function ExpenseAccordion({
       return false;
     }
 
+    const isFood = formValues.category === "food";
+    let receiptBlobName = isFood ? formValues.existingReceiptBlobName || null : null;
+
+    setSavingExpense(true);
+    setExpenseStatus("");
+
+    if (isFood && formValues.receiptFile) {
+      try {
+        const uploadResult = await uploadReceipt(selectedExpenseTrip.slug, formValues.receiptFile);
+        receiptBlobName = uploadResult.blobName;
+      } catch (uploadError) {
+        setExpenseStatus(`Could not upload photo: ${uploadError.message || "unknown error"}. Expense not saved.`);
+        setSavingExpense(false);
+        return false;
+      }
+    } else if (isFood && formValues.removeExistingReceipt) {
+      receiptBlobName = null;
+    }
+
     const payload = {
       tripSlug: selectedExpenseTrip.slug,
       category: formValues.category,
       amount,
       currency: selectedExpenseTrip.expenses?.baseCurrency || "EUR",
       date: formValues.date,
-      description: formValues.description
+      description: formValues.description,
+      rating: isFood && formValues.rating > 0 ? formValues.rating : null,
+      receiptBlobName,
+      photoLocation: isFood && receiptBlobName ? formValues.photoLocation || null : null
     };
 
-    setSavingExpense(true);
-    setExpenseStatus("");
-
     try {
+      if (editingEntry) {
+        const result = await updateExpenseEntry({ id: editingEntry.id, tripSlug: editingEntry.tripSlug, payload });
+        if (result?.entry) {
+          updateLiveEntry(result.entry);
+        }
+        setExpenseStatus("Expense updated.");
+        setEditingEntry(null);
+        return true;
+      }
+
       const result = await postExpenseEntry(payload);
       if (result?.entry) {
         addLiveEntry(result.entry);
@@ -63,8 +104,11 @@ export function ExpenseAccordion({
     setExpenseStatus("");
 
     try {
-      await deleteExpenseEntry({ id: entry.id, tripSlug: entry.tripSlug });
+      await deleteExpenseEntry({ id: entry.id, tripSlug: entry.tripSlug, receiptBlobName: entry.receiptBlobName });
       removeLiveEntry(entry.id);
+      if (editingEntry?.id === entry.id) {
+        setEditingEntry(null);
+      }
       setExpenseStatus("Expense deleted.");
     } catch (deleteError) {
       setExpenseStatus(deleteError.message || "Could not delete expense.");
@@ -95,6 +139,8 @@ export function ExpenseAccordion({
               onSubmit={handleExpenseSubmit}
               saving={savingExpense}
               status={expenseStatus}
+              editingEntry={editingEntry}
+              onCancelEdit={handleEditCancel}
             />
 
             <ExpenseLivePanel
@@ -104,6 +150,8 @@ export function ExpenseAccordion({
               error={liveError}
               entries={entries}
               onDeleteEntry={handleExpenseDelete}
+              onEditEntry={handleEditStart}
+              editingEntryId={editingEntry?.id || null}
             />
           </div>
         </div>

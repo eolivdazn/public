@@ -16,6 +16,7 @@ export function FinanceView({
   liveLoading,
   liveError,
   addLiveEntry,
+  updateLiveEntry,
   removeLiveEntry,
   dynamicSummary,
   activeYear,
@@ -52,6 +53,7 @@ export function FinanceView({
         liveLoading={liveLoading}
         liveError={liveError}
         addLiveEntry={addLiveEntry}
+        updateLiveEntry={updateLiveEntry}
         removeLiveEntry={removeLiveEntry}
       />
 
