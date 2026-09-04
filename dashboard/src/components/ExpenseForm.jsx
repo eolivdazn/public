@@ -320,23 +320,30 @@ export function ExpenseForm({
 
         {expenseForm.category === "food" ? (
           <div className="expense-form-grid">
+            {/*
+              These inputs live outside FormField's <label> on purpose: a click anywhere inside a
+              <label> implicitly activates the first form control nested in it (native browser
+              behavior). With these inputs nested inside the "Photos" label, tapping any button in
+              the photo gallery (e.g. "Use" on a suggestion) also fired the hidden camera input on
+              iOS Chrome, unexpectedly opening the camera. Keeping them as siblings avoids that.
+            */}
+            <input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handlePhotosSelected}
+              style={{ display: "none" }}
+            />
+            <input
+              ref={galleryInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={handlePhotosSelected}
+              style={{ display: "none" }}
+            />
             <FormField label="Photos (optional)">
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                onChange={handlePhotosSelected}
-                style={{ display: "none" }}
-              />
-              <input
-                ref={galleryInputRef}
-                type="file"
-                accept="image/*"
-                multiple
-                onChange={handlePhotosSelected}
-                style={{ display: "none" }}
-              />
               {receiptError ? <p className="status error">{receiptError}</p> : null}
 
               {expenseForm.location ? (
