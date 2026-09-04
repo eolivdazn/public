@@ -9,7 +9,7 @@
     "build": "npm run build:site && npm run build:dashboard",
     "dev:dashboard": "vite",
     "preview:dashboard": "vite preview",
-    "test": "node --test scripts/travel-data.test.mjs"
+    "test": "node --test scripts/travel-data.test.mjs dashboard/src/lib/*.test.js"
   },
   "dependencies": {
     "gray-matter": "^4.0.3",
