@@ -2,7 +2,8 @@ import { SegmentedControl } from "./SegmentedControl";
 
 const VIEW_OPTIONS = [
   { value: "finance", label: "Finance" },
-  { value: "summary", label: "Summary by year" }
+  { value: "summary", label: "Summary by year" },
+  { value: "audit", label: "Audit" }
 ];
 
 export function Toolbar({

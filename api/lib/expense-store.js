@@ -163,7 +163,29 @@ function createExpenseStore({ container, auditContainer } = {}) {
     await recordAudit({ action: "delete", expenseId: id, tripSlug, actor });
   }
 
-  return { listEntries, addEntry, removeEntry };
+  async function listAuditEntries(tripSlug = null) {
+    const targetContainer = await getAuditContainer();
+    let resources;
+    if (tripSlug) {
+      const result = await targetContainer.items
+        .query(
+          {
+            query: "SELECT * FROM c WHERE c.tripSlug = @tripSlug",
+            parameters: [{ name: "@tripSlug", value: tripSlug }]
+          },
+          { partitionKey: tripSlug }
+        )
+        .fetchAll();
+      resources = result.resources;
+    } else {
+      const result = await targetContainer.items.readAll().fetchAll();
+      resources = result.resources;
+    }
+
+    return resources.map(stripCosmosMetadata).sort((left, right) => right.at.localeCompare(left.at));
+  }
+
+  return { listEntries, listAuditEntries, addEntry, removeEntry };
 }
 
 let defaultStore = null;
@@ -178,6 +200,7 @@ module.exports = {
   createExpenseStore,
   normalizeExpenseInput,
   listEntries: (tripSlug) => getDefaultStore().listEntries(tripSlug),
+  listAuditEntries: (tripSlug) => getDefaultStore().listAuditEntries(tripSlug),
   addEntry: (payload, actor) => getDefaultStore().addEntry(payload, actor),
   removeEntry: (tripSlug, id, actor) => getDefaultStore().removeEntry(tripSlug, id, actor)
 };

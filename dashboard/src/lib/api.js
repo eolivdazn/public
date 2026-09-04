@@ -27,6 +27,18 @@ export async function postExpenseEntry(payload) {
   return result;
 }
 
+export async function fetchAuditEntries(tripSlug) {
+  const url = tripSlug ? `/api/audit?tripSlug=${encodeURIComponent(tripSlug)}` : "/api/audit";
+  const response = await fetch(url);
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(payload?.error || `Could not load audit history (${response.status}).`);
+  }
+
+  return Array.isArray(payload?.entries) ? payload.entries : [];
+}
+
 export async function deleteExpenseEntry({ id, tripSlug }) {
   const response = await fetch(`/api/expenses?id=${encodeURIComponent(id)}&tripSlug=${encodeURIComponent(tripSlug)}`, {
     method: "DELETE"

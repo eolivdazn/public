@@ -3,6 +3,7 @@ import { Header } from "./components/Header";
 import { Toolbar } from "./components/Toolbar";
 import { FinanceView } from "./components/FinanceView";
 import { SummaryView } from "./components/SummaryView";
+import { AuditView } from "./components/AuditView";
 import { calculateTripExpenseSnapshot } from "./lib/expenses.js";
 import { yearsFromData, tripsFromData, filterYearItemByTrip, summaryFromYears } from "./lib/yearSummary.js";
 import { fetchExpenseEntries } from "./lib/api.js";
@@ -246,6 +247,8 @@ export function App() {
           onSelectYear={setActiveYear}
         />
       ) : null}
+
+      {activeView === "audit" ? <AuditView /> : null}
     </main>
   );
 }

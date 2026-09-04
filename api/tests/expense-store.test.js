@@ -50,6 +50,22 @@ function createFakeAuditContainer() {
       async create(record) {
         records.push(record);
         return { resource: record };
+      },
+      query(querySpec, options) {
+        const tripSlug = options?.partitionKey;
+        const filtered = tripSlug ? records.filter((record) => record.tripSlug === tripSlug) : records.slice();
+        return {
+          async fetchAll() {
+            return { resources: filtered };
+          }
+        };
+      },
+      readAll() {
+        return {
+          async fetchAll() {
+            return { resources: records.slice() };
+          }
+        };
       }
     }
   };
@@ -141,4 +157,53 @@ test("store persists and filters expenses by tripSlug", async () => {
   assert.equal(deleteRecord.expenseId, first.id);
   assert.equal(deleteRecord.tripSlug, "algarve2026");
   assert.deepEqual(deleteRecord.actor, actor);
+});
+
+test("listAuditEntries returns an empty array when nothing has been recorded", async () => {
+  const expenseStore = store.createExpenseStore({ container: createFakeContainer(), auditContainer: createFakeAuditContainer() });
+  assert.deepEqual(await expenseStore.listAuditEntries(), []);
+});
+
+test("listAuditEntries sorts by most recent first and strips Cosmos metadata", async () => {
+  const fakeAuditContainer = createFakeAuditContainer();
+  const expenseStore = store.createExpenseStore({ container: createFakeContainer(), auditContainer: fakeAuditContainer });
+
+  fakeAuditContainer.records.push(
+    { id: "a1", action: "create", expenseId: "e1", tripSlug: "algarve2026", actor: null, at: "2026-09-01T10:00:00.000Z", _rid: "r1", _etag: "t1" },
+    { id: "a2", action: "create", expenseId: "e2", tripSlug: "el-gouna2027", actor: null, at: "2026-09-02T10:00:00.000Z" },
+    {
+      id: "a3",
+      action: "delete",
+      expenseId: "e1",
+      tripSlug: "algarve2026",
+      actor: { userId: "u1", userDetails: "eduardo.oliveira" },
+      at: "2026-09-03T10:00:00.000Z"
+    }
+  );
+
+  const entries = await expenseStore.listAuditEntries();
+
+  assert.deepEqual(
+    entries.map((entry) => entry.id),
+    ["a3", "a2", "a1"]
+  );
+  assert.equal(entries[2]._rid, undefined);
+  assert.deepEqual(entries[0].actor, { userId: "u1", userDetails: "eduardo.oliveira" });
+});
+
+test("listAuditEntries filters by tripSlug", async () => {
+  const fakeAuditContainer = createFakeAuditContainer();
+  const expenseStore = store.createExpenseStore({ container: createFakeContainer(), auditContainer: fakeAuditContainer });
+
+  fakeAuditContainer.records.push(
+    { id: "a1", action: "create", expenseId: "e1", tripSlug: "algarve2026", actor: null, at: "2026-09-01T10:00:00.000Z" },
+    { id: "a2", action: "create", expenseId: "e2", tripSlug: "el-gouna2027", actor: null, at: "2026-09-02T10:00:00.000Z" }
+  );
+
+  const entries = await expenseStore.listAuditEntries("algarve2026");
+
+  assert.deepEqual(
+    entries.map((entry) => entry.id),
+    ["a1"]
+  );
 });

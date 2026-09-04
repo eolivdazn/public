@@ -10,3 +10,15 @@ export function formatCurrency(amount, currency) {
     maximumFractionDigits: 2
   }).format(amount);
 }
+
+export function formatAuditTimestamp(isoString) {
+  const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) {
+    return isoString;
+  }
+
+  return new Intl.DateTimeFormat("en-GB", {
+    dateStyle: "medium",
+    timeStyle: "short"
+  }).format(date);
+}
