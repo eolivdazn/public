@@ -624,6 +624,13 @@ a:hover {
   border: 1px solid var(--border);
   margin-top: 6px;
 }
+.expense-photo-gallery-insert {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
 
 .expense-photo-gallery {
   display: flex;
@@ -633,6 +640,7 @@ a:hover {
 }
 
 .expense-photo-card {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -643,17 +651,27 @@ a:hover {
   max-width: 140px;
 }
 
-.expense-photo-card > button {
-  display: inline-flex;
+.expense-photo-remove {
+  position: absolute;
+  top: -9px;
+  right: -8px;
+  display: flex;
   align-items: center;
-  min-height: 44px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: transparent;
-  color: var(--muted);
-  font-size: 0.85rem;
-  padding: 10px 14px;
+  justify-content: center;
+  width: 24px;
+  height: 21px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(24, 36, 59, 0.65);
+  color: #fff;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
   cursor: pointer;
+}
+
+.expense-photo-remove:hover {
+  background: rgba(24, 36, 59, 0.85);
 }
 
 .expense-photo-add-buttons {

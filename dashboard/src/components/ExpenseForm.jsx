@@ -358,13 +358,18 @@ export function ExpenseForm({
               ) : null}
 
               {expenseForm.photos.length > 0 ? (
-                <div className="expense-photo-gallery">
+                <div className="expense-photo-gallery-insert">
                   {expenseForm.photos.map((photo) => (
                     <div className="expense-photo-card" key={photo.localId}>
-                      <img src={photo.previewUrl} alt="Dish" className="expense-entry-receipt-thumb" />
-                      <button type="button" onClick={() => removePhoto(photo.localId)}>
-                        Remove
+                      <button
+                        type="button"
+                        className="expense-photo-remove"
+                        onClick={() => removePhoto(photo.localId)}
+                        aria-label="Remove photo"
+                      >
+                        ×
                       </button>
+                      <img src={photo.previewUrl} alt="Dish" className="expense-entry-receipt-thumb" />
                       {aiSuggestionsEnabled ? (
                         <div className="expense-description-suggestion">
                           <button
