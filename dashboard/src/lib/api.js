@@ -87,13 +87,17 @@ export async function deleteExpenseEntry({ id, tripSlug, receiptBlobName }) {
   return result;
 }
 
-export async function uploadReceipt(tripSlug, blob) {
-  const base64Data = await new Promise((resolve, reject) => {
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result).split(",")[1] || "");
-    reader.onerror = () => reject(new Error("Could not read the image for upload."));
+    reader.onerror = () => reject(new Error("Could not read the image."));
     reader.readAsDataURL(blob);
   });
+}
+
+export async function uploadReceipt(tripSlug, blob) {
+  const base64Data = await blobToBase64(blob);
 
   const response = await fetch(`/api/receipts?tripSlug=${encodeURIComponent(tripSlug)}`, {
     method: "POST",
@@ -109,4 +113,23 @@ export async function uploadReceipt(tripSlug, blob) {
   }
 
   return result;
+}
+
+export async function suggestFoodDescription(blob) {
+  const base64Data = await blobToBase64(blob);
+
+  const response = await fetch("/api/suggestions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ contentType: blob.type, data: base64Data })
+  });
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(result?.error || `Could not get a suggestion (${response.status}).`);
+  }
+
+  return result.suggestion;
 }

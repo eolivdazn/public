@@ -4,6 +4,7 @@ import { StarRating } from "./StarRating";
 import { EXPENSE_CATEGORY_OPTIONS } from "../lib/expenses.js";
 import { validateReceiptFile, compressImage } from "../lib/imageCompression.js";
 import { requestCurrentLocation } from "../lib/geolocation.js";
+import { suggestFoodDescription } from "../lib/api.js";
 
 function defaultFormValues() {
   return {
@@ -54,12 +55,17 @@ export function ExpenseForm({
 }) {
   const [expenseForm, setExpenseForm] = useState(() => formValuesFromEntry(editingEntry));
   const [receiptError, setReceiptError] = useState("");
+  const [suggestingDescription, setSuggestingDescription] = useState(false);
+  const [suggestionError, setSuggestionError] = useState("");
+  const [descriptionSuggestion, setDescriptionSuggestion] = useState(null);
   const fileInputRef = useRef(null);
   const isEditing = Boolean(editingEntry);
 
   useEffect(() => {
     setExpenseForm(formValuesFromEntry(editingEntry));
     setReceiptError("");
+    setSuggestionError("");
+    setDescriptionSuggestion(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -80,6 +86,8 @@ export function ExpenseForm({
       return { ...current, receiptFile: null, receiptPreviewUrl: null, removeExistingReceipt: true, photoLocation: null };
     });
     setReceiptError("");
+    setSuggestionError("");
+    setDescriptionSuggestion(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -103,6 +111,8 @@ export function ExpenseForm({
     }
 
     setReceiptError("");
+    setSuggestionError("");
+    setDescriptionSuggestion(null);
     try {
       const compressed = await compressImage(file);
       setExpenseForm((current) => {
@@ -124,6 +134,32 @@ export function ExpenseForm({
     } catch (compressionError) {
       setReceiptError(compressionError.message || "Could not process the selected image.");
     }
+  }
+
+  async function handleSuggestDescription() {
+    let sourceBlob = expenseForm.receiptFile;
+    if (!sourceBlob && receiptPreviewUrl) {
+      sourceBlob = await fetch(receiptPreviewUrl).then((response) => response.blob());
+    }
+    if (!sourceBlob) {
+      return;
+    }
+
+    setSuggestingDescription(true);
+    setSuggestionError("");
+    try {
+      const suggestion = await suggestFoodDescription(sourceBlob);
+      setDescriptionSuggestion(suggestion);
+    } catch (suggestError) {
+      setSuggestionError(suggestError.message || "Could not get a suggestion.");
+    } finally {
+      setSuggestingDescription(false);
+    }
+  }
+
+  function acceptDescriptionSuggestion() {
+    setExpenseForm((current) => ({ ...current, description: descriptionSuggestion }));
+    setDescriptionSuggestion(null);
   }
 
   async function handleSubmit(event) {
@@ -251,6 +287,25 @@ export function ExpenseForm({
                     Remove
                   </button>
                 </p>
+              ) : null}
+              {receiptPreviewUrl ? (
+                <div className="expense-description-suggestion">
+                  <button type="button" onClick={handleSuggestDescription} disabled={suggestingDescription}>
+                    {suggestingDescription ? "Thinking..." : "✨ Suggest description"}
+                  </button>
+                  {suggestionError ? <p className="status error">{suggestionError}</p> : null}
+                  {descriptionSuggestion ? (
+                    <p className="expense-description-suggestion-result">
+                      Suggestion: "{descriptionSuggestion}"
+                      <button type="button" onClick={acceptDescriptionSuggestion}>
+                        Use
+                      </button>
+                      <button type="button" onClick={() => setDescriptionSuggestion(null)}>
+                        Dismiss
+                      </button>
+                    </p>
+                  ) : null}
+                </div>
               ) : null}
             </FormField>
 
