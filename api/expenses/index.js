@@ -82,7 +82,6 @@ module.exports = async function expenseApi(context, req) {
     if (req.method === "DELETE") {
       const id = typeof req.query.id === "string" ? req.query.id.trim() : "";
       const tripSlug = typeof req.query.tripSlug === "string" ? req.query.tripSlug.trim() : "";
-      const receiptBlobName = typeof req.query.receiptBlobName === "string" && req.query.receiptBlobName.trim() ? req.query.receiptBlobName.trim() : null;
 
       if (!id || !tripSlug) {
         context.res = {
@@ -97,7 +96,7 @@ module.exports = async function expenseApi(context, req) {
         return;
       }
 
-      await removeEntry(tripSlug, id, actor, receiptBlobName);
+      await removeEntry(tripSlug, id, actor);
       const entries = await listEntries(tripSlug);
 
       context.res = {

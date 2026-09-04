@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FormField } from "./FormField";
 import { StarRating } from "./StarRating";
-import { EXPENSE_CATEGORY_OPTIONS } from "../lib/expenses.js";
+import { EXPENSE_CATEGORY_OPTIONS, MAX_PHOTOS_PER_EXPENSE } from "../lib/expenses.js";
 import { validateReceiptFile, compressImage } from "../lib/imageCompression.js";
 import { requestCurrentLocation } from "../lib/geolocation.js";
 import { suggestFoodDescription, fetchAiSuggestionsStatus } from "../lib/api.js";
@@ -13,12 +13,20 @@ function defaultFormValues() {
     date: new Date().toISOString().slice(0, 10),
     description: "",
     rating: 0,
-    receiptFile: null,
-    receiptPreviewUrl: null,
-    existingReceiptUrl: null,
-    existingReceiptBlobName: null,
-    removeExistingReceipt: false,
-    photoLocation: null
+    location: null,
+    photos: []
+  };
+}
+
+function photoFromEntryPhoto(photo) {
+  return {
+    localId: crypto.randomUUID(),
+    file: null,
+    previewUrl: photo.url || null,
+    existingBlobName: photo.blobName,
+    suggesting: false,
+    suggestionError: "",
+    suggestion: null
   };
 }
 
@@ -32,12 +40,8 @@ function formValuesFromEntry(entry) {
     date: entry.date || new Date().toISOString().slice(0, 10),
     description: entry.description || "",
     rating: entry.rating || 0,
-    receiptFile: null,
-    receiptPreviewUrl: null,
-    existingReceiptUrl: entry.receiptUrl || null,
-    existingReceiptBlobName: entry.receiptBlobName || null,
-    removeExistingReceipt: false,
-    photoLocation: entry.photoLocation || null
+    location: entry.location || null,
+    photos: (entry.photos || []).map(photoFromEntryPhoto)
   };
 }
 
@@ -55,11 +59,9 @@ export function ExpenseForm({
 }) {
   const [expenseForm, setExpenseForm] = useState(() => formValuesFromEntry(editingEntry));
   const [receiptError, setReceiptError] = useState("");
-  const [suggestingDescription, setSuggestingDescription] = useState(false);
-  const [suggestionError, setSuggestionError] = useState("");
-  const [descriptionSuggestion, setDescriptionSuggestion] = useState(null);
   const [aiSuggestionsEnabled, setAiSuggestionsEnabled] = useState(false);
-  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
   const isEditing = Boolean(editingEntry);
 
   useEffect(() => {
@@ -69,10 +71,11 @@ export function ExpenseForm({
   useEffect(() => {
     setExpenseForm(formValuesFromEntry(editingEntry));
     setReceiptError("");
-    setSuggestionError("");
-    setDescriptionSuggestion(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = "";
+    }
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = "";
     }
   }, [editingEntry]);
 
@@ -83,88 +86,129 @@ export function ExpenseForm({
     setExpenseForm((current) => (current.date && current.category ? current : defaultFormValues()));
   }, [selectedExpenseTrip, isEditing]);
 
-  function clearReceipt() {
+  function removePhoto(localId) {
     setExpenseForm((current) => {
-      if (current.receiptPreviewUrl) {
-        URL.revokeObjectURL(current.receiptPreviewUrl);
+      const photo = current.photos.find((item) => item.localId === localId);
+      if (photo?.file && photo.previewUrl) {
+        URL.revokeObjectURL(photo.previewUrl);
       }
-      return { ...current, receiptFile: null, receiptPreviewUrl: null, removeExistingReceipt: true, photoLocation: null };
+      return { ...current, photos: current.photos.filter((item) => item.localId !== localId) };
     });
-    setReceiptError("");
-    setSuggestionError("");
-    setDescriptionSuggestion(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
-    }
   }
 
   function clearLocation() {
-    setExpenseForm((current) => ({ ...current, photoLocation: null }));
+    setExpenseForm((current) => ({ ...current, location: null }));
   }
 
-  async function handleFileChange(event) {
-    const file = event.target.files?.[0] || null;
-    if (!file) {
-      return;
-    }
-
-    const validation = validateReceiptFile(file);
-    if (!validation.valid) {
-      setReceiptError(validation.error);
-      event.target.value = "";
+  async function handlePhotosSelected(event) {
+    const files = Array.from(event.target.files || []);
+    event.target.value = "";
+    if (files.length === 0) {
       return;
     }
 
     setReceiptError("");
-    setSuggestionError("");
-    setDescriptionSuggestion(null);
-    try {
-      const compressed = await compressImage(file);
-      setExpenseForm((current) => {
-        if (current.receiptPreviewUrl) {
-          URL.revokeObjectURL(current.receiptPreviewUrl);
-        }
-        return {
+    const remainingSlots = MAX_PHOTOS_PER_EXPENSE - expenseForm.photos.length;
+    const accepted = files.slice(0, Math.max(remainingSlots, 0));
+    if (files.length > accepted.length) {
+      setReceiptError(`Maximum ${MAX_PHOTOS_PER_EXPENSE} photos reached. Some photos were not added.`);
+    }
+
+    const needsLocation = !expenseForm.location;
+    let addedAnyPhoto = false;
+
+    for (const file of accepted) {
+      const validation = validateReceiptFile(file);
+      if (!validation.valid) {
+        setReceiptError(validation.error);
+        continue;
+      }
+
+      try {
+        const compressed = await compressImage(file);
+        const previewUrl = URL.createObjectURL(compressed);
+        const localId = crypto.randomUUID();
+        addedAnyPhoto = true;
+        setExpenseForm((current) => ({
           ...current,
-          receiptFile: compressed,
-          receiptPreviewUrl: URL.createObjectURL(compressed),
-          removeExistingReceipt: false,
-          photoLocation: null
-        };
-      });
+          photos: [
+            ...current.photos,
+            {
+              localId,
+              file: compressed,
+              previewUrl,
+              existingBlobName: null,
+              suggesting: false,
+              suggestionError: "",
+              suggestion: null
+            }
+          ]
+        }));
+      } catch (compressionError) {
+        setReceiptError(compressionError.message || "Could not process the selected image.");
+      }
+    }
+
+    if (needsLocation && addedAnyPhoto) {
       const location = await requestCurrentLocation();
       if (location) {
-        setExpenseForm((current) => ({ ...current, photoLocation: location }));
+        setExpenseForm((current) => (current.location ? current : { ...current, location }));
       }
-    } catch (compressionError) {
-      setReceiptError(compressionError.message || "Could not process the selected image.");
     }
   }
 
-  async function handleSuggestDescription() {
-    let sourceBlob = expenseForm.receiptFile;
-    if (!sourceBlob && receiptPreviewUrl) {
-      sourceBlob = await fetch(receiptPreviewUrl).then((response) => response.blob());
+  async function handleSuggestDescription(localId) {
+    const photo = expenseForm.photos.find((item) => item.localId === localId);
+    if (!photo) {
+      return;
+    }
+    let sourceBlob = photo.file;
+    if (!sourceBlob && photo.previewUrl) {
+      sourceBlob = await fetch(photo.previewUrl).then((response) => response.blob());
     }
     if (!sourceBlob) {
       return;
     }
 
-    setSuggestingDescription(true);
-    setSuggestionError("");
+    setExpenseForm((current) => ({
+      ...current,
+      photos: current.photos.map((item) => (item.localId === localId ? { ...item, suggesting: true, suggestionError: "" } : item))
+    }));
     try {
       const suggestion = await suggestFoodDescription(sourceBlob);
-      setDescriptionSuggestion(suggestion);
+      setExpenseForm((current) => ({
+        ...current,
+        photos: current.photos.map((item) => (item.localId === localId ? { ...item, suggesting: false, suggestion } : item))
+      }));
     } catch (suggestError) {
-      setSuggestionError(suggestError.message || "Could not get a suggestion.");
-    } finally {
-      setSuggestingDescription(false);
+      setExpenseForm((current) => ({
+        ...current,
+        photos: current.photos.map((item) =>
+          item.localId === localId
+            ? { ...item, suggesting: false, suggestionError: suggestError.message || "Could not get a suggestion." }
+            : item
+        )
+      }));
     }
   }
 
-  function acceptDescriptionSuggestion() {
-    setExpenseForm((current) => ({ ...current, description: descriptionSuggestion }));
-    setDescriptionSuggestion(null);
+  function acceptDescriptionSuggestion(localId) {
+    const photo = expenseForm.photos.find((item) => item.localId === localId);
+    if (!photo?.suggestion) {
+      return;
+    }
+    setExpenseForm((current) => ({
+      ...current,
+      description: photo.suggestion,
+      photos: current.photos.map((item) => (item.localId === localId ? { ...item, suggestion: null } : item))
+    }));
+  }
+
+  function dismissDescriptionSuggestion(localId) {
+    setExpenseForm((current) => ({
+      ...current,
+      photos: current.photos.map((item) => (item.localId === localId ? { ...item, suggestion: null } : item))
+    }));
   }
 
   async function handleSubmit(event) {
@@ -174,8 +218,10 @@ export function ExpenseForm({
       return;
     }
 
-    if (expenseForm.receiptPreviewUrl) {
-      URL.revokeObjectURL(expenseForm.receiptPreviewUrl);
+    for (const photo of expenseForm.photos) {
+      if (photo.file && photo.previewUrl) {
+        URL.revokeObjectURL(photo.previewUrl);
+      }
     }
 
     if (isEditing) {
@@ -189,16 +235,16 @@ export function ExpenseForm({
       description: "",
       date: new Date().toISOString().slice(0, 10),
       rating: 0,
-      receiptFile: null,
-      receiptPreviewUrl: null,
-      photoLocation: null
+      location: null,
+      photos: []
     }));
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    if (cameraInputRef.current) {
+      cameraInputRef.current.value = "";
+    }
+    if (galleryInputRef.current) {
+      galleryInputRef.current.value = "";
     }
   }
-
-  const receiptPreviewUrl = expenseForm.receiptPreviewUrl || (!expenseForm.removeExistingReceipt ? expenseForm.existingReceiptUrl : null);
 
   return (
     <article className="panel expense-form-panel">
@@ -274,18 +320,26 @@ export function ExpenseForm({
 
         {expenseForm.category === "food" ? (
           <div className="expense-form-grid">
-            <FormField label="Dish photo (optional)">
-              <input ref={fileInputRef} type="file" accept="image/*" capture="environment" onChange={handleFileChange} />
+            <FormField label="Photos (optional)">
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handlePhotosSelected}
+                style={{ display: "none" }}
+              />
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/*"
+                multiple
+                onChange={handlePhotosSelected}
+                style={{ display: "none" }}
+              />
               {receiptError ? <p className="status error">{receiptError}</p> : null}
-              {receiptPreviewUrl ? (
-                <div className="expense-receipt-preview">
-                  <img src={receiptPreviewUrl} alt="Dish" className="expense-entry-receipt-thumb" />
-                  <button type="button" onClick={clearReceipt}>
-                    Remove photo
-                  </button>
-                </div>
-              ) : null}
-              {expenseForm.photoLocation ? (
+
+              {expenseForm.location ? (
                 <p className="expense-photo-location">
                   📍 Location attached
                   <button type="button" onClick={clearLocation}>
@@ -293,25 +347,55 @@ export function ExpenseForm({
                   </button>
                 </p>
               ) : null}
-              {receiptPreviewUrl && aiSuggestionsEnabled ? (
-                <div className="expense-description-suggestion">
-                  <button type="button" onClick={handleSuggestDescription} disabled={suggestingDescription}>
-                    {suggestingDescription ? "Thinking..." : "✨ Suggest description"}
-                  </button>
-                  {suggestionError ? <p className="status error">{suggestionError}</p> : null}
-                  {descriptionSuggestion ? (
-                    <p className="expense-description-suggestion-result">
-                      Suggestion: "{descriptionSuggestion}"
-                      <button type="button" onClick={acceptDescriptionSuggestion}>
-                        Use
+
+              {expenseForm.photos.length > 0 ? (
+                <div className="expense-photo-gallery">
+                  {expenseForm.photos.map((photo) => (
+                    <div className="expense-photo-card" key={photo.localId}>
+                      <img src={photo.previewUrl} alt="Dish" className="expense-entry-receipt-thumb" />
+                      <button type="button" onClick={() => removePhoto(photo.localId)}>
+                        Remove
                       </button>
-                      <button type="button" onClick={() => setDescriptionSuggestion(null)}>
-                        Dismiss
-                      </button>
-                    </p>
-                  ) : null}
+                      {aiSuggestionsEnabled ? (
+                        <div className="expense-description-suggestion">
+                          <button
+                            type="button"
+                            onClick={() => handleSuggestDescription(photo.localId)}
+                            disabled={photo.suggesting}
+                          >
+                            {photo.suggesting ? "Thinking..." : "✨ Suggest description"}
+                          </button>
+                          {photo.suggestionError ? <p className="status error">{photo.suggestionError}</p> : null}
+                          {photo.suggestion ? (
+                            <p className="expense-description-suggestion-result">
+                              Suggestion: "{photo.suggestion}"
+                              <button type="button" onClick={() => acceptDescriptionSuggestion(photo.localId)}>
+                                Use
+                              </button>
+                              <button type="button" onClick={() => dismissDescriptionSuggestion(photo.localId)}>
+                                Dismiss
+                              </button>
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </div>
+                  ))}
                 </div>
               ) : null}
+
+              {expenseForm.photos.length < MAX_PHOTOS_PER_EXPENSE ? (
+                <div className="expense-photo-add-buttons">
+                  <button type="button" onClick={() => cameraInputRef.current?.click()}>
+                    📷 Take photo
+                  </button>
+                  <button type="button" onClick={() => galleryInputRef.current?.click()}>
+                    🖼️ Choose from gallery
+                  </button>
+                </div>
+              ) : (
+                <p className="expense-muted">Maximum {MAX_PHOTOS_PER_EXPENSE} photos reached.</p>
+              )}
             </FormField>
 
             <FormField label="Rating (optional)">

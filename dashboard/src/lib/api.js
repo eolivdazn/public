@@ -69,11 +69,8 @@ export async function fetchAuditEntries({ tripSlug, page = 1, pageSize = 10 } = 
   };
 }
 
-export async function deleteExpenseEntry({ id, tripSlug, receiptBlobName }) {
+export async function deleteExpenseEntry({ id, tripSlug }) {
   const params = new URLSearchParams({ id, tripSlug });
-  if (receiptBlobName) {
-    params.set("receiptBlobName", receiptBlobName);
-  }
 
   const response = await fetch(`/api/expenses?${params.toString()}`, {
     method: "DELETE"

@@ -9,6 +9,9 @@ export const EXPENSE_LABELS = {
 
 export const EXPENSE_CATEGORY_OPTIONS = Object.entries(EXPENSE_LABELS).map(([value, label]) => ({ value, label }));
 
+// Manter sincronizado com MAX_PHOTOS_PER_EXPENSE em api/lib/expense-store.js
+export const MAX_PHOTOS_PER_EXPENSE = 6;
+
 export function createEmptyExpenseCategories() {
   return {
     flights: 0,

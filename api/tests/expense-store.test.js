@@ -150,29 +150,63 @@ test("normalizeExpenseInput rejects a rating outside 0.5-5 or not a multiple of 
   assert.throws(() => store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 10, rating: 2.3 }), /multiple of 0.5/);
 });
 
-test("normalizeExpenseInput accepts an optional photoLocation and defaults to null", () => {
+test("normalizeExpenseInput accepts an optional photos array and defaults to an empty array", () => {
   const entry = store.normalizeExpenseInput({
     tripSlug: "algarve2026",
     category: "food",
     amount: 10,
-    photoLocation: { latitude: 38.7223, longitude: -9.1393 }
+    photos: [{ blobName: "algarve2026/a.jpg" }]
   });
-  assert.deepEqual(entry.photoLocation, { latitude: 38.7223, longitude: -9.1393 });
+  assert.deepEqual(entry.photos, [{ blobName: "algarve2026/a.jpg" }]);
 
-  const entryWithoutLocation = store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 10 });
-  assert.equal(entryWithoutLocation.photoLocation, null);
+  const entryWithoutPhotos = store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 10 });
+  assert.deepEqual(entryWithoutPhotos.photos, []);
 });
 
-test("normalizeExpenseInput rejects photoLocation coordinates outside valid ranges", () => {
+test("normalizeExpenseInput rejects a photo without a blobName", () => {
   assert.throws(
     () =>
       store.normalizeExpenseInput({
         tripSlug: "algarve2026",
         category: "food",
         amount: 10,
-        photoLocation: { latitude: 91, longitude: 0 }
+        photos: [{}]
       }),
-    /latitude/
+    /photos\[0\]\.blobName/
+  );
+});
+
+test("normalizeExpenseInput rejects more than MAX_PHOTOS_PER_EXPENSE photos", () => {
+  const photos = Array.from({ length: store.MAX_PHOTOS_PER_EXPENSE + 1 }, (_, index) => ({ blobName: `algarve2026/${index}.jpg` }));
+  assert.throws(
+    () => store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 10, photos }),
+    /at most \d+ items/
+  );
+});
+
+test("normalizeExpenseInput accepts an optional entry-level location and defaults to null", () => {
+  const entry = store.normalizeExpenseInput({
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 10,
+    location: { latitude: 38.7223, longitude: -9.1393 }
+  });
+  assert.deepEqual(entry.location, { latitude: 38.7223, longitude: -9.1393 });
+
+  const entryWithoutLocation = store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 10 });
+  assert.equal(entryWithoutLocation.location, null);
+});
+
+test("normalizeExpenseInput rejects a location with coordinates outside valid ranges", () => {
+  assert.throws(
+    () =>
+      store.normalizeExpenseInput({
+        tripSlug: "algarve2026",
+        category: "food",
+        amount: 10,
+        location: { latitude: 91, longitude: 0 }
+      }),
+    /location\.latitude/
   );
   assert.throws(
     () =>
@@ -180,9 +214,9 @@ test("normalizeExpenseInput rejects photoLocation coordinates outside valid rang
         tripSlug: "algarve2026",
         category: "food",
         amount: 10,
-        photoLocation: { latitude: 0, longitude: -181 }
+        location: { latitude: 0, longitude: -181 }
       }),
-    /longitude/
+    /location\.longitude/
   );
 });
 
@@ -289,7 +323,7 @@ test("updateEntry rejects an id that does not exist", async () => {
   );
 });
 
-test("updateEntry deletes the previous receipt blob when replaced with a new one", async () => {
+test("updateEntry deletes only the photo blobs that are no longer referenced", async () => {
   const fakeBlobContainer = createFakeBlobContainerClient();
   const expenseStore = store.createExpenseStore({
     container: createFakeContainer(),
@@ -297,23 +331,33 @@ test("updateEntry deletes the previous receipt blob when replaced with a new one
     blobContainerClient: fakeBlobContainer
   });
 
-  const { blobName: oldBlob } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("old"), "image/jpeg");
-  const { blobName: newBlob } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("new"), "image/jpeg");
-  const entry = await expenseStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 10, receiptBlobName: oldBlob });
+  const { blobName: blobA } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("a"), "image/jpeg");
+  const { blobName: blobB } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("b"), "image/jpeg");
+  const { blobName: blobC } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("c"), "image/jpeg");
+  const entry = await expenseStore.addEntry({
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 10,
+    photos: [{ blobName: blobA }, { blobName: blobB }]
+  });
 
   const updated = await expenseStore.updateEntry("algarve2026", entry.id, {
     tripSlug: "algarve2026",
     category: "food",
     amount: 10,
-    receiptBlobName: newBlob
+    photos: [{ blobName: blobB }, { blobName: blobC }]
   });
 
-  assert.equal(updated.receiptBlobName, newBlob);
-  assert.equal(fakeBlobContainer.blobs.has(oldBlob), false);
-  assert.equal(fakeBlobContainer.blobs.has(newBlob), true);
+  assert.deepEqual(
+    updated.photos.map((photo) => photo.blobName),
+    [blobB, blobC]
+  );
+  assert.equal(fakeBlobContainer.blobs.has(blobA), false);
+  assert.equal(fakeBlobContainer.blobs.has(blobB), true);
+  assert.equal(fakeBlobContainer.blobs.has(blobC), true);
 });
 
-test("updateEntry deletes the previous receipt blob when the photo is removed", async () => {
+test("updateEntry deletes the previous photo blob when all photos are removed", async () => {
   const fakeBlobContainer = createFakeBlobContainerClient();
   const expenseStore = store.createExpenseStore({
     container: createFakeContainer(),
@@ -322,7 +366,12 @@ test("updateEntry deletes the previous receipt blob when the photo is removed", 
   });
 
   const { blobName } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("old"), "image/jpeg");
-  const entry = await expenseStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 10, receiptBlobName: blobName });
+  const entry = await expenseStore.addEntry({
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 10,
+    photos: [{ blobName }]
+  });
 
   const updated = await expenseStore.updateEntry("algarve2026", entry.id, {
     tripSlug: "algarve2026",
@@ -330,8 +379,46 @@ test("updateEntry deletes the previous receipt blob when the photo is removed", 
     amount: 10
   });
 
-  assert.equal(updated.receiptBlobName, null);
+  assert.deepEqual(updated.photos, []);
   assert.equal(fakeBlobContainer.blobs.has(blobName), false);
+});
+
+test("updateEntry migrates a legacy single-photo entry to the photos array and drops the old fields", async () => {
+  const fakeContainer = createFakeContainer();
+  const fakeBlobContainer = createFakeBlobContainerClient();
+  const expenseStore = store.createExpenseStore({
+    container: fakeContainer,
+    auditContainer: createFakeAuditContainer(),
+    blobContainerClient: fakeBlobContainer
+  });
+
+  const { blobName: oldBlob } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("old"), "image/jpeg");
+  const { blobName: newBlob } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("new"), "image/jpeg");
+  await fakeContainer.items.create({
+    id: "legacy-1",
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 10,
+    receiptBlobName: oldBlob,
+    photoLocation: { latitude: 1, longitude: 2 },
+    createdAt: new Date().toISOString()
+  });
+
+  const updated = await expenseStore.updateEntry("algarve2026", "legacy-1", {
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 10,
+    photos: [{ blobName: newBlob }]
+  });
+
+  assert.deepEqual(
+    updated.photos.map((photo) => photo.blobName),
+    [newBlob]
+  );
+  assert.equal("receiptBlobName" in updated, false);
+  assert.equal("photoLocation" in updated, false);
+  assert.equal(updated.location, null);
+  assert.equal(fakeBlobContainer.blobs.has(oldBlob), false);
 });
 
 test("uploadReceipt stores the image under tripSlug/ and returns a blob name", async () => {
@@ -359,7 +446,7 @@ test("uploadReceipt rejects an unsupported content type", async () => {
   await assert.rejects(() => expenseStore.uploadReceipt("algarve2026", Buffer.from("x"), "application/pdf"), /Unsupported receipt content type/);
 });
 
-test("listEntries attaches a receiptUrl only for entries with a receiptBlobName", async () => {
+test("listEntries attaches a url to every photo of an entry", async () => {
   const fakeBlobContainer = createFakeBlobContainerClient();
   const expenseStore = store.createExpenseStore({
     container: createFakeContainer(),
@@ -367,20 +454,59 @@ test("listEntries attaches a receiptUrl only for entries with a receiptBlobName"
     blobContainerClient: fakeBlobContainer
   });
 
-  const { blobName } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("img"), "image/jpeg");
-  await expenseStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 20, receiptBlobName: blobName, rating: 5 });
+  const { blobName: blobA } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("a"), "image/jpeg");
+  const { blobName: blobB } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("b"), "image/jpeg");
+  await expenseStore.addEntry({
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 20,
+    photos: [{ blobName: blobA }, { blobName: blobB }],
+    rating: 5
+  });
   await expenseStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 5 });
 
   const entries = await expenseStore.listEntries("algarve2026");
-  const withReceipt = entries.find((entry) => entry.receiptBlobName === blobName);
-  const withoutReceipt = entries.find((entry) => !entry.receiptBlobName);
+  const withPhotos = entries.find((entry) => entry.photos.length > 0);
+  const withoutPhotos = entries.find((entry) => entry.photos.length === 0);
 
-  assert.ok(withReceipt.receiptUrl.startsWith("https://"));
-  assert.equal(withReceipt.rating, 5);
-  assert.equal(withoutReceipt.receiptUrl, undefined);
+  assert.equal(withPhotos.photos.length, 2);
+  assert.ok(withPhotos.photos.every((photo) => photo.url.startsWith("https://")));
+  assert.equal(withPhotos.rating, 5);
+  assert.deepEqual(withoutPhotos.photos, []);
 });
 
-test("removeEntry deletes the associated receipt blob when a receiptBlobName is provided", async () => {
+test("listEntries synthesizes a photos array from legacy receiptBlobName/photoLocation fields", async () => {
+  const fakeContainer = createFakeContainer();
+  const fakeBlobContainer = createFakeBlobContainerClient();
+  const expenseStore = store.createExpenseStore({
+    container: fakeContainer,
+    auditContainer: createFakeAuditContainer(),
+    blobContainerClient: fakeBlobContainer
+  });
+
+  const { blobName } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("img"), "image/jpeg");
+  await fakeContainer.items.create({
+    id: "legacy-1",
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 10,
+    receiptBlobName: blobName,
+    photoLocation: { latitude: 1, longitude: 2 },
+    createdAt: new Date().toISOString()
+  });
+
+  const entries = await expenseStore.listEntries("algarve2026");
+  const legacyEntry = entries.find((entry) => entry.id === "legacy-1");
+
+  assert.deepEqual(
+    legacyEntry.photos.map((photo) => photo.blobName),
+    [blobName]
+  );
+  assert.ok(legacyEntry.photos[0].url.startsWith("https://"));
+  assert.deepEqual(legacyEntry.location, { latitude: 1, longitude: 2 });
+});
+
+test("removeEntry deletes all of an entry's photo blobs", async () => {
   const fakeBlobContainer = createFakeBlobContainerClient();
   const expenseStore = store.createExpenseStore({
     container: createFakeContainer(),
@@ -388,23 +514,39 @@ test("removeEntry deletes the associated receipt blob when a receiptBlobName is 
     blobContainerClient: fakeBlobContainer
   });
 
-  const { blobName } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("img"), "image/jpeg");
-  const entry = await expenseStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 20, receiptBlobName: blobName });
+  const { blobName: blobA } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("a"), "image/jpeg");
+  const { blobName: blobB } = await expenseStore.uploadReceipt("algarve2026", Buffer.from("b"), "image/jpeg");
+  const entry = await expenseStore.addEntry({
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 20,
+    photos: [{ blobName: blobA }, { blobName: blobB }]
+  });
 
-  await expenseStore.removeEntry("algarve2026", entry.id, null, blobName);
+  await expenseStore.removeEntry("algarve2026", entry.id, null);
 
-  assert.equal(fakeBlobContainer.blobs.has(blobName), false);
+  assert.equal(fakeBlobContainer.blobs.has(blobA), false);
+  assert.equal(fakeBlobContainer.blobs.has(blobB), false);
 });
 
-test("removeEntry succeeds even when the receipt blob deletion fails", async () => {
+test("removeEntry succeeds even when a photo blob is missing, and still records the audit entry", async () => {
+  const fakeAuditContainer = createFakeAuditContainer();
   const expenseStore = store.createExpenseStore({
     container: createFakeContainer(),
-    auditContainer: createFakeAuditContainer(),
+    auditContainer: fakeAuditContainer,
     blobContainerClient: createFakeBlobContainerClient()
   });
-  const entry = await expenseStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 20 });
+  const entry = await expenseStore.addEntry({
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 20,
+    photos: [{ blobName: "algarve2026/nonexistent-blob.jpg" }]
+  });
 
-  await assert.doesNotReject(() => expenseStore.removeEntry("algarve2026", entry.id, null, "nonexistent-blob.jpg"));
+  await assert.doesNotReject(() => expenseStore.removeEntry("algarve2026", entry.id, null));
+
+  const deleteRecord = fakeAuditContainer.records.find((record) => record.action === "delete");
+  assert.equal(deleteRecord.expenseId, entry.id);
 });
 
 test("listAuditEntries returns an empty page when nothing has been recorded", async () => {

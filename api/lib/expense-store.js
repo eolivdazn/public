@@ -8,6 +8,8 @@ const RECEIPT_CONTENT_TYPES = {
   "image/webp": "webp"
 };
 
+const MAX_PHOTOS_PER_EXPENSE = 6;
+
 function validateIsoDate(value, fieldName) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error(`'${fieldName}' must be a YYYY-MM-DD string.`);
@@ -26,6 +28,26 @@ function generateId() {
   return `exp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
+function photoBlobNamesOf(entryLike) {
+  if (!entryLike || typeof entryLike !== "object") {
+    return [];
+  }
+  if (Array.isArray(entryLike.photos)) {
+    return entryLike.photos.map((photo) => photo.blobName);
+  }
+  if (entryLike.receiptBlobName) {
+    return [entryLike.receiptBlobName];
+  }
+  return [];
+}
+
+function locationOf(entryLike) {
+  if (!entryLike || typeof entryLike !== "object") {
+    return null;
+  }
+  return entryLike.location !== undefined ? entryLike.location : entryLike.photoLocation || null;
+}
+
 function buildExpenseFields(payload) {
   if (!payload || typeof payload !== "object") {
     throw new Error("Request body must be a JSON object.");
@@ -37,11 +59,12 @@ function buildExpenseFields(payload) {
   const currency = typeof payload.currency === "string" ? payload.currency.trim() : "";
   const description = typeof payload.description === "string" ? payload.description.trim() : "";
   const date = payload.date ? validateIsoDate(payload.date, "date") : new Date().toISOString().slice(0, 10);
-  const receiptBlobName = typeof payload.receiptBlobName === "string" && payload.receiptBlobName.trim() ? payload.receiptBlobName.trim() : null;
   const rating = payload.rating === undefined || payload.rating === null || payload.rating === "" ? null : Number(payload.rating);
-  const photoLocation =
-    payload.photoLocation && typeof payload.photoLocation === "object"
-      ? { latitude: Number(payload.photoLocation.latitude), longitude: Number(payload.photoLocation.longitude) }
+  const rawPhotos = Array.isArray(payload.photos) ? payload.photos : [];
+  const rawLocation = payload.location;
+  const location =
+    rawLocation && typeof rawLocation === "object"
+      ? { latitude: Number(rawLocation.latitude), longitude: Number(rawLocation.longitude) }
       : null;
 
   if (!tripSlug) {
@@ -56,12 +79,22 @@ function buildExpenseFields(payload) {
   if (rating !== null && (!Number.isFinite(rating) || rating <= 0 || rating > 5 || Math.round(rating * 2) !== rating * 2)) {
     throw new Error("'rating' must be a multiple of 0.5 between 0.5 and 5.");
   }
-  if (photoLocation && (!Number.isFinite(photoLocation.latitude) || photoLocation.latitude < -90 || photoLocation.latitude > 90)) {
-    throw new Error("'photoLocation.latitude' must be a number between -90 and 90.");
+  if (rawPhotos.length > MAX_PHOTOS_PER_EXPENSE) {
+    throw new Error(`'photos' must contain at most ${MAX_PHOTOS_PER_EXPENSE} items.`);
   }
-  if (photoLocation && (!Number.isFinite(photoLocation.longitude) || photoLocation.longitude < -180 || photoLocation.longitude > 180)) {
-    throw new Error("'photoLocation.longitude' must be a number between -180 and 180.");
+  if (location && (!Number.isFinite(location.latitude) || location.latitude < -90 || location.latitude > 90)) {
+    throw new Error("'location.latitude' must be a number between -90 and 90.");
   }
+  if (location && (!Number.isFinite(location.longitude) || location.longitude < -180 || location.longitude > 180)) {
+    throw new Error("'location.longitude' must be a number between -180 and 180.");
+  }
+
+  const photos = rawPhotos.map((photo, index) => {
+    if (!photo || typeof photo !== "object" || typeof photo.blobName !== "string" || !photo.blobName.trim()) {
+      throw new Error(`'photos[${index}].blobName' is required.`);
+    }
+    return { blobName: photo.blobName.trim() };
+  });
 
   return {
     tripSlug,
@@ -70,9 +103,9 @@ function buildExpenseFields(payload) {
     currency: currency || null,
     date,
     description: description || null,
-    receiptBlobName,
     rating,
-    photoLocation
+    location,
+    photos
   };
 }
 
@@ -214,14 +247,15 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
 
     const entries = resources.map(stripCosmosMetadata).sort((left, right) => left.createdAt.localeCompare(right.createdAt));
 
-    const entriesWithReceipt = entries.filter((entry) => entry.receiptBlobName);
-    if (entriesWithReceipt.length > 0) {
-      await Promise.all(
-        entriesWithReceipt.map(async (entry) => {
-          entry.receiptUrl = await generateReceiptSasUrl(entry.receiptBlobName);
-        })
-      );
-    }
+    await Promise.all(
+      entries.map(async (entry) => {
+        const blobNames = photoBlobNamesOf(entry);
+        entry.location = locationOf(entry);
+        entry.photos = await Promise.all(
+          blobNames.map(async (blobName) => ({ blobName, url: await generateReceiptSasUrl(blobName) }))
+        );
+      })
+    );
 
     return entries;
   }
@@ -242,9 +276,13 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
       throw new Error("Expense not found.");
     }
 
-    const previousReceiptBlobName = existing.receiptBlobName || null;
+    const { receiptBlobName: _legacyBlobName, photoLocation: _legacyPhotoLocation, ...existingWithoutLegacyPhoto } = existing;
+    const previousBlobNames = new Set(photoBlobNamesOf(existing));
+    const nextBlobNames = new Set(fields.photos.map((photo) => photo.blobName));
+    const removedBlobNames = [...previousBlobNames].filter((blobName) => !nextBlobNames.has(blobName));
+
     const updated = {
-      ...existing,
+      ...existingWithoutLegacyPhoto,
       ...fields,
       id,
       tripSlug
@@ -253,30 +291,41 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
     const { resource } = await targetContainer.item(id, tripSlug).replace(updated);
     await recordAudit({ action: "update", expenseId: id, tripSlug, actor });
 
-    if (previousReceiptBlobName && previousReceiptBlobName !== fields.receiptBlobName) {
-      try {
-        const targetBlobContainer = await getBlobContainerClient();
-        await targetBlobContainer.deleteBlob(previousReceiptBlobName);
-      } catch (error) {
-        console.warn(`Failed to delete replaced receipt blob (${previousReceiptBlobName}): ${error.message}`);
-      }
+    if (removedBlobNames.length > 0) {
+      const targetBlobContainer = await getBlobContainerClient();
+      await Promise.all(
+        removedBlobNames.map(async (blobName) => {
+          try {
+            await targetBlobContainer.deleteBlob(blobName);
+          } catch (error) {
+            console.warn(`Failed to delete replaced receipt blob (${blobName}): ${error.message}`);
+          }
+        })
+      );
     }
 
     return stripCosmosMetadata(resource);
   }
 
-  async function removeEntry(tripSlug, id, actor = null, receiptBlobName = null) {
+  async function removeEntry(tripSlug, id, actor = null) {
     const targetContainer = await getContainer();
+    const { resource: existing } = await targetContainer.item(id, tripSlug).read();
+    const blobNames = existing ? photoBlobNamesOf(existing) : [];
+
     await targetContainer.item(id, tripSlug).delete();
     await recordAudit({ action: "delete", expenseId: id, tripSlug, actor });
 
-    if (receiptBlobName) {
-      try {
-        const targetBlobContainer = await getBlobContainerClient();
-        await targetBlobContainer.deleteBlob(receiptBlobName);
-      } catch (error) {
-        console.warn(`Failed to delete receipt blob (${receiptBlobName}): ${error.message}`);
-      }
+    if (blobNames.length > 0) {
+      const targetBlobContainer = await getBlobContainerClient();
+      await Promise.all(
+        blobNames.map(async (blobName) => {
+          try {
+            await targetBlobContainer.deleteBlob(blobName);
+          } catch (error) {
+            console.warn(`Failed to delete receipt blob (${blobName}): ${error.message}`);
+          }
+        })
+      );
     }
   }
 
@@ -346,10 +395,11 @@ module.exports = {
   normalizeExpenseInput,
   normalizeExpenseUpdate,
   RECEIPT_CONTENT_TYPES,
+  MAX_PHOTOS_PER_EXPENSE,
   listEntries: (tripSlug) => getDefaultStore().listEntries(tripSlug),
   listAuditEntries: (tripSlug, pagination) => getDefaultStore().listAuditEntries(tripSlug, pagination),
   addEntry: (payload, actor) => getDefaultStore().addEntry(payload, actor),
   updateEntry: (tripSlug, id, payload, actor) => getDefaultStore().updateEntry(tripSlug, id, payload, actor),
-  removeEntry: (tripSlug, id, actor, receiptBlobName) => getDefaultStore().removeEntry(tripSlug, id, actor, receiptBlobName),
+  removeEntry: (tripSlug, id, actor) => getDefaultStore().removeEntry(tripSlug, id, actor),
   uploadReceipt: (tripSlug, buffer, contentType) => getDefaultStore().uploadReceipt(tripSlug, buffer, contentType)
 };

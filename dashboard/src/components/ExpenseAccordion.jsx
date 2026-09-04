@@ -45,22 +45,27 @@ export function ExpenseAccordion({
     }
 
     const isFood = formValues.category === "food";
-    let receiptBlobName = isFood ? formValues.existingReceiptBlobName || null : null;
 
     setSavingExpense(true);
     setExpenseStatus("");
 
-    if (isFood && formValues.receiptFile) {
+    let photos = [];
+    if (isFood) {
       try {
-        const uploadResult = await uploadReceipt(selectedExpenseTrip.slug, formValues.receiptFile);
-        receiptBlobName = uploadResult.blobName;
+        photos = await Promise.all(
+          formValues.photos.map(async (photo) => {
+            if (photo.file) {
+              const uploadResult = await uploadReceipt(selectedExpenseTrip.slug, photo.file);
+              return { blobName: uploadResult.blobName };
+            }
+            return { blobName: photo.existingBlobName };
+          })
+        );
       } catch (uploadError) {
         setExpenseStatus(`Could not upload photo: ${uploadError.message || "unknown error"}. Expense not saved.`);
         setSavingExpense(false);
         return false;
       }
-    } else if (isFood && formValues.removeExistingReceipt) {
-      receiptBlobName = null;
     }
 
     const payload = {
@@ -71,8 +76,8 @@ export function ExpenseAccordion({
       date: formValues.date,
       description: formValues.description,
       rating: isFood && formValues.rating > 0 ? formValues.rating : null,
-      receiptBlobName,
-      photoLocation: isFood && receiptBlobName ? formValues.photoLocation || null : null
+      location: isFood ? formValues.location || null : null,
+      photos
     };
 
     try {
@@ -104,7 +109,7 @@ export function ExpenseAccordion({
     setExpenseStatus("");
 
     try {
-      await deleteExpenseEntry({ id: entry.id, tripSlug: entry.tripSlug, receiptBlobName: entry.receiptBlobName });
+      await deleteExpenseEntry({ id: entry.id, tripSlug: entry.tripSlug });
       removeLiveEntry(entry.id);
       if (editingEntry?.id === entry.id) {
         setEditingEntry(null);

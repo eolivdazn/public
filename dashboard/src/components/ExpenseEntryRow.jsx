@@ -10,15 +10,21 @@ export function ExpenseEntryRow({ entry, currencyFallback, deleting, editing, on
         {entry.description ? <p>{entry.description}</p> : null}
         {entry.createdBy?.userDetails ? <span className="expense-muted">added by {entry.createdBy.userDetails}</span> : null}
         {entry.rating ? <StarRating value={entry.rating} disabled /> : null}
-        {entry.receiptUrl ? (
-          <a href={entry.receiptUrl} target="_blank" rel="noreferrer">
-            <img src={entry.receiptUrl} alt="Receipt" className="expense-entry-receipt-thumb" />
-          </a>
+        {entry.photos && entry.photos.length > 0 ? (
+          <div className="expense-photo-gallery expense-photo-gallery-readonly">
+            {entry.photos.map((photo, index) =>
+              photo.url ? (
+                <a href={photo.url} target="_blank" rel="noreferrer" key={photo.blobName || index}>
+                  <img src={photo.url} alt="Receipt" className="expense-entry-receipt-thumb" />
+                </a>
+              ) : null
+            )}
+          </div>
         ) : null}
-        {entry.photoLocation ? (
+        {entry.location ? (
           <a
             className="expense-photo-location-link"
-            href={`https://www.google.com/maps?q=${entry.photoLocation.latitude},${entry.photoLocation.longitude}`}
+            href={`https://www.google.com/maps?q=${entry.location.latitude},${entry.location.longitude}`}
             target="_blank"
             rel="noreferrer"
           >
