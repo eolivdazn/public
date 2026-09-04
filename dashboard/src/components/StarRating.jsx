@@ -4,7 +4,7 @@ export function StarRating({ value = 0, onChange = () => {}, disabled }) {
   const safeValue = value || 0;
 
   return (
-    <div className="star-rating" role="radiogroup" aria-label="Rating">
+    <div className={`star-rating${!disabled ? " star-rating--interactive" : ""}`} role="radiogroup" aria-label="Rating">
       {STAR_POSITIONS.map((star) => {
         const fillPercent = Math.max(0, Math.min(1, safeValue - (star - 1))) * 100;
         return (

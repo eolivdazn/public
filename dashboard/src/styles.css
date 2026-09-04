@@ -512,17 +512,20 @@ a:hover {
 
 .expense-entry-buttons {
   display: flex;
-  gap: 6px;
+  gap: 12px;
 }
 
 .expense-entry-edit,
 .expense-entry-delete {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.8rem;
-  padding: 4px 10px;
+  font-size: 0.85rem;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
@@ -564,10 +567,19 @@ a:hover {
   line-height: 1;
 }
 
+.star-rating--interactive .star-rating-item {
+  width: 2rem;
+  height: 2rem;
+}
+
 .star-rating .star-rating-empty {
   margin: 0;
   font-size: 1.1rem;
   color: var(--border);
+}
+
+.star-rating--interactive .star-rating-empty {
+  font-size: 2rem;
 }
 
 .star-rating .star-rating-filled {
@@ -579,6 +591,10 @@ a:hover {
   white-space: nowrap;
   font-size: 1.1rem;
   color: #f5a623;
+}
+
+.star-rating--interactive .star-rating-filled {
+  font-size: 2rem;
 }
 
 .star-rating-half {
@@ -630,12 +646,15 @@ a:hover {
 }
 
 .expense-photo-card > button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.8rem;
-  padding: 4px 10px;
+  font-size: 0.85rem;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
@@ -647,12 +666,15 @@ a:hover {
 }
 
 .expense-photo-add-buttons button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
   font-size: 0.85rem;
-  padding: 6px 12px;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
@@ -666,12 +688,15 @@ a:hover {
 }
 
 .expense-photo-location button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.78rem;
-  padding: 2px 8px;
+  font-size: 0.8rem;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
@@ -686,12 +711,15 @@ a:hover {
 }
 
 .expense-description-suggestion > button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--accent);
   border-radius: 8px;
   background: transparent;
   color: var(--accent);
-  font-size: 0.8rem;
-  padding: 4px 10px;
+  font-size: 0.85rem;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
@@ -711,12 +739,15 @@ a:hover {
 }
 
 .expense-description-suggestion-result button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
   color: var(--muted);
-  font-size: 0.78rem;
-  padding: 2px 8px;
+  font-size: 0.8rem;
+  padding: 10px 14px;
   cursor: pointer;
 }
 
@@ -907,6 +938,10 @@ tbody tr:last-child td {
   .expense-form-actions {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
