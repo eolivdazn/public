@@ -7,6 +7,7 @@ const sourceDir = process.cwd();
 const outputDir = path.join(sourceDir, "site");
 const skipPandoc = process.argv.includes("--skip-pandoc");
 const backLinkPartial = path.join(sourceDir, "scripts", "templates", "trip-page-back-link.html");
+const foodGalleryPartial = path.join(sourceDir, "scripts", "templates", "trip-page-food-gallery.html");
 
 function ensureEmptyDir(dirPath) {
   fs.rmSync(dirPath, { recursive: true, force: true });
@@ -17,7 +18,7 @@ function convertMarkdownToHtml(mdFile, slug) {
   const outputFile = path.join(outputDir, `${slug}.html`);
   const result = spawnSync(
     "pandoc",
-    [mdFile, "-f", "markdown", "-t", "html", "-s", "-B", backLinkPartial, "-o", outputFile],
+    [mdFile, "-f", "markdown", "-t", "html", "-s", "-B", backLinkPartial, "-A", foodGalleryPartial, "-o", outputFile],
     { stdio: "inherit" }
   );
 

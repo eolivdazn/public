@@ -1,0 +1,250 @@
+<section id="trip-food-gallery" class="trip-food-gallery" hidden>
+  <h2>🍽️ Food memories</h2>
+  <p class="trip-food-gallery-subtitle"></p>
+  <div class="trip-food-gallery-grid"></div>
+</section>
+<style>
+  .trip-food-gallery {
+    margin-top: 2.5em;
+    padding-top: 1.5em;
+    border-top: 1px solid #e3e8f0;
+  }
+
+  .trip-food-gallery h2 {
+    margin-bottom: 2px;
+  }
+
+  .trip-food-gallery-subtitle {
+    margin: 0;
+    color: #5b6b85;
+    font-size: 0.95em;
+  }
+
+  .trip-food-gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 16px;
+    margin-top: 1.2em;
+  }
+
+  .trip-food-card {
+    background: #fff;
+    border: 1px solid #e3e8f0;
+    border-radius: 16px;
+    padding: 14px;
+    box-shadow: 0 1px 2px rgba(24, 36, 59, 0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .trip-food-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(24, 36, 59, 0.1);
+  }
+
+  .trip-food-photos {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+    gap: 6px;
+  }
+
+  .trip-food-photos a {
+    display: block;
+    border-radius: 10px;
+    overflow: hidden;
+    transition: opacity 0.15s ease;
+  }
+
+  .trip-food-photos a:hover {
+    opacity: 0.85;
+  }
+
+  .trip-food-photos img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .trip-food-card p {
+    margin: 10px 0 0;
+    font-size: 0.95em;
+    line-height: 1.4;
+  }
+
+  .trip-food-rating {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #5b6b85;
+    font-size: 0.88em;
+  }
+
+  .trip-food-stars {
+    position: relative;
+    display: inline-block;
+    font-size: 1rem;
+    line-height: 1;
+    letter-spacing: 2px;
+  }
+
+  .trip-food-stars-empty {
+    color: #d8e1f0;
+  }
+
+  .trip-food-stars-filled {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    color: #f5a623;
+  }
+
+  .trip-food-map-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #2f63ff;
+    text-decoration: none;
+  }
+
+  .trip-food-map-link:hover {
+    text-decoration: underline;
+  }
+</style>
+<script>
+  (function () {
+    var STAR_CHARS = "★★★★★";
+
+    function createStarRating(rating) {
+      var wrap = document.createElement("p");
+      wrap.className = "trip-food-rating";
+
+      var stars = document.createElement("span");
+      stars.className = "trip-food-stars";
+      stars.setAttribute("aria-hidden", "true");
+
+      var empty = document.createElement("span");
+      empty.className = "trip-food-stars-empty";
+      empty.textContent = STAR_CHARS;
+
+      var filled = document.createElement("span");
+      filled.className = "trip-food-stars-filled";
+      filled.textContent = STAR_CHARS;
+      filled.style.width = (Math.min(rating, 5) / 5) * 100 + "%";
+
+      stars.appendChild(empty);
+      stars.appendChild(filled);
+      wrap.appendChild(stars);
+
+      var value = document.createElement("span");
+      value.textContent = rating + "/5";
+      wrap.appendChild(value);
+
+      return wrap;
+    }
+
+    function createPhotoLink(photo, altText) {
+      var link = document.createElement("a");
+      link.href = photo.url;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+
+      var img = document.createElement("img");
+      img.src = photo.url;
+      img.alt = altText;
+      img.loading = "lazy";
+      img.decoding = "async";
+      link.appendChild(img);
+
+      return link;
+    }
+
+    function createMapLink(location) {
+      var link = document.createElement("a");
+      link.className = "trip-food-map-link";
+      link.href = "https://www.google.com/maps?q=" + location.latitude + "," + location.longitude;
+      link.target = "_blank";
+      link.rel = "noreferrer";
+      link.textContent = "📍 View on map";
+      return link;
+    }
+
+    function createFoodCard(entry) {
+      var card = document.createElement("div");
+      card.className = "trip-food-card";
+
+      var altText = entry.description || "Food photo";
+      var photos = document.createElement("div");
+      photos.className = "trip-food-photos";
+      entry.photos
+        .filter(function (photo) {
+          return Boolean(photo.url);
+        })
+        .forEach(function (photo) {
+          photos.appendChild(createPhotoLink(photo, altText));
+        });
+      card.appendChild(photos);
+
+      if (entry.description) {
+        var desc = document.createElement("p");
+        desc.textContent = entry.description;
+        card.appendChild(desc);
+      }
+
+      if (entry.rating) {
+        card.appendChild(createStarRating(entry.rating));
+      }
+
+      if (entry.location) {
+        card.appendChild(createMapLink(entry.location));
+      }
+
+      return card;
+    }
+
+    var slug = location.pathname.split("/").pop().replace(/\.html$/, "");
+    if (!slug) {
+      return;
+    }
+
+    fetch("/api/expenses?tripSlug=" + encodeURIComponent(slug))
+      .then(function (res) {
+        return res.ok ? res.json() : null;
+      })
+      .then(function (data) {
+        var entries = (data && data.entries) || [];
+        var foodWithPhotos = entries
+          .filter(function (entry) {
+            return entry.category === "food" && Array.isArray(entry.photos) && entry.photos.length > 0;
+          })
+          .sort(function (a, b) {
+            return (a.date || "").localeCompare(b.date || "");
+          });
+
+        if (foodWithPhotos.length === 0) {
+          return;
+        }
+
+        var section = document.getElementById("trip-food-gallery");
+        var subtitle = section.querySelector(".trip-food-gallery-subtitle");
+        var grid = section.querySelector(".trip-food-gallery-grid");
+
+        subtitle.textContent =
+          foodWithPhotos.length === 1
+            ? "1 dish captured along the way"
+            : foodWithPhotos.length + " dishes captured along the way";
+
+        foodWithPhotos.forEach(function (entry) {
+          grid.appendChild(createFoodCard(entry));
+        });
+
+        section.hidden = false;
+      })
+      .catch(function () {
+        /* API unavailable (e.g. GitHub Pages mirror) — leave the section hidden. */
+      });
+  })();
+</script>
