@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { AuditEntryRow } from "./AuditEntryRow";
+import { Pagination } from "./Pagination";
 import { fetchAuditEntries } from "../lib/api.js";
 
 const PAGE_SIZE = 10;
@@ -44,9 +45,6 @@ export function AuditView() {
     };
   }, [page]);
 
-  const rangeStart = total === 0 ? 0 : (page - 1) * PAGE_SIZE + 1;
-  const rangeEnd = Math.min(page * PAGE_SIZE, total);
-
   return (
     <article className="panel audit-view">
       <div className="section-heading-row">
@@ -69,23 +67,8 @@ export function AuditView() {
         </ul>
       ) : null}
 
-      {!error && total > 0 ? (
-        <div className="audit-pagination">
-          <span className="expense-muted">
-            Showing {rangeStart}–{rangeEnd} of {total}
-          </span>
-          <div className="audit-pagination-controls">
-            <button type="button" disabled={page <= 1 || loading} onClick={() => setPage((current) => current - 1)}>
-              Previous
-            </button>
-            <span className="expense-muted">
-              Page {page} of {totalPages}
-            </span>
-            <button type="button" disabled={page >= totalPages || loading} onClick={() => setPage((current) => current + 1)}>
-              Next
-            </button>
-          </div>
-        </div>
+      {!error ? (
+        <Pagination page={page} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} disabled={loading} />
       ) : null}
     </article>
   );

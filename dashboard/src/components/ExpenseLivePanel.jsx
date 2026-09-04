@@ -1,11 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FinanceList } from "./FinanceList";
 import { ExpenseCategoryBreakdown } from "./ExpenseCategoryBreakdown";
 import { ExpenseEntryRow } from "./ExpenseEntryRow";
+import { Pagination } from "./Pagination";
 import { formatCurrency } from "../lib/format.js";
+
+const PAGE_SIZE = 4;
 
 export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error, entries, onDeleteEntry }) {
   const [deletingId, setDeletingId] = useState(null);
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    setPage(1);
+  }, [selectedExpenseTrip?.slug]);
 
   async function handleDelete(entry) {
     setDeletingId(entry.id);
@@ -22,6 +30,11 @@ export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error
         { key: "count", label: "Live entries", value: snapshot.liveCount }
       ]
     : [];
+
+  const total = entries.length;
+  const totalPages = Math.max(Math.ceil(total / PAGE_SIZE), 1);
+  const currentPage = Math.min(page, totalPages);
+  const pagedEntries = entries.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   return (
     <article className="panel expense-live-panel">
@@ -50,17 +63,20 @@ export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error
           {!loading && !error && entries.length === 0 ? <p className="status">No live expenses recorded yet.</p> : null}
 
           {!loading && !error && entries.length > 0 ? (
-            <ul className="expense-entry-list">
-              {entries.map((entry) => (
-                <ExpenseEntryRow
-                  key={entry.id}
-                  entry={entry}
-                  currencyFallback={snapshot.baseCurrency}
-                  deleting={deletingId === entry.id}
-                  onDelete={handleDelete}
-                />
-              ))}
-            </ul>
+            <>
+              <ul className="expense-entry-list">
+                {pagedEntries.map((entry) => (
+                  <ExpenseEntryRow
+                    key={entry.id}
+                    entry={entry}
+                    currencyFallback={snapshot.baseCurrency}
+                    deleting={deletingId === entry.id}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </ul>
+              <Pagination page={currentPage} totalPages={totalPages} total={total} pageSize={PAGE_SIZE} onPageChange={setPage} disabled={loading} />
+            </>
           ) : null}
         </>
       ) : (

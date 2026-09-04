@@ -148,8 +148,8 @@ export function App() {
     return selectedExpenseTripSlug ? allLiveEntries.filter((entry) => entry.tripSlug === selectedExpenseTripSlug) : [];
   }, [allLiveEntries, selectedExpenseTripSlug]);
 
-  const recentLiveExpenseEntries = useMemo(() => {
-    return [...liveExpenseEntries].slice(-5).reverse();
+  const sortedLiveExpenseEntries = useMemo(() => {
+    return [...liveExpenseEntries].reverse();
   }, [liveExpenseEntries]);
 
   const selectedExpenseSnapshot = useMemo(
@@ -224,7 +224,7 @@ export function App() {
           tripSelectDisabled={activeTrip !== "all"}
           selectedExpenseTrip={selectedExpenseTrip}
           snapshot={selectedExpenseSnapshot}
-          recentEntries={recentLiveExpenseEntries}
+          entries={sortedLiveExpenseEntries}
           liveLoading={liveExpenseLoading}
           liveError={liveExpenseError}
           addLiveEntry={addLiveEntry}

@@ -12,7 +12,7 @@ export function FinanceView({
   tripSelectDisabled,
   selectedExpenseTrip,
   snapshot,
-  recentEntries,
+  entries,
   liveLoading,
   liveError,
   addLiveEntry,
@@ -48,7 +48,7 @@ export function FinanceView({
         tripSelectDisabled={tripSelectDisabled}
         selectedExpenseTrip={selectedExpenseTrip}
         snapshot={snapshot}
-        recentEntries={recentEntries}
+        entries={entries}
         liveLoading={liveLoading}
         liveError={liveError}
         addLiveEntry={addLiveEntry}

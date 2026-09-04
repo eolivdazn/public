@@ -10,7 +10,7 @@ export function ExpenseAccordion({
   tripSelectDisabled,
   selectedExpenseTrip,
   snapshot,
-  recentEntries,
+  entries,
   liveLoading,
   liveError,
   addLiveEntry,
@@ -102,7 +102,7 @@ export function ExpenseAccordion({
               snapshot={snapshot}
               loading={liveLoading}
               error={liveError}
-              entries={recentEntries}
+              entries={entries}
               onDeleteEntry={handleExpenseDelete}
             />
           </div>

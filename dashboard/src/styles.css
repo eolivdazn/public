@@ -78,6 +78,7 @@ a:hover {
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 12px;
   margin-bottom: 18px;
+  align-items: start;
 }
 
 .expense-accordion {
@@ -571,7 +572,7 @@ a:hover {
   color: var(--danger, #c0392b);
 }
 
-.audit-pagination {
+.pagination {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -582,13 +583,13 @@ a:hover {
   border-top: 1px solid var(--border);
 }
 
-.audit-pagination-controls {
+.pagination-controls {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-.audit-pagination-controls button {
+.pagination-controls button {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
@@ -598,12 +599,12 @@ a:hover {
   cursor: pointer;
 }
 
-.audit-pagination-controls button:hover:not(:disabled) {
+.pagination-controls button:hover:not(:disabled) {
   color: var(--accent);
   border-color: var(--accent);
 }
 
-.audit-pagination-controls button:disabled {
+.pagination-controls button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
