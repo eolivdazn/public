@@ -163,7 +163,7 @@ function createExpenseStore({ container, auditContainer } = {}) {
     await recordAudit({ action: "delete", expenseId: id, tripSlug, actor });
   }
 
-  async function listAuditEntries(tripSlug = null) {
+  async function listAuditEntries(tripSlug = null, { page = 1, pageSize = 10 } = {}) {
     const targetContainer = await getAuditContainer();
     let resources;
     if (tripSlug) {
@@ -182,7 +182,18 @@ function createExpenseStore({ container, auditContainer } = {}) {
       resources = result.resources;
     }
 
-    return resources.map(stripCosmosMetadata).sort((left, right) => right.at.localeCompare(left.at));
+    const sorted = resources.map(stripCosmosMetadata).sort((left, right) => right.at.localeCompare(left.at));
+    const total = sorted.length;
+    const totalPages = Math.max(Math.ceil(total / pageSize), 1);
+    const start = (page - 1) * pageSize;
+
+    return {
+      entries: sorted.slice(start, start + pageSize),
+      total,
+      page,
+      pageSize,
+      totalPages
+    };
   }
 
   return { listEntries, listAuditEntries, addEntry, removeEntry };
@@ -200,7 +211,7 @@ module.exports = {
   createExpenseStore,
   normalizeExpenseInput,
   listEntries: (tripSlug) => getDefaultStore().listEntries(tripSlug),
-  listAuditEntries: (tripSlug) => getDefaultStore().listAuditEntries(tripSlug),
+  listAuditEntries: (tripSlug, pagination) => getDefaultStore().listAuditEntries(tripSlug, pagination),
   addEntry: (payload, actor) => getDefaultStore().addEntry(payload, actor),
   removeEntry: (tripSlug, id, actor) => getDefaultStore().removeEntry(tripSlug, id, actor)
 };

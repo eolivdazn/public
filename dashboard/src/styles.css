@@ -571,6 +571,43 @@ a:hover {
   color: var(--danger, #c0392b);
 }
 
+.audit-pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.audit-pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.audit-pagination-controls button {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.85rem;
+  padding: 6px 12px;
+  cursor: pointer;
+}
+
+.audit-pagination-controls button:hover:not(:disabled) {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.audit-pagination-controls button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .tag-list {
   list-style: none;
   padding: 0;

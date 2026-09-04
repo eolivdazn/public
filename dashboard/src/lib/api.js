@@ -27,16 +27,28 @@ export async function postExpenseEntry(payload) {
   return result;
 }
 
-export async function fetchAuditEntries(tripSlug) {
-  const url = tripSlug ? `/api/audit?tripSlug=${encodeURIComponent(tripSlug)}` : "/api/audit";
-  const response = await fetch(url);
+export async function fetchAuditEntries({ tripSlug, page = 1, pageSize = 10 } = {}) {
+  const params = new URLSearchParams();
+  if (tripSlug) {
+    params.set("tripSlug", tripSlug);
+  }
+  params.set("page", String(page));
+  params.set("pageSize", String(pageSize));
+
+  const response = await fetch(`/api/audit?${params.toString()}`);
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
     throw new Error(payload?.error || `Could not load audit history (${response.status}).`);
   }
 
-  return Array.isArray(payload?.entries) ? payload.entries : [];
+  return {
+    entries: Array.isArray(payload?.entries) ? payload.entries : [],
+    total: payload?.total || 0,
+    page: payload?.page || page,
+    pageSize: payload?.pageSize || pageSize,
+    totalPages: payload?.totalPages || 1
+  };
 }
 
 export async function deleteExpenseEntry({ id, tripSlug }) {

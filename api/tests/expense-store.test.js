@@ -159,9 +159,15 @@ test("store persists and filters expenses by tripSlug", async () => {
   assert.deepEqual(deleteRecord.actor, actor);
 });
 
-test("listAuditEntries returns an empty array when nothing has been recorded", async () => {
+test("listAuditEntries returns an empty page when nothing has been recorded", async () => {
   const expenseStore = store.createExpenseStore({ container: createFakeContainer(), auditContainer: createFakeAuditContainer() });
-  assert.deepEqual(await expenseStore.listAuditEntries(), []);
+  const result = await expenseStore.listAuditEntries();
+
+  assert.deepEqual(result.entries, []);
+  assert.equal(result.total, 0);
+  assert.equal(result.page, 1);
+  assert.equal(result.pageSize, 10);
+  assert.equal(result.totalPages, 1);
 });
 
 test("listAuditEntries sorts by most recent first and strips Cosmos metadata", async () => {
@@ -181,14 +187,16 @@ test("listAuditEntries sorts by most recent first and strips Cosmos metadata", a
     }
   );
 
-  const entries = await expenseStore.listAuditEntries();
+  const result = await expenseStore.listAuditEntries();
 
   assert.deepEqual(
-    entries.map((entry) => entry.id),
+    result.entries.map((entry) => entry.id),
     ["a3", "a2", "a1"]
   );
-  assert.equal(entries[2]._rid, undefined);
-  assert.deepEqual(entries[0].actor, { userId: "u1", userDetails: "eduardo.oliveira" });
+  assert.equal(result.entries[2]._rid, undefined);
+  assert.deepEqual(result.entries[0].actor, { userId: "u1", userDetails: "eduardo.oliveira" });
+  assert.equal(result.total, 3);
+  assert.equal(result.totalPages, 1);
 });
 
 test("listAuditEntries filters by tripSlug", async () => {
@@ -200,10 +208,52 @@ test("listAuditEntries filters by tripSlug", async () => {
     { id: "a2", action: "create", expenseId: "e2", tripSlug: "el-gouna2027", actor: null, at: "2026-09-02T10:00:00.000Z" }
   );
 
-  const entries = await expenseStore.listAuditEntries("algarve2026");
+  const result = await expenseStore.listAuditEntries("algarve2026");
 
   assert.deepEqual(
-    entries.map((entry) => entry.id),
+    result.entries.map((entry) => entry.id),
     ["a1"]
   );
+  assert.equal(result.total, 1);
+});
+
+test("listAuditEntries paginates results using page and pageSize", async () => {
+  const fakeAuditContainer = createFakeAuditContainer();
+  const expenseStore = store.createExpenseStore({ container: createFakeContainer(), auditContainer: fakeAuditContainer });
+
+  for (let i = 1; i <= 5; i += 1) {
+    fakeAuditContainer.records.push({
+      id: `a${i}`,
+      action: "create",
+      expenseId: `e${i}`,
+      tripSlug: "algarve2026",
+      actor: null,
+      at: `2026-09-0${i}T10:00:00.000Z`
+    });
+  }
+
+  const firstPage = await expenseStore.listAuditEntries(null, { page: 1, pageSize: 2 });
+  assert.deepEqual(
+    firstPage.entries.map((entry) => entry.id),
+    ["a5", "a4"]
+  );
+  assert.equal(firstPage.total, 5);
+  assert.equal(firstPage.totalPages, 3);
+
+  const secondPage = await expenseStore.listAuditEntries(null, { page: 2, pageSize: 2 });
+  assert.deepEqual(
+    secondPage.entries.map((entry) => entry.id),
+    ["a3", "a2"]
+  );
+
+  const lastPage = await expenseStore.listAuditEntries(null, { page: 3, pageSize: 2 });
+  assert.deepEqual(
+    lastPage.entries.map((entry) => entry.id),
+    ["a1"]
+  );
+
+  const pastLastPage = await expenseStore.listAuditEntries(null, { page: 4, pageSize: 2 });
+  assert.deepEqual(pastLastPage.entries, []);
+  assert.equal(pastLastPage.total, 5);
+  assert.equal(pastLastPage.totalPages, 3);
 });
