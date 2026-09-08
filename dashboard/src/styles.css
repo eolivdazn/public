@@ -642,13 +642,13 @@ a:hover {
 .expense-photo-card {
   position: relative;
   display: flex;
-  flex-direction: column;
   align-items: flex-start;
   gap: 4px;
   padding: 8px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  max-width: 140px;
+  max-width: none;
+  width: 100%;
 }
 
 .expense-photo-remove {
