@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { ExpenseForm } from "./ExpenseForm";
 import { ExpenseLivePanel } from "./ExpenseLivePanel";
-import { postExpenseEntry, updateExpenseEntry, deleteExpenseEntry, uploadReceipt } from "../lib/api.js";
+import { deleteExpenseEntry } from "../lib/api.js";
+import { submitExpense } from "../lib/submitExpense.js";
 
 export function ExpenseAccordion({
   trips,
@@ -33,69 +34,22 @@ export function ExpenseAccordion({
   }
 
   async function handleExpenseSubmit(formValues) {
-    if (!selectedExpenseTrip) {
-      setExpenseStatus("Select a trip first.");
-      return false;
-    }
-
-    const amount = Number(formValues.amount);
-    if (!Number.isFinite(amount) || amount <= 0) {
-      setExpenseStatus("Enter a valid amount greater than zero.");
-      return false;
-    }
-
-    const isFood = formValues.category === "food";
-
     setSavingExpense(true);
     setExpenseStatus("");
 
-    let photos = [];
-    if (isFood) {
-      try {
-        photos = await Promise.all(
-          formValues.photos.map(async (photo) => {
-            if (photo.file) {
-              const uploadResult = await uploadReceipt(selectedExpenseTrip.slug, photo.file);
-              return { blobName: uploadResult.blobName };
-            }
-            return { blobName: photo.existingBlobName };
-          })
-        );
-      } catch (uploadError) {
-        setExpenseStatus(`Could not upload photo: ${uploadError.message || "unknown error"}. Expense not saved.`);
-        setSavingExpense(false);
-        return false;
-      }
-    }
-
-    const payload = {
-      tripSlug: selectedExpenseTrip.slug,
-      category: formValues.category,
-      amount,
-      currency: selectedExpenseTrip.expenses?.baseCurrency || "EUR",
-      date: formValues.date,
-      description: formValues.description,
-      rating: isFood && formValues.rating > 0 ? formValues.rating : null,
-      location: isFood ? formValues.location || null : null,
-      photos
-    };
-
     try {
-      if (editingEntry) {
-        const result = await updateExpenseEntry({ id: editingEntry.id, tripSlug: editingEntry.tripSlug, payload });
-        if (result?.entry) {
+      const result = await submitExpense({ trip: selectedExpenseTrip, formValues, editingEntry });
+      if (result.entry) {
+        if (result.isUpdate) {
           updateLiveEntry(result.entry);
+        } else {
+          addLiveEntry(result.entry);
         }
-        setExpenseStatus("Expense updated.");
+      }
+      setExpenseStatus(result.message);
+      if (result.isUpdate) {
         setEditingEntry(null);
-        return true;
       }
-
-      const result = await postExpenseEntry(payload);
-      if (result?.entry) {
-        addLiveEntry(result.entry);
-      }
-      setExpenseStatus("Expense saved.");
       return true;
     } catch (submitError) {
       setExpenseStatus(submitError.message || "Could not save expense.");

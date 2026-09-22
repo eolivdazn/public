@@ -6,7 +6,8 @@
   "scripts": {
     "build:site": "node scripts/build-site.mjs",
     "build:dashboard": "vite build",
-    "build": "npm run build:site && npm run build:dashboard",
+    "build:quick-expense-widget": "vite build --config vite.quick-expense.config.mjs",
+    "build": "npm run build:site && npm run build:dashboard && npm run build:quick-expense-widget",
     "dev:dashboard": "vite",
     "preview:dashboard": "vite preview",
     "test": "node --test scripts/travel-data.test.mjs dashboard/src/lib/*.test.js"
