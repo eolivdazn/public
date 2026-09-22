@@ -11,7 +11,7 @@ import {
 } from "./expenses.js";
 
 test("createEmptyExpenseCategories returns all categories at zero", () => {
-  assert.deepEqual(createEmptyExpenseCategories(), { flights: 0, hotel: 0, food: 0, entertainment: 0 });
+  assert.deepEqual(createEmptyExpenseCategories(), { flights: 0, hotel: 0, food: 0, entertainment: 0, transport: 0 });
 });
 
 test("roundMoney rounds to two decimals", () => {
@@ -39,6 +39,15 @@ test("aggregateExpenseEntries sums totals per category and ignores unknown categ
   assert.equal(result.total, 115.5);
   assert.equal(result.categories.food, 15.5);
   assert.equal(result.categories.hotel, 0);
+});
+
+test("aggregateExpenseEntries sums totals for the transport category", () => {
+  const entries = [
+    { category: "transport", amount: 12 },
+    { category: "transport", amount: 8.5 }
+  ];
+  const result = aggregateExpenseEntries(entries);
+  assert.equal(result.categories.transport, 20.5);
 });
 
 test("combineTripYearSlice returns the original slice when no live entries match", () => {
@@ -108,9 +117,12 @@ test("calculateTripExpenseSnapshot keeps baseCurrency null when the trip has nei
 });
 
 test("expenseCategoryEntries maps each category to a label and formatted value", () => {
-  const entries = expenseCategoryEntries({ flights: 100, hotel: 0, food: 25.5, entertainment: 0 }, "EUR");
-  assert.deepEqual(entries.map((entry) => entry.key), ["flights", "hotel", "food", "entertainment"]);
+  const entries = expenseCategoryEntries({ flights: 100, hotel: 0, food: 25.5, entertainment: 0, transport: 15 }, "EUR");
+  assert.deepEqual(entries.map((entry) => entry.key), ["flights", "hotel", "food", "entertainment", "transport"]);
   const flights = entries.find((entry) => entry.key === "flights");
   assert.equal(flights.label, "Flights");
   assert.equal(flights.formattedValue, "€100");
+  const transport = entries.find((entry) => entry.key === "transport");
+  assert.equal(transport.label, "Transport");
+  assert.equal(transport.formattedValue, "€15");
 });

@@ -4,7 +4,7 @@ import { Toolbar } from "./components/Toolbar";
 import { FinanceView } from "./components/FinanceView";
 import { SummaryView } from "./components/SummaryView";
 import { AuditView } from "./components/AuditView";
-import { calculateTripExpenseSnapshot } from "./lib/expenses.js";
+import { calculateTripExpenseSnapshot, createEmptyExpenseCategories } from "./lib/expenses.js";
 import { yearsFromData, tripsFromData, filterYearItemByTrip, summaryFromYears } from "./lib/yearSummary.js";
 import { fetchExpenseEntries } from "./lib/api.js";
 
@@ -115,7 +115,7 @@ export function App() {
       trackedTripCount: 0,
       expenseCurrency: null,
       partySizes: [],
-      expenseCategories: { flights: 0, hotel: 0, food: 0, entertainment: 0 },
+      expenseCategories: createEmptyExpenseCategories(),
       averageSpendPerTrip: 0,
       averagePerPersonSpendPerTrip: 0,
       averageSpendPerDay: 0,

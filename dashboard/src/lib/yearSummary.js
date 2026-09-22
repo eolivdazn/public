@@ -107,12 +107,7 @@ export function summaryFromYears(years) {
   let trackedTripCount = 0;
   let expenseCurrency = null;
   const partySizes = new Set();
-  const expenseCategories = {
-    flights: 0,
-    hotel: 0,
-    food: 0,
-    entertainment: 0
-  };
+  const expenseCategories = createEmptyExpenseCategories();
 
   for (const yearItem of years) {
     totalVacationDays += yearItem.totalVacationDays || 0;

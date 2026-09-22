@@ -4,7 +4,8 @@ export const EXPENSE_LABELS = {
   flights: "Flights",
   hotel: "Hotel",
   food: "Food",
-  entertainment: "Entertainment"
+  entertainment: "Entertainment",
+  transport: "Transport"
 };
 
 export const EXPENSE_CATEGORY_OPTIONS = Object.entries(EXPENSE_LABELS).map(([value, label]) => ({ value, label }));
@@ -17,7 +18,8 @@ export function createEmptyExpenseCategories() {
     flights: 0,
     hotel: 0,
     food: 0,
-    entertainment: 0
+    entertainment: 0,
+    transport: 0
   };
 }
 

@@ -74,7 +74,7 @@ test("summaryFromYears aggregates unique cities, countries and trips across year
       trackedTripCount: 1,
       expenseCurrency: "EUR",
       partySizes: [2],
-      expenseCategories: { flights: 0, hotel: 0, food: 100, entertainment: 0 },
+      expenseCategories: { flights: 0, hotel: 0, food: 100, entertainment: 0, transport: 25 },
       cities: ["Lisbon, Portugal"],
       countries: ["Portugal"],
       trips: [{ slug: "trip-a" }]
@@ -86,7 +86,7 @@ test("summaryFromYears aggregates unique cities, countries and trips across year
       trackedTripCount: 0,
       expenseCurrency: null,
       partySizes: [],
-      expenseCategories: { flights: 0, hotel: 0, food: 0, entertainment: 0 },
+      expenseCategories: { flights: 0, hotel: 0, food: 0, entertainment: 0, transport: 0 },
       cities: ["Lisbon, Portugal"],
       countries: ["Portugal"],
       trips: [{ slug: "trip-b" }]
@@ -98,6 +98,7 @@ test("summaryFromYears aggregates unique cities, countries and trips across year
   assert.deepEqual(summary.uniqueCities, ["Lisbon, Portugal"]);
   assert.deepEqual(summary.uniqueCountries, ["Portugal"]);
   assert.equal(summary.averageSpendPerTrip, 100);
+  assert.equal(summary.expenseCategories.transport, 25);
 });
 
 test("partySizeLabel handles empty, single and mixed party sizes", () => {

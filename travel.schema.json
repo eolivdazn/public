@@ -82,6 +82,10 @@
             "entertainment": {
               "type": "number",
               "minimum": 0
+            },
+            "transport": {
+              "type": "number",
+              "minimum": 0
             }
           },
           "required": ["flights", "hotel", "food", "entertainment"]
