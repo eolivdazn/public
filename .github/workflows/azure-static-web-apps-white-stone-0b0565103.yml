@@ -38,7 +38,7 @@ jobs:
       - name: Build React dashboard
         run: npm run build:dashboard
 
-      - name: Build quick expense widget
+      - name: Build quick-expense-widget
         run: npm run build:quick-expense-widget
 
       - name: Build And Deploy
