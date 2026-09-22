@@ -28,7 +28,7 @@ expenses:
   HRG (T1) → GVA (T1) — EZS1594 (13:00 → 17:10)
 
 ## 🇪🇬 El Gouna
-- **23–31 Jan** 🏨 [Cook's Club El Gouna – Adults Only](https://www.google.com/maps/place/Cook's+Club+El+Gouna/@27.394232,33.6729029,17z/data=!3m1!4b1!4m9!3m8!1s0x14526750e6e2ee8d:0x18d6cc068f9530f7!5m2!4m1!1i2!8m2!3d27.394232!4d33.6754832!16s%2Fg%2F11hzbvzyzl)
+- **23–31 Jan** 🏨 [DoubleTree by Hilton Mangroovy El Gouna Resort](https://maps.app.goo.gl/Qx5NpTbonboBQEvR6)
   📅 Check-in 23/01/2027 · Check-out 31/01/2027 · 8 noites
   🍳 Regime: Alojamento e Pequeno-almoço
 
