@@ -1,6 +1,14 @@
 {
   "routes": [
     {
+      "route": "/og/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/share/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/*",
       "allowedRoles": ["approved"]
     }

@@ -7,6 +7,7 @@ import { buildDashboardData, computeTripLinks, loadTripEntries } from "./lib/tra
 const sourceDir = process.cwd();
 const outputDir = path.join(sourceDir, "site");
 const ogImageDir = path.join(outputDir, "og");
+const shareCardDir = path.join(outputDir, "share");
 const skipPandoc = process.argv.includes("--skip-pandoc");
 const backLinkPartial = path.join(sourceDir, "scripts", "templates", "trip-page-back-link.html");
 const quickExpensePartial = path.join(sourceDir, "scripts", "templates", "trip-page-quick-expense.html");
@@ -68,19 +69,12 @@ function writeOgImage(trip) {
   fs.writeFileSync(path.join(ogImageDir, `${trip.slug}.png`), png);
 }
 
-function buildHeadMetadataPartial(trip) {
+function buildOgTags(trip, pageUrl) {
   const title = escapeHtml(trip.title);
   const description = escapeHtml(trip.description);
-  const pageUrl = `${canonicalOrigin}/${trip.slug}.html`;
   const imageUrl = `${canonicalOrigin}/og/${trip.slug}.png`;
-  const faviconPayload = encodeSvgFavicon(trip.favicon);
 
-  // Pandoc already emits <title> and <meta name="description"> natively from the
-  // frontmatter's title/description fields — adding them again here would duplicate them.
-  const html = `
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
-<meta name="theme-color" content="#2f63ff" />
-<meta property="og:type" content="website" />
+  return `<meta property="og:type" content="website" />
 <meta property="og:title" content="${title}" />
 <meta property="og:description" content="${description}" />
 <meta property="og:url" content="${pageUrl}" />
@@ -90,7 +84,21 @@ function buildHeadMetadataPartial(trip) {
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${title}" />
 <meta name="twitter:description" content="${description}" />
-<meta name="twitter:image" content="${imageUrl}" />
+<meta name="twitter:image" content="${imageUrl}" />`;
+}
+
+function buildHeadMetadataPartial(trip) {
+  const faviconPayload = encodeSvgFavicon(trip.favicon);
+  const pageUrl = `${canonicalOrigin}/${trip.slug}.html`;
+
+  // Pandoc already emits <title> and <meta name="description"> natively from the
+  // frontmatter's title/description fields — adding them again here would duplicate them.
+  // These tags are only ever seen by a logged-in viewer's own browser (the real page stays
+  // gated, so crawlers can't reach it) — see buildShareCardHtml() for the public preview.
+  const html = `
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
+<meta name="theme-color" content="#2f63ff" />
+${buildOgTags(trip, pageUrl)}
 `;
 
   const partialPath = path.join(outputDir, `.head-meta-${trip.slug}.html`);
@@ -98,9 +106,48 @@ function buildHeadMetadataPartial(trip) {
   return partialPath;
 }
 
+function buildShareCardHtml(trip) {
+  const title = escapeHtml(trip.title);
+  const description = escapeHtml(trip.description);
+  const faviconPayload = encodeSvgFavicon(trip.favicon);
+  const pageUrl = `${canonicalOrigin}/share/${trip.slug}.html`;
+
+  return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>${title}</title>
+  <meta name="description" content="${description}" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
+  <meta name="theme-color" content="#2f63ff" />
+  ${buildOgTags(trip, pageUrl)}
+  <style>
+    body { margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f8fc; color: #18243b; }
+    .card { max-width: 420px; margin: 24px; padding: 32px; background: #fff; border: 1px solid #dbe3f0; border-radius: 16px; text-align: center; }
+    .card p { color: #5b6b85; line-height: 1.5; }
+    .card a { display: inline-block; margin-top: 12px; padding: 10px 20px; background: #2f63ff; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 600; }
+    .card a:hover { background: #1d4fe0; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1>${title}</h1>
+    <p>${description}</p>
+    <a href="/${trip.slug}.html">Sign in to view this trip</a>
+  </main>
+</body>
+</html>
+`;
+}
+
+function writeShareCard(trip) {
+  fs.mkdirSync(shareCardDir, { recursive: true });
+  fs.writeFileSync(path.join(shareCardDir, `${trip.slug}.html`), buildShareCardHtml(trip));
+}
+
 function convertMarkdownToHtml(mdFile, trip) {
   const outputFile = path.join(outputDir, `${trip.slug}.html`);
-  writeOgImage(trip);
   const headMetadataPartial = buildHeadMetadataPartial(trip);
   const result = spawnSync(
     "pandoc",
@@ -138,6 +185,8 @@ function buildTripPages(tripEntries) {
   }
 
   for (const { fileName, trip } of tripEntries) {
+    writeOgImage(trip);
+    writeShareCard(trip);
     convertMarkdownToHtml(fileName, trip);
   }
 }
