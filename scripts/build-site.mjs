@@ -184,21 +184,11 @@ ${listItems}
 `;
 }
 
-function copyStaticConfig(trips) {
+function copyStaticConfig() {
   const configPath = path.join(sourceDir, "staticwebapp.config.json");
-  if (!fs.existsSync(configPath)) {
-    return;
+  if (fs.existsSync(configPath)) {
+    fs.copyFileSync(configPath, path.join(outputDir, "staticwebapp.config.json"));
   }
-
-  // Trip pages need to be fetchable without login for link-preview crawlers (and anyone with
-  // the direct link) to read their Open Graph tags — otherwise they hit the site-wide auth
-  // gate and see a GitHub login redirect instead of the trip's title/description/image.
-  // Generated here (not hand-maintained in the JSON) so a new trip is public automatically.
-  const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-  const tripRoutes = trips.map((trip) => ({ route: `/${trip.slug}.html`, allowedRoles: ["anonymous"] }));
-  config.routes = [...tripRoutes, ...(config.routes || [])];
-
-  fs.writeFileSync(path.join(outputDir, "staticwebapp.config.json"), `${JSON.stringify(config, null, 2)}\n`);
 }
 
 function main() {
@@ -214,7 +204,7 @@ function main() {
   fs.writeFileSync(path.join(outputDir, "dashboard-data.json"), `${JSON.stringify(dashboardData, null, 2)}\n`);
   fs.writeFileSync(path.join(outputDir, "index.html"), renderIndexHtml(links));
 
-  copyStaticConfig(trips);
+  copyStaticConfig();
 
   if (skipPandoc) {
     console.log(`Built dashboard data in ${outputDir} (trip HTML conversion skipped).`);
