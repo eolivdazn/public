@@ -1,6 +1,10 @@
 {
   "routes": [
     {
+      "route": "/og/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
       "route": "/*",
       "allowedRoles": ["approved"]
     }
