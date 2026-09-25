@@ -2,6 +2,7 @@
 title: "✈️ Thailand"
 slug: thailand2026
 favicon: "🏯"
+description: "A multi-stop adventure through Singapore, Kuala Lumpur, Krabi, Phuket, and Bangkok."
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-02-12"

@@ -2,6 +2,7 @@
 title: "🏖️ Algarve"
 slug: algarve2026
 favicon: "🏖️"
+description: "A relaxed week at the Salgados Golf Resort in the Algarve, with Guia's grilled chicken and Aqualand nearby."
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-09-13"

@@ -2,6 +2,7 @@
 title: "🏙️ Valencia"
 slug: valencia2026
 favicon: "🥘"
+description: "A long weekend exploring Valencia's food, culture, and sights."
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-10-16"

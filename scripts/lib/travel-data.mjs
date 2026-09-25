@@ -240,9 +240,17 @@ function validateTrip(metadata, fileName) {
   const places = metadata.places.map((place, index) => validatePlace(place, trip, index, fileName));
   const expenses = validateExpenses(metadata.expenses, fileName);
 
+  const favicon = typeof metadata.favicon === "string" && metadata.favicon.trim() ? metadata.favicon.trim() : "✈️";
+  const description =
+    typeof metadata.description === "string" && metadata.description.trim()
+      ? metadata.description.trim()
+      : `${title} — ${startDate} to ${endDate}.`;
+
   return {
     slug,
     title,
+    favicon,
+    description,
     tripType: "vacation",
     startDate,
     endDate,

@@ -2,6 +2,7 @@
 title: "🏖️ El Gouna"
 slug: el-gouna2027
 favicon: "🌴"
+description: "A beach getaway to El Gouna, Egypt on the Red Sea."
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2027-01-23"
