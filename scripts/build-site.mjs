@@ -34,14 +34,9 @@ function encodeSvgFavicon(icon) {
   return encodeURIComponent(svg.trim());
 }
 
-function readTripMeta(mdFile) {
+function createFaviconPartial(mdFile, slug) {
   const raw = fs.readFileSync(mdFile, "utf-8");
   const { data } = matter(raw);
-  return data;
-}
-
-function createFaviconPartial(mdFile, slug) {
-  const data = readTripMeta(mdFile);
   const icon = typeof data.favicon === "string" && data.favicon.trim() ? data.favicon.trim() : "✈️";
   const payload = encodeSvgFavicon(icon);
 
@@ -53,35 +48,9 @@ function createFaviconPartial(mdFile, slug) {
   return partialPath;
 }
 
-function buildMetadataPartial(mdFile, slug) {
-  const data = readTripMeta(mdFile);
-  const title = typeof data.title === "string" && data.title.trim() ? data.title.trim() : slug;
-  const description = typeof data.description === "string" && data.description.trim() ? data.description.trim() : `Travel notes and plans for ${title}.`;
-  const safeTitle = title
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-  const safeDescription = description
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/\"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-
-  const partialPath = path.join(outputDir, `.meta-${slug}.html`);
-  fs.writeFileSync(
-    partialPath,
-    `<title>${safeTitle}</title>\n<meta name="description" content="${safeDescription}" />\n`
-  );
-  return partialPath;
-}
-
 function convertMarkdownToHtml(mdFile, slug) {
   const outputFile = path.join(outputDir, `${slug}.html`);
   const faviconPartial = createFaviconPartial(mdFile, slug);
-  const metadataPartial = buildMetadataPartial(mdFile, slug);
   const result = spawnSync(
     "pandoc",
     [
@@ -91,8 +60,6 @@ function convertMarkdownToHtml(mdFile, slug) {
       "-t",
       "html",
       "-s",
-      "-B",
-      metadataPartial,
       "-B",
       faviconPartial,
       "-B",
@@ -108,7 +75,6 @@ function convertMarkdownToHtml(mdFile, slug) {
   );
 
   fs.rmSync(faviconPartial, { force: true });
-  fs.rmSync(metadataPartial, { force: true });
 
   if (result.status !== 0) {
     throw new Error(`pandoc failed for ${mdFile}`);
@@ -139,7 +105,6 @@ function renderIndexHtml(links) {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Travel Pages</title>
-  <meta name="description" content="Travel plans, trip notes, and city guides from recent journeys." />
   <style>
     body { margin: 0; font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f6f8fc; color: #18243b; }
     main { max-width: 920px; margin: 0 auto; padding: 40px 20px; }
