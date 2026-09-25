@@ -1,6 +1,7 @@
 ---
 title: "🏖️ Algarve"
 slug: algarve2026
+favicon: "🏖️"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-09-13"
@@ -23,7 +24,7 @@ expenses:
     entertainment: 0
 ---
 ## 🏖️ Algarve – Salgados Trip
-- **13–19 Sep** 🏨 [Algarve Marriott Salgados Golf Resort & Conference Center (ex NAU Salgados Palace)](https://www.marriott.com/en-us/hotels/faosp-algarve-marriott-salgados-golf-resort-and-conference-center/overview/)
+- **13–19 Sep** 🏨 [Algarve Marriott Salgados Golf Resort & Conference Center (ex NAU Salgados Palace)](https://www.marriott.com/en-us/hotels/faosp-algarve-marriott-salgados-golf-resort-and-conference-center/overview/)  
   📅 Check-in 13/09/2026 · Check-out 19/09/2026 · 6 noites
   🍳 Regime: Alojamento e Pequeno-almoço
   📍 Herdade dos Salgados, Guia, 8200-424 Albufeira

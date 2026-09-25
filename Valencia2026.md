@@ -1,6 +1,7 @@
 ---
 title: "🏙️ Valencia"
 slug: valencia2026
+favicon: "🥘"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-10-16"

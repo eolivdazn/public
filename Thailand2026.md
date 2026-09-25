@@ -1,6 +1,7 @@
 ---
 title: "✈️ Thailand"
 slug: thailand2026
+favicon: "🏯"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-02-12"
@@ -43,14 +44,13 @@ places:
 ## 🇸🇬 Singapore
  - 1 SGD a 0,66 EUR
  - 5  Eur 7,5 SGD / 10 Eur 15 SGD
-  
 
 - **13 Feb** 🏨 [ibis budget Singapore Clarke Quay
 ](https://maps.app.goo.gl/RW1eysar6z89QPxf8)
   💰 €317.11 (Accor) Paid
 
 - **14 Feb**
- 🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
+  🚶 [Singapore Free Walking Tours](https://www.monsterdaytours.com/category/singapore-free-walking-tours)
 ![Singapore Free Walking Tours](https://static.wixstatic.com/media/f0e24e_5ace658e282b4b33aa2290c5181c7126~mv2.png)
 
   - 🚲 [Bike rent](https://www.helloride-global.com/)
@@ -65,7 +65,6 @@ places:
 - https://vm.tiktok.com/ZGdmTG8t6/
 
 - **15 Feb**  
-  
 
 - **16 Feb** 🚌 Bus  
   SIN Golden → KL Berjaya Times Square  
@@ -77,7 +76,6 @@ places:
 - Night Hawk
 - The Store
 - Junior The Pocket Bar
-
 
 ## 🇲🇾 Kuala Lumpur
 
@@ -101,7 +99,7 @@ places:
   📍 Meet at KoKo Hostel at 9:00 PM
 
 - **19 Feb** 🚤 Island tour
-  
+
 - **20 Feb** ⛴ Ferry Ao Nang → Phuket  
   🌊 Green Planet  
   10:00 (Nopparat Thara Pier) → 11:30 (Laem Hin Pier)  

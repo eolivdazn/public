@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
+import matter from "gray-matter";
 import { buildDashboardData, computeTripLinks, loadTripEntries } from "./lib/travel-data.mjs";
 
 const sourceDir = process.cwd();
@@ -15,22 +16,65 @@ function ensureEmptyDir(dirPath) {
   fs.mkdirSync(dirPath, { recursive: true });
 }
 
+function encodeSvgFavicon(icon) {
+  const safe = String(icon || "✈️")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+      <rect width="64" height="64" rx="14" fill="#f4f7ff"/>
+      <text x="50%" y="52%" dominant-baseline="middle" text-anchor="middle" font-size="38">${safe}</text>
+    </svg>
+  `;
+
+  return encodeURIComponent(svg.trim());
+}
+
+function createFaviconPartial(mdFile, slug) {
+  const raw = fs.readFileSync(mdFile, "utf-8");
+  const { data } = matter(raw);
+  const icon = typeof data.favicon === "string" && data.favicon.trim() ? data.favicon.trim() : "✈️";
+  const payload = encodeSvgFavicon(icon);
+
+  const partialPath = path.join(outputDir, `.favicon-${slug}.html`);
+  fs.writeFileSync(
+    partialPath,
+    `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${payload}" />\n<meta name="theme-color" content="#2f63ff" />\n`
+  );
+  return partialPath;
+}
+
 function convertMarkdownToHtml(mdFile, slug) {
   const outputFile = path.join(outputDir, `${slug}.html`);
+  const faviconPartial = createFaviconPartial(mdFile, slug);
   const result = spawnSync(
     "pandoc",
     [
       mdFile,
-      "-f", "markdown",
-      "-t", "html",
+      "-f",
+      "markdown",
+      "-t",
+      "html",
       "-s",
-      "-B", backLinkPartial,
-      "-B", quickExpensePartial,
-      "-A", foodGalleryPartial,
-      "-o", outputFile
+      "-B",
+      faviconPartial,
+      "-B",
+      backLinkPartial,
+      "-B",
+      quickExpensePartial,
+      "-A",
+      foodGalleryPartial,
+      "-o",
+      outputFile
     ],
     { stdio: "inherit" }
   );
+
+  fs.rmSync(faviconPartial, { force: true });
 
   if (result.status !== 0) {
     throw new Error(`pandoc failed for ${mdFile}`);
@@ -120,5 +164,3 @@ function main() {
 }
 
 main();
-
-
