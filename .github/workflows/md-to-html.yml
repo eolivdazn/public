@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Run tests
+        run: npm test
+
       # 2️⃣ Instalar Pandoc para converter Markdown
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
