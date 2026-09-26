@@ -63,9 +63,9 @@ Dois dias de bares de bairro no antigo bairro de pescadores de Valência, tudo a
 #### 3. Bodega La Peseta · 22:45
 📍 [C/ del Crist del Grau, 16](https://maps.google.com/?cid=7010388913134611579)
 
-- **🍽 Comer:** tortilha de batata (há mais de 10 variedades), croquetes, calamares
+- **🍽 Comer:** tortilha de batata (há mais de 10 variedades, a mais pedida), croquetes, calamares
 - **🍷 Beber:** vinho da casa a copo ou caña de pressão
-- **Dica:** aberto até à 1h ao fim de semana.
+- **Dica:** aberto até à 1h ao fim de semana. Ficou mais turístico nos últimos tempos — há relatos de preços mais altos e croquetes congelados; a tortilha continua a ser o ponto forte.
 
 ### Domingo: vermute e paella
 
@@ -76,6 +76,7 @@ Dois dias de bares de bairro no antigo bairro de pescadores de Valência, tudo a
 
 - **🍽 Comer:** anchovas, sardinhas, bravas, fatia de tortilha gigante
 - **🍸 Beber:** vermute de pressão com sifão e azeitona
+- **⚠️ Nota:** avaliações mistas nos últimos tempos (uma queixa de higiene, serviço apontado como pouco simpático). O Anyora seria a alternativa óbvia, mas fecha ao domingo — não serve para este dia. Se quiseres evitar o risco, salta este stop e alarga o tempo na Bodega La Peseta (sábado) ou no Bar Cabanyal.
 - **Dica:** pede-se ao balcão.
 
 #### 5. La Taberna Casera · 14:00
@@ -89,16 +90,16 @@ Dois dias de bares de bairro no antigo bairro de pescadores de Valência, tudo a
 
 | Sítio | Comer | Nota |
 |---|---|---|
-| [Anyora](https://maps.google.com/?cid=12817824325472502332) | Sardinhas fumadas, enguia, omelete de lulas, bravas | Reservar; fecha ao domingo |
+| [Anyora](https://maps.google.com/?cid=12817824325472502332) | Sardinhas fumadas, enguia, omelete de lulas, bravas | Boas avaliações, mas fecha ao domingo — só serve se trocares este stop para sábado |
 | [Barbaritats](https://maps.google.com/?cid=8888900961860324) | Batatas com chouriço, bochecha de porco, pepito | Domingo só ao almoço; fecha à segunda |
 
 ---
 
-## 🏛️ Route 2: Centro Histórico
+## 🏛️ Route 2: Centro Histórico — Segunda-feira, 19 de outubro
 
 Um dia inteiro a pé pela Ciutat Vella, entre o Mercado Central e o Barrio del Carmen, só com casas clássicas. Para cada paragem fica o que pedir e o que beber.
 
-> ⚠️ Faz esta rota de terça a sábado: o Central Bar e a Tasca Ángel fecham ao domingo, e a Tasca Ángel também à segunda.
+> ⚠️ Com a Route 1 a ocupar sábado e domingo, esta rota fica para segunda-feira (dia da viagem de volta, mas com tempo até às 21h). Confirmado: Central Bar fecha só ao domingo, por isso está aberto. Horchatería, La Pilareta, Tasca El Botijo e Casa Vani também abrem à segunda. A Tasca Ángel tem horários contraditórios entre fontes para a segunda — liga antes (963 91 78 35) ou salta para a Tasca El Botijo se estiver fechada.
 
 ### Manhã e tarde: Mercado Central, sardinhas e horchata
 
@@ -153,7 +154,7 @@ Um dia inteiro a pé pela Ciutat Vella, entre o Mercado Central e o Barrio del C
 
 | Sítio | Comer | Nota |
 |---|---|---|
-| [La Latería del Carmen](https://www.google.com/maps/search/?api=1&query=La%20Lateria%20del%20Carmen%20Valencia&query_place_id=ChIJlxBOIDRPYA0RP8yhqQcTHQQ) | Conservas, batata com creme de bacalhau, alcachofas | Só ao jantar; fecha domingo e segunda |
+| [Café de las Horas](https://www.google.com/maps/search/?api=1&query=Cafe%20de%20las%20Horas%20Valencia) | Ambiente barroco decorado, boa Agua de Valencia | Recomendado pelos locais para a Agua de Valencia; aberto à segunda (10h–1h30) |
 
 ---
 
