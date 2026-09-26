@@ -1,18 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { Resvg } from "@resvg/resvg-js";
 import { buildDashboardData, computeTripLinks, loadTripEntries } from "./lib/travel-data.mjs";
 
-const sourceDir = process.cwd();
-const outputDir = path.join(sourceDir, "site");
-const ogImageDir = path.join(outputDir, "og");
-const shareCardDir = path.join(outputDir, "share");
-const skipPandoc = process.argv.includes("--skip-pandoc");
-const backLinkPartial = path.join(sourceDir, "scripts", "templates", "trip-page-back-link.html");
-const quickExpensePartial = path.join(sourceDir, "scripts", "templates", "trip-page-quick-expense.html");
-const foodGalleryPartial = path.join(sourceDir, "scripts", "templates", "trip-page-food-gallery.html");
 const canonicalOrigin = "https://white-stone-0b0565103.5.azurestaticapps.net";
+// Partial templates are script assets, not user content — resolve them relative to this file
+// (not the caller's sourceDir) so runBuild() works against any content directory, including
+// a test fixture that has no scripts/templates/ of its own.
+const templatesDir = path.join(path.dirname(fileURLToPath(import.meta.url)), "templates");
 
 function ensureEmptyDir(dirPath) {
   fs.rmSync(dirPath, { recursive: true, force: true });
@@ -61,14 +58,6 @@ function buildOgImageSvg(trip) {
   `;
 }
 
-function writeOgImage(trip) {
-  const svg = buildOgImageSvg(trip);
-  const resvg = new Resvg(svg, { font: { loadSystemFonts: true } });
-  const png = resvg.render().asPng();
-  fs.mkdirSync(ogImageDir, { recursive: true });
-  fs.writeFileSync(path.join(ogImageDir, `${trip.slug}.png`), png);
-}
-
 function buildOgTags(trip, pageUrl) {
   const title = escapeHtml(trip.title);
   const description = escapeHtml(trip.description);
@@ -85,25 +74,6 @@ function buildOgTags(trip, pageUrl) {
 <meta name="twitter:title" content="${title}" />
 <meta name="twitter:description" content="${description}" />
 <meta name="twitter:image" content="${imageUrl}" />`;
-}
-
-function buildHeadMetadataPartial(trip) {
-  const faviconPayload = encodeSvgFavicon(trip.favicon);
-  const pageUrl = `${canonicalOrigin}/${trip.slug}.html`;
-
-  // Pandoc already emits <title> and <meta name="description"> natively from the
-  // frontmatter's title/description fields — adding them again here would duplicate them.
-  // These tags are only ever seen by a logged-in viewer's own browser (the real page stays
-  // gated, so crawlers can't reach it) — see buildShareCardHtml() for the public preview.
-  const html = `
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
-<meta name="theme-color" content="#2f63ff" />
-${buildOgTags(trip, pageUrl)}
-`;
-
-  const partialPath = path.join(outputDir, `.head-meta-${trip.slug}.html`);
-  fs.writeFileSync(partialPath, html);
-  return partialPath;
 }
 
 function buildShareCardHtml(trip) {
@@ -139,56 +109,6 @@ function buildShareCardHtml(trip) {
 </body>
 </html>
 `;
-}
-
-function writeShareCard(trip) {
-  fs.mkdirSync(shareCardDir, { recursive: true });
-  fs.writeFileSync(path.join(shareCardDir, `${trip.slug}.html`), buildShareCardHtml(trip));
-}
-
-function convertMarkdownToHtml(mdFile, trip) {
-  const outputFile = path.join(outputDir, `${trip.slug}.html`);
-  const headMetadataPartial = buildHeadMetadataPartial(trip);
-  const result = spawnSync(
-    "pandoc",
-    [
-      mdFile,
-      "-f",
-      "markdown",
-      "-t",
-      "html",
-      "-s",
-      "-B",
-      headMetadataPartial,
-      "-B",
-      backLinkPartial,
-      "-B",
-      quickExpensePartial,
-      "-A",
-      foodGalleryPartial,
-      "-o",
-      outputFile
-    ],
-    { stdio: "inherit" }
-  );
-
-  fs.rmSync(headMetadataPartial, { force: true });
-
-  if (result.status !== 0) {
-    throw new Error(`pandoc failed for ${mdFile}`);
-  }
-}
-
-function buildTripPages(tripEntries) {
-  if (skipPandoc) {
-    return;
-  }
-
-  for (const { fileName, trip } of tripEntries) {
-    writeOgImage(trip);
-    writeShareCard(trip);
-    convertMarkdownToHtml(fileName, trip);
-  }
 }
 
 function renderIndexHtml(links) {
@@ -233,14 +153,98 @@ ${listItems}
 `;
 }
 
-function copyStaticConfig() {
-  const configPath = path.join(sourceDir, "staticwebapp.config.json");
-  if (fs.existsSync(configPath)) {
+export function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
+  const ogImageDir = path.join(outputDir, "og");
+  const shareCardDir = path.join(outputDir, "share");
+  const backLinkPartial = path.join(templatesDir, "trip-page-back-link.html");
+  const quickExpensePartial = path.join(templatesDir, "trip-page-quick-expense.html");
+  const foodGalleryPartial = path.join(templatesDir, "trip-page-food-gallery.html");
+
+  function writeOgImage(trip) {
+    const svg = buildOgImageSvg(trip);
+    const resvg = new Resvg(svg, { font: { loadSystemFonts: true } });
+    const png = resvg.render().asPng();
+    fs.mkdirSync(ogImageDir, { recursive: true });
+    fs.writeFileSync(path.join(ogImageDir, `${trip.slug}.png`), png);
+  }
+
+  function buildHeadMetadataPartial(trip) {
+    const faviconPayload = encodeSvgFavicon(trip.favicon);
+    const pageUrl = `${canonicalOrigin}/${trip.slug}.html`;
+
+    // Pandoc already emits <title> and <meta name="description"> natively from the
+    // frontmatter's title/description fields — adding them again here would duplicate them.
+    // These tags are only ever seen by a logged-in viewer's own browser (the real page stays
+    // gated, so crawlers can't reach it) — see buildShareCardHtml() for the public preview.
+    const html = `
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
+<meta name="theme-color" content="#2f63ff" />
+${buildOgTags(trip, pageUrl)}
+`;
+
+    const partialPath = path.join(outputDir, `.head-meta-${trip.slug}.html`);
+    fs.writeFileSync(partialPath, html);
+    return partialPath;
+  }
+
+  function writeShareCard(trip) {
+    fs.mkdirSync(shareCardDir, { recursive: true });
+    fs.writeFileSync(path.join(shareCardDir, `${trip.slug}.html`), buildShareCardHtml(trip));
+  }
+
+  function convertMarkdownToHtml(mdFile, trip) {
+    const outputFile = path.join(outputDir, `${trip.slug}.html`);
+    const headMetadataPartial = buildHeadMetadataPartial(trip);
+    const result = spawnSync(
+      "pandoc",
+      [
+        mdFile,
+        "-f",
+        "markdown",
+        "-t",
+        "html",
+        "-s",
+        "-B",
+        headMetadataPartial,
+        "-B",
+        backLinkPartial,
+        "-B",
+        quickExpensePartial,
+        "-A",
+        foodGalleryPartial,
+        "-o",
+        outputFile
+      ],
+      { stdio: "inherit" }
+    );
+
+    fs.rmSync(headMetadataPartial, { force: true });
+
+    if (result.status !== 0) {
+      throw new Error(`pandoc failed for ${mdFile}`);
+    }
+  }
+
+  function buildTripPages(tripEntries) {
+    if (skipPandoc) {
+      return;
+    }
+
+    for (const { fileName, trip } of tripEntries) {
+      writeOgImage(trip);
+      writeShareCard(trip);
+      convertMarkdownToHtml(path.join(sourceDir, fileName), trip);
+    }
+  }
+
+  function copyStaticConfig() {
+    const configPath = path.join(sourceDir, "staticwebapp.config.json");
+    if (!fs.existsSync(configPath)) {
+      return;
+    }
     fs.copyFileSync(configPath, path.join(outputDir, "staticwebapp.config.json"));
   }
-}
 
-function main() {
   ensureEmptyDir(outputDir);
 
   const tripEntries = loadTripEntries(sourceDir);
@@ -263,4 +267,14 @@ function main() {
   console.log(`Built ${trips.length} trips and dashboard data in ${outputDir}`);
 }
 
-main();
+function main() {
+  const sourceDir = process.cwd();
+  const outputDir = path.join(sourceDir, "site");
+  const skipPandoc = process.argv.includes("--skip-pandoc");
+  runBuild({ sourceDir, outputDir, skipPandoc });
+}
+
+const isMainModule = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
+  main();
+}

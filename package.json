@@ -10,7 +10,8 @@
     "build": "npm run build:site && npm run build:dashboard && npm run build:quick-expense-widget",
     "dev:dashboard": "vite",
     "preview:dashboard": "vite preview",
-    "test": "node --test scripts/travel-data.test.mjs dashboard/src/lib/*.test.js"
+    "test": "node --test scripts/travel-data.test.mjs dashboard/src/lib/*.test.js",
+    "test:integration": "vitest run"
   },
   "dependencies": {
     "@resvg/resvg-js": "^2.6.2",
@@ -20,7 +21,11 @@
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@vitejs/plugin-react": "^4.3.1",
-    "vite": "^5.4.8"
+    "jsdom": "^30.1.1",
+    "vite": "^5.4.8",
+    "vitest": "^3.2.7"
   }
 }

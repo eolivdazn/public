@@ -35,6 +35,12 @@ jobs:
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
+      - name: Run integration tests
+        run: npm run test:integration
+
+      - name: Run API integration tests
+        run: cd api && npm ci && npm run test:integration
+
       - name: Build static pages and dashboard data
         run: npm run build:site
 
