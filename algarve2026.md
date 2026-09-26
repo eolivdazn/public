@@ -2,7 +2,8 @@
 title: "🏖️ Algarve"
 slug: algarve2026
 favicon: "🏖️"
-description: "A relaxed week at the Salgados Golf Resort in the Algarve, with Guia's grilled chicken and Aqualand nearby."
+description: "A relaxed week at the Salgados Golf Resort in the Algarve, with Guia's grilled chicken, Aqualand water park, and Albufeira's beaches nearby."
+seoTitle: "🏖️ Algarve Trip Guide 2026 — Salgados Itinerary & Tips"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-09-13"

@@ -59,7 +59,7 @@ function buildOgImageSvg(trip) {
 }
 
 function buildOgTags(trip, pageUrl) {
-  const title = escapeHtml(trip.title);
+  const title = escapeHtml(trip.seoTitle);
   const description = escapeHtml(trip.description);
   const imageUrl = `${canonicalOrigin}/og/${trip.slug}.png`;
 
@@ -78,7 +78,10 @@ function buildOgTags(trip, pageUrl) {
 }
 
 function buildShareCardHtml(trip) {
-  const title = escapeHtml(trip.title);
+  // <title> uses the longer SEO title (search/social surfaces); the visible <h1> keeps the
+  // short display name — a human landing on this card doesn't need the keyword-stuffed version.
+  const seoTitle = escapeHtml(trip.seoTitle);
+  const displayTitle = escapeHtml(trip.title);
   const description = escapeHtml(trip.description);
   const faviconPayload = encodeSvgFavicon(trip.favicon);
   const pageUrl = `${canonicalOrigin}/share/${trip.slug}.html`;
@@ -88,7 +91,7 @@ function buildShareCardHtml(trip) {
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>${title}</title>
+  <title>${seoTitle}</title>
   <meta name="description" content="${description}" />
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
   <meta name="theme-color" content="#2f63ff" />
@@ -103,7 +106,7 @@ function buildShareCardHtml(trip) {
 </head>
 <body>
   <main class="card">
-    <h1>${title}</h1>
+    <h1>${displayTitle}</h1>
     <p>${description}</p>
     <a href="/${trip.slug}.html">Sign in to view this trip</a>
   </main>
@@ -173,10 +176,11 @@ export function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
     const faviconPayload = encodeSvgFavicon(trip.favicon);
     const pageUrl = `${canonicalOrigin}/${trip.slug}.html`;
 
-    // Pandoc already emits <title> and <meta name="description"> natively from the
-    // frontmatter's title/description fields — adding them again here would duplicate them.
-    // These tags are only ever seen by a logged-in viewer's own browser (the real page stays
-    // gated, so crawlers can't reach it) — see buildShareCardHtml() for the public preview.
+    // Pandoc already emits <title> (from the -M title override below, so it gets the longer
+    // seoTitle rather than the frontmatter's short title) and <meta name="description"> (from
+    // the frontmatter's description field directly) — adding either again here would duplicate
+    // them. These tags are only ever seen by a logged-in viewer's own browser (the real page
+    // stays gated, so crawlers can't reach it) — see buildShareCardHtml() for the public preview.
     const html = `
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
 <meta name="theme-color" content="#2f63ff" />
@@ -220,6 +224,8 @@ ${buildOgTags(trip, pageUrl)}
         "-t",
         "html",
         "-s",
+        "-M",
+        `title=${trip.seoTitle}`,
         "-B",
         headMetadataPartial,
         "-B",

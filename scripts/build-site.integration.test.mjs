@@ -9,6 +9,7 @@ title: "🧪 Test Trip"
 slug: test-trip
 favicon: "🧪"
 description: "A fixture trip used by the build pipeline integration test."
+seoTitle: "🧪 Test Trip Guide — A Fixture Adventure"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-05-01"
@@ -57,16 +58,16 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     fs.rmSync(sourceDir, { recursive: true, force: true });
   });
 
-  it("writes exactly one <title> and one description meta tag, no duplicates", () => {
+  it("writes exactly one <title> and one description meta tag, using the longer seoTitle (not the short display title)", () => {
     const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
     expect((html.match(/<title>/g) || []).length).toBe(1);
     expect((html.match(/name="description"/g) || []).length).toBe(1);
-    expect(html).toContain("<title>🧪 Test Trip</title>");
+    expect(html).toContain("<title>🧪 Test Trip Guide — A Fixture Adventure</title>");
   });
 
   it("includes correct Open Graph and Twitter Card tags", () => {
     const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
-    expect(html).toContain('<meta property="og:title" content="🧪 Test Trip" />');
+    expect(html).toContain('<meta property="og:title" content="🧪 Test Trip Guide — A Fixture Adventure" />');
     expect(html).toContain(
       '<meta property="og:url" content="https://white-stone-0b0565103.5.azurestaticapps.net/test-trip.html" />'
     );
@@ -99,11 +100,12 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     );
   });
 
-  it("writes dashboard-data.json with the fixture trip", () => {
+  it("writes dashboard-data.json with the fixture trip, keeping the short title distinct from seoTitle", () => {
     const data = JSON.parse(fs.readFileSync(path.join(outputDir, "dashboard-data.json"), "utf-8"));
     const trip = data.trips.find((item) => item.slug === "test-trip");
     expect(trip).toBeTruthy();
     expect(trip.title).toBe("🧪 Test Trip");
+    expect(trip.seoTitle).toBe("🧪 Test Trip Guide — A Fixture Adventure");
   });
 
   it("copies staticwebapp.config.json through unchanged", () => {

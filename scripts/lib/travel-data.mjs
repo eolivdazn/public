@@ -245,12 +245,20 @@ function validateTrip(metadata, fileName) {
     typeof metadata.description === "string" && metadata.description.trim()
       ? metadata.description.trim()
       : `${title} — ${startDate} to ${endDate}.`;
+  // Distinct from `title`: this is what shows in <title>/og:title/twitter:title (search and
+  // social surfaces favor a longer, keyword-rich title), while `title` stays the short display
+  // name used everywhere in the app itself (dashboard trip picker, the trip index list, etc.).
+  const seoTitle =
+    typeof metadata.seoTitle === "string" && metadata.seoTitle.trim()
+      ? metadata.seoTitle.trim()
+      : `${title} Trip Guide — ${startDate} to ${endDate}`;
 
   return {
     slug,
     title,
     favicon,
     description,
+    seoTitle,
     tripType: "vacation",
     startDate,
     endDate,

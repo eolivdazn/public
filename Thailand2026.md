@@ -2,7 +2,8 @@
 title: "✈️ Thailand"
 slug: thailand2026
 favicon: "🏯"
-description: "A multi-stop adventure through Singapore, Kuala Lumpur, Krabi, Phuket, and Bangkok."
+description: "A multi-stop adventure through Singapore, Kuala Lumpur, Krabi, Phuket, and Bangkok — island beaches, street food, and city nightlife across Southeast Asia."
+seoTitle: "✈️ Thailand Trip Guide 2026 — Singapore to Bangkok Itinerary"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-02-12"
