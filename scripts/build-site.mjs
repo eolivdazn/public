@@ -64,6 +64,7 @@ function buildOgTags(trip, pageUrl) {
   const imageUrl = `${canonicalOrigin}/og/${trip.slug}.png`;
 
   return `<meta property="og:type" content="website" />
+<meta property="og:site_name" content="Travel Pages" />
 <meta property="og:title" content="${title}" />
 <meta property="og:description" content="${description}" />
 <meta property="og:url" content="${pageUrl}" />
@@ -187,6 +188,20 @@ ${buildOgTags(trip, pageUrl)}
     return partialPath;
   }
 
+  function buildShareLinkPartial(trip) {
+    const html = `<p class="trip-share-link"><a href="/share/${trip.slug}.html">🔗 Share this trip</a></p>
+<style>
+  .trip-share-link { margin: 0.4em 0 1.4em; }
+  .trip-share-link a { color: #2f63ff; text-decoration: none; font-weight: 600; }
+  .trip-share-link a:hover { text-decoration: underline; }
+</style>
+`;
+
+    const partialPath = path.join(outputDir, `.share-link-${trip.slug}.html`);
+    fs.writeFileSync(partialPath, html);
+    return partialPath;
+  }
+
   function writeShareCard(trip) {
     fs.mkdirSync(shareCardDir, { recursive: true });
     fs.writeFileSync(path.join(shareCardDir, `${trip.slug}.html`), buildShareCardHtml(trip));
@@ -195,6 +210,7 @@ ${buildOgTags(trip, pageUrl)}
   function convertMarkdownToHtml(mdFile, trip) {
     const outputFile = path.join(outputDir, `${trip.slug}.html`);
     const headMetadataPartial = buildHeadMetadataPartial(trip);
+    const shareLinkPartial = buildShareLinkPartial(trip);
     const result = spawnSync(
       "pandoc",
       [
@@ -209,6 +225,8 @@ ${buildOgTags(trip, pageUrl)}
         "-B",
         backLinkPartial,
         "-B",
+        shareLinkPartial,
+        "-B",
         quickExpensePartial,
         "-A",
         foodGalleryPartial,
@@ -219,6 +237,7 @@ ${buildOgTags(trip, pageUrl)}
     );
 
     fs.rmSync(headMetadataPartial, { force: true });
+    fs.rmSync(shareLinkPartial, { force: true });
 
     if (result.status !== 0) {
       throw new Error(`pandoc failed for ${mdFile}`);
