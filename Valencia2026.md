@@ -4,6 +4,7 @@ slug: valencia2026
 favicon: "🥘"
 description: "A long weekend in Valencia built around two tapas crawls — Cabanyal's fishermen's bars and the historic Ciutat Vella — plus paella and Agua de Valencia."
 seoTitle: "🏙️ Valencia Trip Guide 2026 — Itinerary, Tapas & Travel Tips"
+ogImage: "https://www.travelladda.com/package/Valencia.jpg"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-10-16"

@@ -45,13 +45,13 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
   let sourceDir;
   let outputDir;
 
-  beforeAll(() => {
+  beforeAll(async () => {
     sourceDir = fs.mkdtempSync(path.join(os.tmpdir(), "build-site-fixture-"));
     outputDir = path.join(sourceDir, "site");
     fs.writeFileSync(path.join(sourceDir, "test-trip.md"), FIXTURE_TRIP_MD);
     fs.writeFileSync(path.join(sourceDir, "staticwebapp.config.json"), FIXTURE_CONFIG);
 
-    runBuild({ sourceDir, outputDir });
+    await runBuild({ sourceDir, outputDir });
   });
 
   afterAll(() => {
@@ -111,5 +111,67 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
   it("copies staticwebapp.config.json through unchanged", () => {
     const config = JSON.parse(fs.readFileSync(path.join(outputDir, "staticwebapp.config.json"), "utf-8"));
     expect(config.routes).toEqual([{ route: "/*", allowedRoles: ["approved"] }]);
+  });
+});
+
+describe("runBuild ogImage (real network fetch + sharp crop, no mocking)", () => {
+  let sourceDir;
+  let outputDir;
+
+  const PHOTO_TRIP_MD = `---
+title: "📷 Photo Trip"
+slug: photo-trip
+favicon: "📷"
+description: "A fixture trip that points ogImage at a real, reachable photo URL."
+ogImage: "https://picsum.photos/id/1015/1600/900"
+schema: travel-dashboard/v1
+tripType: vacation
+startDate: "2026-05-01"
+endDate: "2026-05-03"
+year: 2026
+dateCounting: inclusive
+places:
+  - city: Testville
+    country: Testland
+    startDate: "2026-05-01"
+    endDate: "2026-05-03"
+---
+
+## Photo Trip
+`;
+
+  const BROKEN_PHOTO_TRIP_MD = PHOTO_TRIP_MD.replace('slug: photo-trip', 'slug: broken-photo-trip').replace(
+    'ogImage: "https://picsum.photos/id/1015/1600/900"',
+    'ogImage: "https://this-domain-does-not-exist-12345.example/photo.jpg"'
+  );
+
+  beforeAll(async () => {
+    sourceDir = fs.mkdtempSync(path.join(os.tmpdir(), "build-site-photo-fixture-"));
+    outputDir = path.join(sourceDir, "site");
+    fs.writeFileSync(path.join(sourceDir, "photo-trip.md"), PHOTO_TRIP_MD);
+    fs.writeFileSync(path.join(sourceDir, "broken-photo-trip.md"), BROKEN_PHOTO_TRIP_MD);
+    fs.writeFileSync(path.join(sourceDir, "staticwebapp.config.json"), FIXTURE_CONFIG);
+
+    await runBuild({ sourceDir, outputDir });
+  });
+
+  afterAll(() => {
+    fs.rmSync(sourceDir, { recursive: true, force: true });
+  });
+
+  it("fetches and crops a real ogImage URL to a 1200x630 PNG", () => {
+    const pngPath = path.join(outputDir, "og", "photo-trip.png");
+    const buffer = fs.readFileSync(pngPath);
+    expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+    expect(buffer.readUInt32BE(16)).toBe(1200);
+    expect(buffer.readUInt32BE(20)).toBe(630);
+  });
+
+  it("falls back to the generated title card when ogImage is unreachable", () => {
+    const pngPath = path.join(outputDir, "og", "broken-photo-trip.png");
+    const buffer = fs.readFileSync(pngPath);
+    expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
+    expect(buffer.readUInt32BE(16)).toBe(1200);
+    expect(buffer.readUInt32BE(20)).toBe(630);
   });
 });

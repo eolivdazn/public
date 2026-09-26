@@ -39,6 +39,11 @@
       "minLength": 1,
       "description": "Longer, keyword-rich title used for <title>/og:title/twitter:title (search and social surfaces). Falls back to '{title} Trip Guide — {startDate} to {endDate}' if omitted. The short 'title' field stays the display name used elsewhere in the app (dashboard trip picker, trip index list)."
     },
+    "ogImage": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL to a real photo, fetched and cropped to 1200x630 at build time for the share-card image. Falls back to the generated title-card image (favicon + title + dates) when omitted or unreachable."
+    },
     "schema": {
       "type": "string",
       "const": "travel-dashboard/v1"

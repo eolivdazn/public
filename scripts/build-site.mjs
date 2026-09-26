@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { spawnSync } from "node:child_process";
 import { Resvg } from "@resvg/resvg-js";
+import sharp from "sharp";
 import { buildDashboardData, computeTripLinks, loadTripEntries } from "./lib/travel-data.mjs";
 
 const canonicalOrigin = "https://white-stone-0b0565103.5.azurestaticapps.net";
@@ -157,19 +158,45 @@ ${listItems}
 `;
 }
 
-export function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
+export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
   const ogImageDir = path.join(outputDir, "og");
   const shareCardDir = path.join(outputDir, "share");
   const backLinkPartial = path.join(templatesDir, "trip-page-back-link.html");
   const quickExpensePartial = path.join(templatesDir, "trip-page-quick-expense.html");
   const foodGalleryPartial = path.join(templatesDir, "trip-page-food-gallery.html");
 
-  function writeOgImage(trip) {
+  function renderOgImageCard(trip) {
     const svg = buildOgImageSvg(trip);
     const resvg = new Resvg(svg, { font: { loadSystemFonts: true } });
-    const png = resvg.render().asPng();
+    return resvg.render().asPng();
+  }
+
+  async function fetchAndCropOgPhoto(trip) {
+    const response = await fetch(trip.ogImage);
+    if (!response.ok) {
+      throw new Error(`fetch failed with status ${response.status}`);
+    }
+    const sourceBuffer = Buffer.from(await response.arrayBuffer());
+    return sharp(sourceBuffer).resize(1200, 630, { fit: "cover" }).png().toBuffer();
+  }
+
+  async function writeOgImage(trip) {
     fs.mkdirSync(ogImageDir, { recursive: true });
-    fs.writeFileSync(path.join(ogImageDir, `${trip.slug}.png`), png);
+    const outputPath = path.join(ogImageDir, `${trip.slug}.png`);
+
+    if (trip.ogImage) {
+      try {
+        const png = await fetchAndCropOgPhoto(trip);
+        fs.writeFileSync(outputPath, png);
+        return;
+      } catch (error) {
+        console.warn(
+          `Could not use ogImage for ${trip.slug} (${trip.ogImage}): ${error.message}. Falling back to the generated card.`
+        );
+      }
+    }
+
+    fs.writeFileSync(outputPath, renderOgImageCard(trip));
   }
 
   function buildHeadMetadataPartial(trip) {
@@ -250,13 +277,13 @@ ${buildOgTags(trip, pageUrl)}
     }
   }
 
-  function buildTripPages(tripEntries) {
+  async function buildTripPages(tripEntries) {
     if (skipPandoc) {
       return;
     }
 
     for (const { fileName, trip } of tripEntries) {
-      writeOgImage(trip);
+      await writeOgImage(trip);
       writeShareCard(trip);
       convertMarkdownToHtml(path.join(sourceDir, fileName), trip);
     }
@@ -273,7 +300,7 @@ ${buildOgTags(trip, pageUrl)}
   ensureEmptyDir(outputDir);
 
   const tripEntries = loadTripEntries(sourceDir);
-  buildTripPages(tripEntries);
+  await buildTripPages(tripEntries);
 
   const trips = tripEntries.map(({ trip }) => trip);
   const dashboardData = buildDashboardData(trips);
@@ -292,14 +319,17 @@ ${buildOgTags(trip, pageUrl)}
   console.log(`Built ${trips.length} trips and dashboard data in ${outputDir}`);
 }
 
-function main() {
+async function main() {
   const sourceDir = process.cwd();
   const outputDir = path.join(sourceDir, "site");
   const skipPandoc = process.argv.includes("--skip-pandoc");
-  runBuild({ sourceDir, outputDir, skipPandoc });
+  await runBuild({ sourceDir, outputDir, skipPandoc });
 }
 
 const isMainModule = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
 if (isMainModule) {
-  main();
+  main().catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  });
 }

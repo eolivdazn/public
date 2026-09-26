@@ -4,6 +4,7 @@ slug: el-gouna2027
 favicon: "🌴"
 description: "A beach getaway to El Gouna, Egypt, on the Red Sea — a relaxed week of lagoons, diving, and marina-side dining in one of Egypt's most laid-back resort towns."
 seoTitle: "🏖️ El Gouna Trip Guide 2027 — Red Sea Itinerary & Tips"
+ogImage: "https://images.unsplash.com/photo-1708711973477-1373f8eb65db?w=1600&q=80"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2027-01-23"

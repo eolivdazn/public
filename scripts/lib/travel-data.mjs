@@ -252,6 +252,9 @@ function validateTrip(metadata, fileName) {
     typeof metadata.seoTitle === "string" && metadata.seoTitle.trim()
       ? metadata.seoTitle.trim()
       : `${title} Trip Guide — ${startDate} to ${endDate}`;
+  // Optional: a URL to a real photo, fetched and cropped to 1200x630 for the share image at
+  // build time. Falls back to the generated title-card image (see buildOgImageSvg) when unset.
+  const ogImage = typeof metadata.ogImage === "string" && metadata.ogImage.trim() ? metadata.ogImage.trim() : null;
 
   return {
     slug,
@@ -259,6 +262,7 @@ function validateTrip(metadata, fileName) {
     favicon,
     description,
     seoTitle,
+    ogImage,
     tripType: "vacation",
     startDate,
     endDate,
