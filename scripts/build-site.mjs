@@ -6,7 +6,14 @@ import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 import { buildDashboardData, loadTripEntries } from "./lib/travel-data.mjs";
 
-const canonicalOrigin = "https://white-stone-0b0565103.5.azurestaticapps.net";
+const PROD_ORIGIN = "https://white-stone-0b0565103.5.azurestaticapps.net";
+
+// Absolute URLs in OG/Twitter tags and share cards. The stage workflow sets SITE_ORIGIN to the
+// stage host so its pages don't advertise prod URLs; unset (prod, local, tests) means prod.
+// Read at call time rather than module load so a build can be pointed at another origin.
+function canonicalOrigin() {
+  return (process.env.SITE_ORIGIN || PROD_ORIGIN).replace(/\/+$/, "");
+}
 // Partial templates are script assets, not user content — resolve them relative to this file
 // (not the caller's sourceDir) so runBuild() works against any content directory, including
 // a test fixture that has no scripts/templates/ of its own.
@@ -114,7 +121,7 @@ function buildOgImageSvg(trip) {
 function buildOgTags(trip, pageUrl) {
   const title = escapeHtml(trip.seoTitle);
   const description = escapeHtml(trip.description);
-  const imageUrl = `${canonicalOrigin}/og/${trip.slug}.png`;
+  const imageUrl = `${canonicalOrigin()}/og/${trip.slug}.png`;
 
   return `<meta property="og:type" content="website" />
 <meta property="og:site_name" content="Travel Pages" />
@@ -203,7 +210,7 @@ function buildShareCardHtml(trip, hasPhoto) {
   const displayTitle = escapeHtml(trip.title);
   const description = escapeHtml(trip.description);
   const faviconPayload = encodeSvgFavicon(trip.favicon);
-  const pageUrl = `${canonicalOrigin}/share/${trip.slug}.html`;
+  const pageUrl = `${canonicalOrigin()}/share/${trip.slug}.html`;
   const days = `${trip.vacationDays} day${trip.vacationDays === 1 ? "" : "s"}`;
   const places = trip.places.map((place) => `${place.city}, ${place.country}`).join(" · ");
   const media = hasPhoto
@@ -395,7 +402,7 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
 
   function buildHeadMetadataPartial(trip) {
     const faviconPayload = encodeSvgFavicon(trip.favicon);
-    const pageUrl = `${canonicalOrigin}/${trip.slug}.html`;
+    const pageUrl = `${canonicalOrigin()}/${trip.slug}.html`;
 
     // Pandoc already emits <title> (from the -M title override below, so it gets the longer
     // seoTitle rather than the frontmatter's short title) and <meta name="description"> (from

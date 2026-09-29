@@ -162,6 +162,40 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
   });
 });
 
+describe("runBuild with SITE_ORIGIN (stage builds)", () => {
+  let sourceDir;
+  let outputDir;
+  let previousOrigin;
+
+  beforeAll(async () => {
+    previousOrigin = process.env.SITE_ORIGIN;
+    process.env.SITE_ORIGIN = "https://stage.example.test/";
+    sourceDir = fs.mkdtempSync(path.join(os.tmpdir(), "build-site-origin-fixture-"));
+    outputDir = path.join(sourceDir, "site");
+    fs.writeFileSync(path.join(sourceDir, "test-trip.md"), FIXTURE_TRIP_MD);
+
+    await runBuild({ sourceDir, outputDir });
+  });
+
+  afterAll(() => {
+    if (previousOrigin === undefined) {
+      delete process.env.SITE_ORIGIN;
+    } else {
+      process.env.SITE_ORIGIN = previousOrigin;
+    }
+    fs.rmSync(sourceDir, { recursive: true, force: true });
+  });
+
+  it("uses SITE_ORIGIN (trailing slash trimmed) for absolute URLs instead of the prod host", () => {
+    const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
+    expect(html).toContain('<meta property="og:url" content="https://stage.example.test/test-trip.html" />');
+    expect(html).toContain('<meta property="og:image" content="https://stage.example.test/og/test-trip.png" />');
+    const shareHtml = fs.readFileSync(path.join(outputDir, "share", "test-trip.html"), "utf-8");
+    expect(shareHtml).toContain('<meta property="og:url" content="https://stage.example.test/share/test-trip.html" />');
+    expect(html + shareHtml).not.toContain("white-stone-0b0565103");
+  });
+});
+
 describe("runBuild ogImage (real network fetch + sharp crop, no mocking)", () => {
   let sourceDir;
   let outputDir;

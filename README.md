@@ -12,6 +12,7 @@
 ## Actions Workflow
 
 - Deploy workflow: [Azure Static Web Apps CI/CD](https://github.com/eolivdazn/public/actions/workflows/azure-static-web-apps-white-stone-0b0565103.yml)
+- Stage workflow: [Azure Static Web Apps CI/CD (stage)](https://github.com/eolivdazn/public/actions/workflows/azure-static-web-apps-stage.yml) — see [Staging](#staging)
 
 ## Architecture
 
@@ -77,7 +78,7 @@ evaluates before a request reaches the Function at all.
 
 **Deployment.** The GitHub Actions workflow
 (`.github/workflows/azure-static-web-apps-white-stone-0b0565103.yml`, runs on
-push to `main` and on PRs) builds the site itself (`npm run build:site` +
+push to `main` only) builds the site itself (`npm run build:site` +
 `npm run build:dashboard`, `skip_app_build: true` since it's pre-built), and
 hands `api/` to `Azure/static-web-apps-deploy@v1`, which builds it via Oryx
 (installing `api/`'s own dependencies) and deploys everything to one Azure
@@ -93,6 +94,48 @@ Static Web App.
 Auth is GitHub OAuth via Static Web Apps' built-in auth — unauthenticated or
 unapproved users are redirected to `/.auth/login/github` per
 `staticwebapp.config.json`.
+
+## Staging
+
+Stage is a named **preview environment** (`stage`) of the prod Static Web App
+`swa-public-pages`: same app, its own URL
+(`<prod-host>-stage.westeurope.…azurestaticapps.net`), so a branch can be tried
+on Azure before it reaches `main`.
+
+**Deploying.** Every push to any branch other than `main` deploys that branch
+to stage (`.github/workflows/azure-static-web-apps-stage.yml`); the run summary
+shows the stage URL. Stage holds one branch at a time: the most recent push
+wins, and a newer push cancels a deploy that is still running. To put a branch
+back on stage without a new commit, use **Run workflow** on the stage workflow
+and pick the branch. Prod still deploys only from `main`; there are no PR
+preview environments.
+
+The stage workflow uses prod's deployment token. Only its
+`deployment_environment: "stage"` input keeps the deploy out of production; a
+guard step fails the run if that line goes missing, so never remove it.
+
+**Data is shared with prod.** A preview environment inherits prod's API
+settings, so stage reads and writes the same Cosmos DB and receipts storage:
+expenses added or deleted on stage are real. (To give stage its own data later,
+set different values with
+`az staticwebapp appsettings set -n swa-public-pages -g rg-public-pages --environment-name stage --setting-names ...`.)
+
+**Optional: stage links.** OG tags and share cards on stage point at the prod
+host unless the GitHub repository variable `STAGE_SITE_ORIGIN` is set to
+`https://<stage host>` (Settings → Secrets and variables → Actions → Variables).
+
+**Access.** Role assignments belong to the app, so users with `approved` on
+prod should also get into stage. If stage refuses you, invite yourself on the
+stage host:
+
+```sh
+az staticwebapp users invite -n swa-public-pages -g rg-public-pages \
+  --authentication-provider GitHub --user-details <github-username> \
+  --roles approved --domain <stage host> --invitation-expiration-in-hours 48
+```
+
+The Free plan allows 3 preview environments. Stage uses one; old PR
+environments can be removed in the portal (Static Web App → Environments).
 
 ## Running locally
 
