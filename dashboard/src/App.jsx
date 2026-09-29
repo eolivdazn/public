@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { Header } from "./components/Header";
 import { Toolbar } from "./components/Toolbar";
+import { ViewNav } from "./components/ViewNav";
+import { DashboardSkeleton } from "./components/Skeleton";
+import { Icon } from "./components/Icon";
 import { FinanceView } from "./components/FinanceView";
 import { SummaryView } from "./components/SummaryView";
 import { AuditView } from "./components/AuditView";
@@ -174,6 +177,12 @@ export function App() {
     }
   }, [activeTrip, expenseTripSlug, trips]);
 
+  function changeView(view) {
+    setActiveView(view);
+    // The view switcher is a fixed bottom bar on phones, so it's usually tapped from far down the page.
+    window.scrollTo({ top: 0 });
+  }
+
   function addLiveEntry(entry) {
     setAllLiveEntries((current) => [...current, entry]);
   }
@@ -186,74 +195,92 @@ export function App() {
     setAllLiveEntries((current) => current.filter((item) => item.id !== entryId));
   }
 
-  if (loading) {
+  if (loading || error) {
     return (
-      <main className="container">
-        <h1>Travel Dashboard</h1>
-        <p className="status">Loading dashboard data...</p>
-      </main>
-    );
-  }
-
-  if (error) {
-    return (
-      <main className="container">
-        <h1>Travel Dashboard</h1>
-        <p className="status error">{error}</p>
-      </main>
+      <>
+        <Header />
+        <main className="container" id="main">
+          <div className="page-intro">
+            <h1>Travel Dashboard</h1>
+          </div>
+          {loading ? (
+            <DashboardSkeleton />
+          ) : (
+            <div className="empty-state error-state" role="alert">
+              <p>{error}</p>
+              <button type="button" className="btn btn-primary" onClick={() => window.location.reload()}>
+                <Icon name="refresh" size={18} />
+                Try again
+              </button>
+            </div>
+          )}
+        </main>
+      </>
     );
   }
 
   return (
-    <main className="container">
+    <>
+      <a className="skip-link" href="#main">
+        Skip to content
+      </a>
       <Header />
 
-      <Toolbar
-        activeView={activeView}
-        onChangeView={setActiveView}
-        trips={trips}
-        activeTrip={activeTrip}
-        onChangeTrip={setActiveTrip}
-        years={years}
-        activeYear={activeYear}
-        onChangeYear={setActiveYear}
-        isYearFilterDisabled={isYearFilterDisabled}
-      />
+      <main className="container" id="main" tabIndex={-1}>
+        <div className="page-intro">
+          <div>
+            <h1>Travel Dashboard</h1>
+            <p>Vacation time, spend and trips across the years.</p>
+          </div>
+          <ViewNav activeView={activeView} onChangeView={changeView} />
+        </div>
 
-      {activeView === "finance" ? (
-        <FinanceView
+        <Toolbar
+          activeView={activeView}
           trips={trips}
-          selectedExpenseTripSlug={selectedExpenseTripSlug}
-          onChangeTripSlug={setExpenseTripSlug}
-          tripSelectDisabled={activeTrip !== "all"}
-          selectedExpenseTrip={selectedExpenseTrip}
-          snapshot={selectedExpenseSnapshot}
-          entries={sortedLiveExpenseEntries}
-          liveLoading={liveExpenseLoading}
-          liveError={liveExpenseError}
-          addLiveEntry={addLiveEntry}
-          updateLiveEntry={updateLiveEntry}
-          removeLiveEntry={removeLiveEntry}
-          dynamicSummary={dynamicSummary}
-          activeYear={activeYear}
-          activeTripLabel={activeTripLabel}
-        />
-      ) : null}
-
-      {activeView === "summary" ? (
-        <SummaryView
-          dynamicSummary={dynamicSummary}
-          activeYear={activeYear}
           activeTrip={activeTrip}
-          activeTripLabel={activeTripLabel}
+          onChangeTrip={setActiveTrip}
+          years={years}
+          activeYear={activeYear}
+          onChangeYear={setActiveYear}
           isYearFilterDisabled={isYearFilterDisabled}
-          tripScopedYears={tripScopedYears}
-          filteredYears={filteredYears}
-          onSelectYear={setActiveYear}
         />
-      ) : null}
 
-      {activeView === "audit" ? <AuditView /> : null}
-    </main>
+        {activeView === "finance" ? (
+          <FinanceView
+            trips={trips}
+            selectedExpenseTripSlug={selectedExpenseTripSlug}
+            onChangeTripSlug={setExpenseTripSlug}
+            tripSelectDisabled={activeTrip !== "all"}
+            selectedExpenseTrip={selectedExpenseTrip}
+            snapshot={selectedExpenseSnapshot}
+            entries={sortedLiveExpenseEntries}
+            liveLoading={liveExpenseLoading}
+            liveError={liveExpenseError}
+            addLiveEntry={addLiveEntry}
+            updateLiveEntry={updateLiveEntry}
+            removeLiveEntry={removeLiveEntry}
+            dynamicSummary={dynamicSummary}
+            activeYear={activeYear}
+            activeTripLabel={activeTripLabel}
+          />
+        ) : null}
+
+        {activeView === "summary" ? (
+          <SummaryView
+            dynamicSummary={dynamicSummary}
+            activeYear={activeYear}
+            activeTrip={activeTrip}
+            activeTripLabel={activeTripLabel}
+            isYearFilterDisabled={isYearFilterDisabled}
+            tripScopedYears={tripScopedYears}
+            filteredYears={filteredYears}
+            onSelectYear={setActiveYear}
+          />
+        ) : null}
+
+        {activeView === "audit" ? <AuditView /> : null}
+      </main>
+    </>
   );
 }

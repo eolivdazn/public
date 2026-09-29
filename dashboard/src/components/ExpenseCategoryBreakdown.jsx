@@ -6,7 +6,7 @@ export function ExpenseCategoryBreakdown({ categories, currency }) {
       {expenseCategoryEntries(categories, currency).map((entry) => (
         <div className="expense-breakdown-item" key={entry.key}>
           <span>{entry.label}</span>
-          <strong>{entry.formattedValue}</strong>
+          <strong className="num">{entry.formattedValue}</strong>
         </div>
       ))}
     </div>

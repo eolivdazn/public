@@ -1,38 +1,21 @@
 import { SegmentedControl } from "./SegmentedControl";
 
-const VIEW_OPTIONS = [
-  { value: "finance", label: "Finance" },
-  { value: "summary", label: "Summary by year" },
-  { value: "audit", label: "Audit" }
-];
-
-export function Toolbar({
-  activeView,
-  onChangeView,
-  trips,
-  activeTrip,
-  onChangeTrip,
-  years,
-  activeYear,
-  onChangeYear,
-  isYearFilterDisabled
-}) {
+export function Toolbar({ activeView, trips, activeTrip, onChangeTrip, years, activeYear, onChangeYear, isYearFilterDisabled }) {
   const yearOptions = [{ value: "all", label: "Total" }, ...years.map((yearItem) => ({ value: yearItem.year, label: yearItem.year }))];
+  const showYearFilter = activeView === "summary";
+  const showTripFilter = activeView !== "audit";
+
+  if (!showTripFilter) {
+    return null;
+  }
 
   return (
-    <section className="toolbar panel">
-      <div className="toolbar-row">
-        <div>
-          <label className="field-label" htmlFor="page-switch">
-            View
-          </label>
-          <SegmentedControl id="page-switch" options={VIEW_OPTIONS} value={activeView} onChange={onChangeView} />
-        </div>
-
-        <div className="trip-filter-block">
-          <label className="field-label" htmlFor="trip-filter">
-            Trip
-          </label>
+    <section className="toolbar" aria-label="Filters">
+      <div className="toolbar-field">
+        <label className="field-label" htmlFor="trip-filter">
+          Trip
+        </label>
+        <div className="select-wrap">
           <select id="trip-filter" value={activeTrip} onChange={(event) => onChangeTrip(event.target.value)}>
             <option value="all">All trips</option>
             {trips.map((trip) => (
@@ -44,20 +27,20 @@ export function Toolbar({
         </div>
       </div>
 
-      {activeView === "summary" ? (
-        <div className="toolbar-row">
-          <div>
-            <label className="field-label" htmlFor="year-filter">
-              Year
-            </label>
-            <SegmentedControl
-              id="year-filter"
-              options={yearOptions}
-              value={activeYear}
-              onChange={onChangeYear}
-              disabled={isYearFilterDisabled}
-            />
-          </div>
+      {showYearFilter ? (
+        <div className="toolbar-field">
+          <span className="field-label" id="year-filter-label">
+            Year
+          </span>
+          <SegmentedControl
+            id="year-filter"
+            labelledBy="year-filter-label"
+            options={yearOptions}
+            value={activeYear}
+            onChange={onChangeYear}
+            disabled={isYearFilterDisabled}
+          />
+          {isYearFilterDisabled ? <p className="field-hint">Clear the trip filter to compare years.</p> : null}
         </div>
       ) : null}
     </section>

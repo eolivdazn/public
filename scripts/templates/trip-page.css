@@ -1,0 +1,996 @@
+/*
+  Trip pages — same design system as the dashboard (dashboard/src/styles.css):
+  "Data-Dense Dashboard" tokens, Fira Sans for text, Fira Code for figures.
+  Keep the token values in sync with the dashboard so both surfaces read as one product.
+  The body copy comes straight from each trip's markdown (pandoc), styled under .prose.
+  Also used by the trip index (index.html). The public share cards inline their own copy of
+  the tokens (build-site.mjs, SHARE_CARD_CSS) because assets/ sits behind sign-in.
+*/
+:root {
+  color-scheme: light;
+
+  --color-bg: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f1f5f9;
+  --color-border: #dce4f0;
+  --color-border-strong: #c3cfe0;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-primary: #1e40af;
+  --color-primary-hover: #1e3a8a;
+  --color-on-primary: #ffffff;
+  --color-primary-soft: #dbeafe;
+  --color-accent: #d97706;
+  --color-accent-soft: #fef3c7;
+  --color-success: #047857;
+  --color-ring: #1e40af;
+
+  --font-sans: "Fira Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08);
+
+  --duration-fast: 150ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+
+  --z-sticky: 20;
+  --z-skip: 100;
+
+  --app-bar-height: 52px;
+  --page-width: 1200px;
+  --measure: 70ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --color-bg: #0b1220;
+    --color-surface: #111a2e;
+    --color-surface-muted: #18233b;
+    --color-border: #26324a;
+    --color-border-strong: #34425f;
+    --color-text: #e2e8f0;
+    --color-text-muted: #94a3b8;
+    --color-primary: #60a5fa;
+    --color-primary-hover: #93c5fd;
+    --color-on-primary: #0b1220;
+    --color-primary-soft: rgba(96, 165, 250, 0.16);
+    --color-accent: #fbbf24;
+    --color-accent-soft: rgba(251, 191, 36, 0.12);
+    --color-success: #34d399;
+    --color-ring: #93c5fd;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* ---------- Base ---------- */
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-padding-top: calc(var(--app-bar-height) + var(--space-4));
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+  background: var(--color-bg);
+  color: var(--color-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--color-primary);
+}
+
+:where(a, button, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+main:focus {
+  outline: none;
+}
+
+.icon {
+  flex: none;
+}
+
+.skip-link {
+  position: absolute;
+  left: var(--space-4);
+  top: -100px;
+  z-index: var(--z-skip);
+  padding: var(--space-2) var(--space-4);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.skip-link:focus {
+  top: var(--space-2);
+}
+
+/* ---------- App bar ---------- */
+
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding-top: env(safe-area-inset-top);
+}
+
+.app-bar-inner {
+  max-width: var(--page-width);
+  height: var(--app-bar-height);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.app-bar-actions {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.back-link,
+.app-bar-action {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: 44px;
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  white-space: nowrap;
+  touch-action: manipulation;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.back-link {
+  margin-left: calc(var(--space-2) * -1);
+}
+
+.app-bar-action {
+  color: var(--color-text-muted);
+  min-width: 44px;
+  justify-content: center;
+}
+
+.back-link:hover,
+.app-bar-action:hover {
+  background: var(--color-surface-muted);
+}
+
+/* Icon-only on small phones; the visible label stays for screen readers via the span. */
+@media (max-width: 419px) {
+  .app-bar-action span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* ---------- Hero ---------- */
+
+.trip-hero {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-4) 0;
+}
+
+.trip-hero-media {
+  margin-bottom: var(--space-4);
+}
+
+.trip-hero-image {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-muted);
+}
+
+.trip-hero-emblem {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.trip-status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-3);
+  padding: 2px 12px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+
+.trip-status::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.trip-status[data-state="live"] {
+  background: color-mix(in srgb, var(--color-success) 14%, var(--color-surface));
+  color: var(--color-success);
+}
+
+.trip-status[data-state="past"] {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+}
+
+.trip-hero h1 {
+  margin: 0;
+  font-size: 1.875rem;
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.trip-dates {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-muted);
+  font-weight: 500;
+}
+
+.trip-description {
+  max-width: var(--measure);
+  margin: var(--space-3) 0 0;
+  font-size: 1.0625rem;
+}
+
+.trip-places {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.trip-places li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px 4px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.trip-places .icon {
+  color: var(--color-primary);
+}
+
+.trip-place-dates {
+  color: var(--color-text-muted);
+  font-weight: 400;
+}
+
+.trip-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin: var(--space-5) 0 0;
+}
+
+.trip-facts > div {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+
+.trip-facts dt {
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.trip-facts dd {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+/* Quick expense widget host (the widget renders its own card inside a shadow root). */
+.trip-actions {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 var(--space-4);
+}
+
+/* ---------- Layout ---------- */
+
+.trip-layout {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) calc(var(--space-7) + env(safe-area-inset-bottom));
+}
+
+/* ---------- Table of contents ---------- */
+
+.trip-toc {
+  margin-bottom: var(--space-5);
+}
+
+.trip-toc details {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+}
+
+.trip-toc summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 0 var(--space-4);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+  touch-action: manipulation;
+}
+
+.trip-toc summary::-webkit-details-marker {
+  display: none;
+}
+
+.trip-toc summary::after {
+  content: "";
+  width: 8px;
+  height: 8px;
+  margin-right: 4px;
+  border-right: 2px solid var(--color-text-muted);
+  border-bottom: 2px solid var(--color-text-muted);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.trip-toc details[open] summary::after {
+  transform: translateY(2px) rotate(-135deg);
+}
+
+.trip-toc ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.trip-toc details > ul {
+  padding: 0 var(--space-2) var(--space-3);
+}
+
+.trip-toc ul ul {
+  padding-left: var(--space-4);
+}
+
+.trip-toc a {
+  display: block;
+  padding: 10px var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.9375rem;
+  line-height: 1.35;
+  text-decoration: none;
+}
+
+.trip-toc ul ul a {
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.trip-toc a:hover {
+  background: var(--color-surface-muted);
+}
+
+/* ---------- Prose (markdown body) ---------- */
+
+.prose {
+  max-width: var(--measure);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.prose > :first-child {
+  margin-top: 0;
+}
+
+.prose h2,
+.prose h3,
+.prose h4,
+.prose h5,
+.prose h6 {
+  line-height: 1.3;
+  text-wrap: balance;
+  scroll-margin-top: calc(var(--app-bar-height) + var(--space-4));
+}
+
+.prose h2 {
+  margin: var(--space-7) 0 var(--space-4);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.prose h3 {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.prose h4 {
+  margin: var(--space-6) 0 var(--space-3);
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: none;
+}
+
+/* "#### 1. Casa Montaña · 13:00" — itinerary stops get an accent rail. */
+.prose h5 {
+  margin: var(--space-5) 0 var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-primary);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.prose h6 {
+  margin: var(--space-4) 0 var(--space-2);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.prose p {
+  margin: var(--space-3) 0;
+}
+
+.prose a {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  text-decoration-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  transition: text-decoration-color var(--duration-fast) var(--ease-out);
+}
+
+.prose a:hover {
+  text-decoration-color: currentColor;
+}
+
+.prose ul,
+.prose ol {
+  margin: var(--space-3) 0;
+  padding-left: 1.4rem;
+}
+
+.prose li {
+  margin: var(--space-2) 0;
+  padding-left: 2px;
+}
+
+.prose li::marker {
+  color: var(--color-text-muted);
+}
+
+.prose li > ul,
+.prose li > ol {
+  margin: var(--space-1) 0;
+}
+
+.prose strong {
+  font-weight: 600;
+}
+
+.prose hr {
+  height: 1px;
+  margin: var(--space-7) 0;
+  border: none;
+  background: var(--color-border);
+}
+
+.prose hr + h2 {
+  margin-top: 0;
+}
+
+/* "> 💡 …" tips become callouts. */
+.prose blockquote {
+  margin: var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
+  border-left: 4px solid var(--color-accent);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  background: var(--color-accent-soft);
+}
+
+.prose blockquote > :first-child {
+  margin-top: 0;
+}
+
+.prose blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+.prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: var(--space-4) 0;
+  border-radius: var(--radius-md);
+}
+
+.prose code {
+  font-family: var(--font-mono);
+  font-size: 0.875em;
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--color-surface-muted);
+}
+
+/* Tables scroll inside their own box instead of widening the page on phones. */
+.prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: var(--space-4) 0;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.9375rem;
+  overflow-wrap: normal;
+}
+
+.prose th,
+.prose td {
+  min-width: 140px;
+  padding: 10px var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.prose th {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.prose tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ---------- Food gallery (filled in from the expenses API) ---------- */
+
+.trip-food-gallery {
+  margin-top: var(--space-7);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.prose .trip-food-gallery h2 {
+  margin: 0;
+}
+
+.trip-food-gallery-subtitle {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+}
+
+.trip-food-gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--space-4);
+  margin-top: var(--space-5);
+}
+
+.trip-food-card {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.trip-food-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 6px;
+}
+
+.trip-food-photos a {
+  display: block;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.trip-food-photos a:hover {
+  opacity: 0.85;
+}
+
+.prose .trip-food-photos img {
+  display: block;
+  width: 100%;
+  margin: 0;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 0;
+}
+
+.prose .trip-food-card p {
+  margin: 10px 0 0;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.prose .trip-food-rating {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-muted);
+  font-size: 0.875rem;
+}
+
+.trip-food-stars {
+  position: relative;
+  display: inline-block;
+  font-size: 1rem;
+  line-height: 1;
+  letter-spacing: 2px;
+}
+
+.trip-food-stars-empty {
+  color: var(--color-border-strong);
+}
+
+.trip-food-stars-filled {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: var(--color-accent);
+}
+
+.prose .trip-food-map-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  margin-top: var(--space-2);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+/* ---------- Trip index (index.html) ---------- */
+
+.app-bar-brand {
+  font-weight: 700;
+  font-size: 1rem;
+  letter-spacing: -0.01em;
+}
+
+/* The index has a single action, so its label stays visible even on small phones. */
+.app-bar-action-labelled span {
+  position: static !important;
+  width: auto !important;
+  height: auto !important;
+  overflow: visible !important;
+  clip-path: none !important;
+}
+
+.trip-index {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) calc(var(--space-7) + env(safe-area-inset-bottom));
+}
+
+.trip-index-intro h1 {
+  margin: 0;
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.trip-index-intro p {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-muted);
+}
+
+.trip-year {
+  margin-top: var(--space-6);
+}
+
+.trip-year h2 {
+  margin: 0 0 var(--space-3);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.trip-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.trip-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--color-text);
+  text-decoration: none;
+  touch-action: manipulation;
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.trip-card:hover {
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
+}
+
+.trip-card:focus-visible {
+  outline-offset: 3px;
+  border-radius: var(--radius-lg);
+}
+
+.trip-card-media {
+  display: block;
+  aspect-ratio: 16 / 9;
+  background: var(--color-surface-muted);
+}
+
+.trip-card-media img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.trip-card-emblem {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.trip-card-body {
+  display: grid;
+  gap: 6px;
+  padding: var(--space-4);
+}
+
+.trip-card-body .trip-status {
+  justify-self: start;
+  margin: 0 0 2px;
+}
+
+.trip-card-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.trip-card:hover .trip-card-title {
+  color: var(--color-primary);
+}
+
+.trip-card-line {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  color: var(--color-text-muted);
+  font-size: 0.9375rem;
+}
+
+.trip-card-line .icon {
+  margin-top: 3px;
+}
+
+.trip-card-meta {
+  margin-top: 2px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+@media (min-width: 640px) {
+  .trip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* ---------- Breakpoints (mobile-first) ---------- */
+
+@media (min-width: 768px) {
+  .app-bar-inner,
+  .trip-hero,
+  .trip-actions,
+  .trip-index {
+    padding-left: var(--space-5);
+    padding-right: var(--space-5);
+  }
+
+  .trip-layout {
+    padding: var(--space-6) var(--space-5) var(--space-7);
+  }
+
+  .trip-hero {
+    padding-top: var(--space-5);
+  }
+
+  .trip-hero-image {
+    aspect-ratio: 21 / 8;
+  }
+
+  .trip-hero h1,
+  .trip-index-intro h1 {
+    font-size: 2.5rem;
+  }
+
+  .trip-index {
+    padding-top: var(--space-6);
+  }
+
+  .trip-facts {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    max-width: 880px;
+  }
+
+  .trip-facts dd {
+    font-size: 1.5rem;
+  }
+}
+
+/* Wide screens: content column + sticky table of contents on the right. */
+@media (min-width: 1024px) {
+  .trip-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
+    column-gap: var(--space-7);
+    align-items: start;
+  }
+
+  .trip-toc {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: calc(var(--app-bar-height) + var(--space-5));
+    max-height: calc(100vh - var(--app-bar-height) - var(--space-6));
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .trip-toc details {
+    border: none;
+    background: transparent;
+  }
+
+  .trip-toc summary {
+    min-height: 32px;
+    padding: 0 var(--space-2);
+    color: var(--color-text-muted);
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    pointer-events: none;
+  }
+
+  .trip-toc summary::after {
+    display: none;
+  }
+
+  .trip-toc details > ul {
+    padding: var(--space-1) 0 0;
+    border-left: 1px solid var(--color-border);
+  }
+
+  .trip-toc a {
+    padding: 6px var(--space-3);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+
+  .trip-content {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .trip-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

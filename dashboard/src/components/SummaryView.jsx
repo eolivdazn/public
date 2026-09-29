@@ -14,27 +14,26 @@ export function SummaryView({
 }) {
   return (
     <>
-      <section className="stats-grid">
+      <section className="stats-grid" aria-label="Travel at a glance">
         <StatCard
-          label={activeYear === "all" ? "Total vacation days" : `Vacation days in ${activeYear}`}
+          icon="calendar"
+          label={activeYear === "all" ? "Vacation days" : `Days in ${activeYear}`}
           value={dynamicSummary.totalVacationDays}
-          hint={activeTrip === "all" ? (activeYear === "all" ? "All recorded trips" : "Selected yearly view") : activeTripLabel}
+          hint={activeTrip === "all" ? (activeYear === "all" ? "All recorded trips" : "Selected year") : activeTripLabel}
         />
-        <StatCard label="Trips" value={dynamicSummary.totalTrips} />
-        <StatCard label="Cities" value={dynamicSummary.uniqueCities?.length || 0} />
-        <StatCard label="Countries" value={dynamicSummary.uniqueCountries?.length || 0} />
+        <StatCard icon="map" label="Trips" value={dynamicSummary.totalTrips} />
+        <StatCard icon="building" label="Cities" value={dynamicSummary.uniqueCities?.length || 0} />
+        <StatCard icon="globe" label="Countries" value={dynamicSummary.uniqueCountries?.length || 0} />
       </section>
 
       <section className="panel section-stack">
         <div className="section-heading-row">
-          <div>
-            <h2>Summary by year</h2>
-            <p className="section-copy">
-              {isYearFilterDisabled
-                ? "Year selection is disabled while a trip filter is active. Clear the trip filter to compare years again."
-                : "Switch between the total view and a specific year, then optionally narrow the dashboard to one trip."}
-            </p>
-          </div>
+          <h2>Summary by year</h2>
+          <p className="section-copy">
+            {isYearFilterDisabled
+              ? "Year selection is disabled while a trip filter is active. Clear the trip filter to compare years again."
+              : "Tap a year to focus on it, or Total to see everything."}
+          </p>
         </div>
         <YearSummaryGrid
           years={tripScopedYears}
@@ -45,7 +44,11 @@ export function SummaryView({
         />
       </section>
 
-      {filteredYears.length === 0 ? <p className="status">No data matches the selected trip and year.</p> : null}
+      {filteredYears.length === 0 ? (
+        <div className="empty-state">
+          <p>No data matches the selected trip and year.</p>
+        </div>
+      ) : null}
 
       {filteredYears.map((yearItem) => (
         <YearBlock key={yearItem.year} yearItem={yearItem} />

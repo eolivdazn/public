@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Icon } from "./Icon";
 import { ExpenseForm } from "./ExpenseForm";
 import { ExpenseLivePanel } from "./ExpenseLivePanel";
 import { deleteExpenseEntry } from "../lib/api.js";
@@ -80,14 +81,23 @@ export function ExpenseAccordion({
         className="expense-toggle-button"
         type="button"
         aria-expanded={isOpen}
+        aria-controls="expense-accordion-body"
         onClick={() => setIsOpen((open) => !open)}
       >
-        <span>Add / view expenses</span>
-        <span className="expense-toggle-icon">{isOpen ? "−" : "+"}</span>
+        <span className="expense-toggle-icon">
+          <Icon name="plus" size={20} />
+        </span>
+        <span className="expense-toggle-text">
+          <span className="expense-toggle-title">Add / view expenses</span>
+          <span className="expense-toggle-subtitle">
+            {selectedExpenseTrip ? `Logging for ${selectedExpenseTrip.title}` : "Pick a trip to start logging"}
+          </span>
+        </span>
+        <Icon name="chevronDown" size={20} className="expense-toggle-chevron" />
       </button>
 
       {isOpen ? (
-        <div className="expense-accordion-body">
+        <div className="expense-accordion-body" id="expense-accordion-body">
           <div className="expense-grid">
             <ExpenseForm
               trips={trips}

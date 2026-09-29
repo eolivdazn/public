@@ -3,6 +3,7 @@ import { FinanceList } from "./FinanceList";
 import { ExpenseCategoryBreakdown } from "./ExpenseCategoryBreakdown";
 import { ExpenseEntryRow } from "./ExpenseEntryRow";
 import { Pagination } from "./Pagination";
+import { SkeletonRows } from "./Skeleton";
 import { formatCurrency } from "../lib/format.js";
 
 const PAGE_SIZE = 4;
@@ -39,12 +40,10 @@ export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error
   return (
     <article className="panel expense-live-panel">
       <div className="section-heading-row">
-        <div>
-          <h2>Live trip expenses</h2>
-          <p className="section-copy">
-            {selectedExpenseTrip ? `Tracking ${selectedExpenseTrip.title}.` : "Pick a trip to load live expenses."}
-          </p>
-        </div>
+        <h2>Live trip expenses</h2>
+        <p className="section-copy">
+          {selectedExpenseTrip ? `Tracking ${selectedExpenseTrip.title}.` : "Pick a trip to load live expenses."}
+        </p>
       </div>
 
       {snapshot ? (
@@ -55,12 +54,27 @@ export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error
 
           <div className="expense-entries-header">
             <h3>Recent entries</h3>
-            {loading ? <span className="expense-muted">Refreshing...</span> : null}
+            {loading ? (
+              <span className="muted-text" role="status">
+                Refreshing...
+              </span>
+            ) : null}
           </div>
 
-          {error ? <p className="status error">{error}</p> : null}
+          {error ? (
+            <p className="status error" role="alert">
+              {error}
+            </p>
+          ) : null}
 
-          {!loading && !error && entries.length === 0 ? <p className="status">No live expenses recorded yet.</p> : null}
+          {loading && entries.length === 0 ? <SkeletonRows count={3} /> : null}
+
+          {!loading && !error && entries.length === 0 ? (
+            <div className="empty-state">
+              <p>No live expenses recorded yet.</p>
+              <p className="muted-text">Use the form to log your first one.</p>
+            </div>
+          ) : null}
 
           {!loading && !error && entries.length > 0 ? (
             <>
@@ -82,7 +96,9 @@ export function ExpenseLivePanel({ selectedExpenseTrip, snapshot, loading, error
           ) : null}
         </>
       ) : (
-        <p className="status">Select a trip to view live expense totals.</p>
+        <div className="empty-state">
+          <p>Select a trip to view live expense totals.</p>
+        </div>
       )}
     </article>
   );

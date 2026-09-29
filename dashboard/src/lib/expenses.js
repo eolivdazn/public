@@ -115,6 +115,7 @@ export function expenseCategoryEntries(categories, currency) {
   return Object.entries(EXPENSE_LABELS).map(([key, label]) => ({
     key,
     label,
+    value: categories?.[key] || 0,
     formattedValue: formatCurrency(categories?.[key] || 0, currency)
   }));
 }

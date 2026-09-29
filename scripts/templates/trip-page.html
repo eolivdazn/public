@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>$pagetitle$</title>
+$if(description-meta)$
+  <meta name="description" content="$description-meta$" />
+$endif$
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Fira+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" />
+  <link rel="stylesheet" href="assets/trip-page.css" />
+  <script src="assets/trip-status.js" defer></script>
+$for(header-includes)$
+  $header-includes$
+$endfor$
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to content</a>
+$for(include-before)$
+$include-before$
+$endfor$
+  <div class="trip-layout">
+$if(toc)$
+    <nav class="trip-toc" aria-label="On this page">
+      <details id="trip-toc-details">
+        <summary>On this page</summary>
+        $table-of-contents$
+      </details>
+    </nav>
+$endif$
+    <main id="content" class="trip-content prose" tabindex="-1">
+$body$
+$for(include-after)$
+$include-after$
+$endfor$
+    </main>
+  </div>
+  <script>
+    (function () {
+      // Table of contents: collapsed on phones, open as a sticky sidebar on wide screens.
+      var toc = document.getElementById("trip-toc-details");
+      if (toc && toc.querySelectorAll("a").length < 3) {
+        // Not worth a navigation block on short pages.
+        toc.closest(".trip-toc").remove();
+        toc = null;
+      }
+      if (toc && window.matchMedia("(min-width: 1024px)").matches) {
+        toc.open = true;
+      }
+      if (toc) {
+        toc.addEventListener("click", function (event) {
+          if (event.target.closest("a") && !window.matchMedia("(min-width: 1024px)").matches) {
+            toc.open = false;
+          }
+        });
+      }
+
+      // Share: native share sheet where available, otherwise follow the link to the public card.
+      var share = document.querySelector("[data-trip-share]");
+      if (share && navigator.share) {
+        share.addEventListener("click", function (event) {
+          event.preventDefault();
+          navigator
+            .share({ title: share.getAttribute("data-title"), url: share.href })
+            .catch(function () {
+              /* Dismissed by the user — nothing to do. */
+            });
+        });
+      }
+    })();
+  </script>
+</body>
+</html>

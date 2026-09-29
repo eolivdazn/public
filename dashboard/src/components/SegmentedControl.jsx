@@ -1,17 +1,21 @@
-export function SegmentedControl({ id, options, value, onChange, disabled }) {
+export function SegmentedControl({ id, labelledBy, options, value, onChange, disabled }) {
   return (
-    <div className="segmented-control" id={id}>
-      {options.map((option) => (
-        <button
-          key={option.value}
-          className={String(value) === String(option.value) ? "is-active" : ""}
-          type="button"
-          disabled={disabled}
-          onClick={() => onChange(option.value)}
-        >
-          {option.label}
-        </button>
-      ))}
+    <div className="segmented-control" id={id} role="group" aria-labelledby={labelledBy}>
+      {options.map((option) => {
+        const isActive = String(value) === String(option.value);
+        return (
+          <button
+            key={option.value}
+            className={isActive ? "is-active" : ""}
+            type="button"
+            aria-pressed={isActive}
+            disabled={disabled}
+            onClick={() => onChange(option.value)}
+          >
+            {option.label}
+          </button>
+        );
+      })}
     </div>
   );
 }

@@ -1,14 +1,15 @@
+import { Icon } from "./Icon";
+
 export function Header() {
   return (
-    <header className="header">
-      <div>
-        <span className="eyebrow">Interactive overview</span>
-        <h1>Travel Dashboard</h1>
-        <p>Explore total vacation time, compare yearly totals, and focus on a specific trip when needed.</p>
+    <header className="app-bar">
+      <div className="app-bar-inner">
+        <a className="back-link" href="../index.html">
+          <Icon name="arrowLeft" size={18} />
+          <span>Trip pages</span>
+        </a>
+        <span className="app-bar-title">Travel Dashboard</span>
       </div>
-      <a className="back-link" href="../index.html">
-        Back to trip pages
-      </a>
     </header>
   );
 }

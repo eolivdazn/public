@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { FormField } from "./FormField";
 import { StarRating } from "./StarRating";
+import { Icon } from "./Icon";
 import { EXPENSE_CATEGORY_OPTIONS, MAX_PHOTOS_PER_EXPENSE } from "../lib/expenses.js";
 import { validateReceiptFile, compressImage } from "../lib/imageCompression.js";
 import { extractPhotoLocation } from "../lib/geolocation.js";
@@ -251,14 +252,12 @@ export function ExpenseForm({
   return (
     <article className="panel expense-form-panel">
       <div className="section-heading-row">
-        <div>
-          <h2>{isEditing ? "Edit expense" : "Add expense"}</h2>
-          <p className="section-copy">
-            {isEditing
-              ? "Update the details below and save your changes."
-              : "Log food and entertainment during the trip. Static flights and hotel stay in the markdown file."}
-          </p>
-        </div>
+        <h2>{isEditing ? "Edit expense" : "Add expense"}</h2>
+        <p className="section-copy">
+          {isEditing
+            ? "Update the details below and save your changes."
+            : "Log food and entertainment during the trip. Static flights and hotel stay in the markdown file."}
+        </p>
       </div>
 
       <form className="expense-form" onSubmit={handleSubmit}>
@@ -321,7 +320,7 @@ export function ExpenseForm({
         </FormField>
 
         {expenseForm.category === "food" ? (
-          <div className="expense-form-grid">
+          <div className="expense-form-grid expense-form-media">
             {/*
               These inputs live outside FormField's <label> on purpose: a click anywhere inside a
               <label> implicitly activates the first form control nested in it (native browser
@@ -350,7 +349,8 @@ export function ExpenseForm({
 
               {expenseForm.location ? (
                 <p className="expense-photo-location">
-                  📍 Location attached
+                  <Icon name="mapPin" size={16} />
+                  Location attached
                   <button type="button" onClick={clearLocation}>
                     Remove
                   </button>
@@ -367,7 +367,7 @@ export function ExpenseForm({
                         onClick={() => removePhoto(photo.localId)}
                         aria-label="Remove photo"
                       >
-                        ×
+                        <Icon name="x" size={16} />
                       </button>
                       <img src={photo.previewUrl} alt="Dish" className="expense-entry-receipt-thumb" />
                       {aiSuggestionsEnabled ? (
@@ -377,7 +377,8 @@ export function ExpenseForm({
                             onClick={() => handleSuggestDescription(photo.localId)}
                             disabled={photo.suggesting}
                           >
-                            {photo.suggesting ? "Thinking..." : "✨ Description"}
+                            <Icon name="sparkles" size={16} />
+                            {photo.suggesting ? "Thinking..." : "Suggest description"}
                           </button>
                           {photo.suggestionError ? <p className="status error">{photo.suggestionError}</p> : null}
                           {photo.suggestion ? (
@@ -401,14 +402,16 @@ export function ExpenseForm({
               {expenseForm.photos.length < MAX_PHOTOS_PER_EXPENSE ? (
                 <div className="expense-photo-add-buttons">
                   <button type="button" onClick={() => cameraInputRef.current?.click()}>
-                    📷 Take photo
+                    <Icon name="camera" size={18} />
+                    Take photo
                   </button>
                   <button type="button" onClick={() => galleryInputRef.current?.click()}>
-                    🖼️ Choose from gallery
+                    <Icon name="image" size={18} />
+                    Choose from gallery
                   </button>
                 </div>
               ) : (
-                <p className="expense-muted">Maximum {MAX_PHOTOS_PER_EXPENSE} photos reached.</p>
+                <p className="muted-text">Maximum {MAX_PHOTOS_PER_EXPENSE} photos reached.</p>
               )}
             </FormField>
 
@@ -419,11 +422,11 @@ export function ExpenseForm({
         ) : null}
 
         <div className="expense-form-actions">
-          <button type="submit" disabled={!selectedExpenseTrip || saving}>
+          <button type="submit" className="btn btn-primary" disabled={!selectedExpenseTrip || saving}>
             {saving ? "Saving..." : isEditing ? "Save changes" : "Save expense"}
           </button>
           {isEditing ? (
-            <button type="button" className="expense-form-cancel" onClick={onCancelEdit} disabled={saving}>
+            <button type="button" className="btn btn-secondary" onClick={onCancelEdit} disabled={saving}>
               Cancel
             </button>
           ) : null}
@@ -434,7 +437,9 @@ export function ExpenseForm({
           </p>
         </div>
 
-        {status ? <p className="status success">{status}</p> : null}
+        <p className="status success" role="status">
+          {status}
+        </p>
       </form>
     </article>
   );

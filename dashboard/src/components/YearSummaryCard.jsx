@@ -3,19 +3,20 @@ export function YearSummaryCard({ label, days, tripCount, cityCount, isActive, d
     <button
       className={`year-summary-card${isActive ? " is-active" : ""}`}
       type="button"
+      aria-pressed={isActive}
       disabled={disabled}
       onClick={onClick}
     >
-      <div className="year-summary-top">
+      <span className="year-summary-top">
         <strong>{label}</strong>
-        <span>{days} days</span>
-      </div>
-      <div className="year-summary-bar">
+        <span className="num">{days} days</span>
+      </span>
+      <span className="year-summary-bar" aria-hidden="true">
         <span style={{ width: `${barWidthPercent}%` }} />
-      </div>
-      <p>
+      </span>
+      <span className="year-summary-meta">
         {tripCount} trips · {cityCount} cities
-      </p>
+      </span>
     </button>
   );
 }

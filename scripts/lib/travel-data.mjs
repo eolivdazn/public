@@ -475,15 +475,3 @@ export function buildDashboardData(trips) {
     trips
   };
 }
-
-export function computeTripLinks(trips) {
-  return trips
-    .slice()
-    .sort((a, b) => (a.startDate < b.startDate ? -1 : 1))
-    .map((trip) => ({
-      path: `${trip.slug}.html`,
-      title: trip.title,
-      dates: `${trip.startDate} to ${trip.endDate}`
-    }));
-}
-

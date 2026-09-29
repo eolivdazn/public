@@ -77,6 +77,30 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image" />');
   });
 
+  it("renders the trip page with the custom template: hero from frontmatter, shifted headings, shared stylesheet", () => {
+    const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
+    expect(html).toContain('<link rel="stylesheet" href="assets/trip-page.css" />');
+    expect((html.match(/<h1[ >]/g) || []).length).toBe(1);
+    expect(html).toContain('<h1 id="trip-title">🧪 Test Trip</h1>');
+    expect(html).toContain("1–3 May 2026");
+    expect(html).toContain("<span>Testville, Testland</span>");
+    expect(html).toContain("<dt>Booked</dt><dd>€300</dd>");
+    expect(html).toContain("<dt>Per person (2)</dt><dd>€150</dd>");
+    // The markdown's "## Test Trip" sits under the hero <h1>.
+    expect(html).toMatch(/<h3 id="test-trip">Test Trip<\/h3>/);
+    expect(html).toContain('href="/share/test-trip.html"');
+    expect(html).toContain('id="trip-quick-expense-root"');
+    // Head metadata belongs in <head>, not the body.
+    expect(html.indexOf('property="og:title"')).toBeLessThan(html.indexOf("</head>"));
+    expect(fs.existsSync(path.join(outputDir, "assets", "trip-page.css"))).toBe(true);
+  });
+
+  it("uses the favicon emblem instead of a hero photo when the trip has no ogImage", () => {
+    const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
+    expect(html).toContain('class="trip-hero-emblem"');
+    expect(html).not.toContain("trip-hero-image");
+  });
+
   it("generates a valid 1200x630 PNG preview image", () => {
     const pngPath = path.join(outputDir, "og", "test-trip.png");
     expect(fs.existsSync(pngPath)).toBe(true);
@@ -98,6 +122,30 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(shareHtml).toContain(
       '<meta property="og:url" content="https://white-stone-0b0565103.5.azurestaticapps.net/share/test-trip.html" />'
     );
+  });
+
+  it("keeps the share card self-contained: no gated assets, inline styles, emblem when there is no photo", () => {
+    const shareHtml = fs.readFileSync(path.join(outputDir, "share", "test-trip.html"), "utf-8");
+    // /share/* is public but assets/ and hero/ are gated behind sign-in.
+    expect(shareHtml).not.toContain("assets/");
+    expect(shareHtml).not.toContain("hero/");
+    expect(shareHtml).toContain("<style>");
+    expect(shareHtml).toContain('<h1>🧪 Test Trip</h1>');
+    expect(shareHtml).toContain("1–3 May 2026 · 3 days");
+    expect(shareHtml).toContain("Testville, Testland");
+    expect(shareHtml).toContain('class="share-emblem"');
+  });
+
+  it("renders the trip index as year-grouped cards linking to each trip page", () => {
+    const indexHtml = fs.readFileSync(path.join(outputDir, "index.html"), "utf-8");
+    expect(indexHtml).toContain('<link rel="stylesheet" href="assets/trip-page.css" />');
+    expect(indexHtml).toContain('<h2 id="year-2026">2026</h2>');
+    expect(indexHtml).toContain('<a class="trip-card" href="test-trip.html">');
+    expect(indexHtml).toContain('<h3 class="trip-card-title">🧪 Test Trip</h3>');
+    expect(indexHtml).toContain("3 days · €300 booked");
+    expect(indexHtml).toContain("1 trip · 3 days · 1 country");
+    expect(indexHtml).toContain('href="dashboard/"');
+    expect(fs.existsSync(path.join(outputDir, "assets", "trip-status.js"))).toBe(true);
   });
 
   it("writes dashboard-data.json with the fixture trip, keeping the short title distinct from seoTitle", () => {
@@ -165,6 +213,29 @@ places:
     expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
     expect(buffer.readUInt32BE(16)).toBe(1200);
     expect(buffer.readUInt32BE(20)).toBe(630);
+  });
+
+  it("writes WebP hero renditions from the ogImage and uses them on the trip page", () => {
+    for (const width of [800, 1600]) {
+      const webpPath = path.join(outputDir, "hero", `photo-trip-${width}.webp`);
+      const buffer = fs.readFileSync(webpPath);
+      expect(buffer.subarray(0, 4).toString("ascii")).toBe("RIFF");
+      expect(buffer.subarray(8, 12).toString("ascii")).toBe("WEBP");
+    }
+    const html = fs.readFileSync(path.join(outputDir, "photo-trip.html"), "utf-8");
+    expect(html).toContain('srcset="hero/photo-trip-800.webp 800w, hero/photo-trip-1600.webp 1600w"');
+    // The share card is public, so it gets its photo from og/ rather than the gated hero/.
+    expect(fs.existsSync(path.join(outputDir, "og", "photo-trip.webp"))).toBe(true);
+    const shareHtml = fs.readFileSync(path.join(outputDir, "share", "photo-trip.html"), "utf-8");
+    expect(shareHtml).toContain('src="/og/photo-trip.webp"');
+    const indexHtml = fs.readFileSync(path.join(outputDir, "index.html"), "utf-8");
+    expect(indexHtml).toContain('src="hero/photo-trip-800.webp"');
+  });
+
+  it("skips the hero photo when ogImage is unreachable", () => {
+    const html = fs.readFileSync(path.join(outputDir, "broken-photo-trip.html"), "utf-8");
+    expect(html).toContain('class="trip-hero-emblem"');
+    expect(fs.existsSync(path.join(outputDir, "hero", "broken-photo-trip-800.webp"))).toBe(false);
   });
 
   it("falls back to the generated title card when ogImage is unreachable", () => {

@@ -17,19 +17,22 @@ export function YearBlock({ yearItem }) {
   ];
 
   return (
-    <section className="year-block">
+    <section className="year-block" aria-labelledby={`year-${yearItem.year}`}>
       <div className="year-header">
-        <div>
-          <h2>{yearItem.year}</h2>
-          <p>
-            {yearItem.totalVacationDays} vacation days · {yearItem.tripCount} trips
-          </p>
-        </div>
+        <h2 id={`year-${yearItem.year}`}>{yearItem.year}</h2>
+        <p>
+          {yearItem.totalVacationDays} vacation days · {yearItem.tripCount} trips
+        </p>
       </div>
+
+      <article className="panel">
+        <h3 className="panel-title">Trips in {yearItem.year}</h3>
+        <TripsTable trips={yearItem.trips} year={yearItem.year} fallbackCurrency={yearItem.expenseCurrency} />
+      </article>
 
       <div className="year-grid">
         <article className="panel">
-          <h3>Cities visited</h3>
+          <h3 className="panel-title">Cities visited</h3>
           <ul className="tag-list">
             {(yearItem.cities || []).map((city) => (
               <li key={`${yearItem.year}-${city}`}>{city}</li>
@@ -38,7 +41,7 @@ export function YearBlock({ yearItem }) {
         </article>
 
         <article className="panel">
-          <h3>Countries visited</h3>
+          <h3 className="panel-title">Countries visited</h3>
           <ul className="tag-list">
             {(yearItem.countries || []).map((country) => (
               <li key={`${yearItem.year}-${country}`}>{country}</li>
@@ -47,15 +50,10 @@ export function YearBlock({ yearItem }) {
         </article>
 
         <article className="panel">
-          <h3>Financials</h3>
+          <h3 className="panel-title">Financials</h3>
           <FinanceList items={financeItems} compact />
         </article>
       </div>
-
-      <article className="panel">
-        <h3>Trips in {yearItem.year}</h3>
-        <TripsTable trips={yearItem.trips} year={yearItem.year} fallbackCurrency={yearItem.expenseCurrency} />
-      </article>
     </section>
   );
 }
