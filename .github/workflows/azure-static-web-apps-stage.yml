@@ -23,6 +23,10 @@ jobs:
       # Optional: absolute URLs in OG tags and share cards point at the stage host when the
       # STAGE_SITE_ORIGIN repository variable is set; unset, they use the prod host.
       SITE_ORIGIN: ${{ vars.STAGE_SITE_ORIGIN }}
+      # Visible "Stage" label (top-bar badge with the branch name, "[Stage]" tab title) on the
+      # trip pages, index and dashboard. Prod never sets these, so it has no label.
+      SITE_ENV: stage
+      SITE_REF: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -44,11 +48,14 @@ jobs:
       - name: Install Pandoc
         run: sudo apt-get update && sudo apt-get install -y pandoc
 
-      # SITE_ORIGIN is cleared here: the integration tests assert the default (prod) origin.
+      # The stage variables are cleared here: the integration tests build with the defaults
+      # (prod origin, no label) and set their own values where they test stage behaviour.
       - name: Run integration tests
         run: npm run test:integration
         env:
           SITE_ORIGIN: ""
+          SITE_ENV: ""
+          SITE_REF: ""
 
       - name: Run API integration tests
         run: cd api && npm ci && npm run test:integration
