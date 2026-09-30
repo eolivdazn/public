@@ -4,7 +4,18 @@ import path from "node:path";
 import os from "node:os";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 import { runBuild, headingShiftFor } from "./build-site.mjs";
+
+// Link-preview image: a 1200x630 JPEG small enough for WhatsApp (which drops images much over ~300 KB).
+async function expectOgJpeg(filePath) {
+  const buffer = fs.readFileSync(filePath);
+  const { format, width, height } = await sharp(buffer).metadata();
+  expect(format).toBe("jpeg");
+  expect(width).toBe(1200);
+  expect(height).toBe(630);
+  expect(buffer.length).toBeLessThan(300 * 1024);
+}
 
 const FIXTURE_TRIP_MD = `---
 title: "🧪 Test Trip"
@@ -74,7 +85,7 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
       '<meta property="og:url" content="https://white-stone-0b0565103.5.azurestaticapps.net/test-trip.html" />'
     );
     expect(html).toContain(
-      '<meta property="og:image" content="https://white-stone-0b0565103.5.azurestaticapps.net/og/test-trip.png" />'
+      '<meta property="og:image" content="https://white-stone-0b0565103.5.azurestaticapps.net/og/test-trip.jpg" />'
     );
     expect(html).toContain('<meta name="twitter:card" content="summary_large_image" />');
   });
@@ -91,7 +102,12 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     // The fixture's top heading is "##", so it renders as <h2> directly under the hero <h1> (no skipped level).
     expect(html).toMatch(/<h2 id="test-trip">Test Trip<\/h2>/);
     expect(html).not.toMatch(/<h3[ >]/);
-    expect(html).toContain('href="/share/test-trip.html"');
+    // Share shares the page itself (it's public and carries its own preview tags).
+    expect(html).toContain('<a class="app-bar-action" href="test-trip.html" data-trip-share');
+    expect(html).toContain('<link rel="canonical" href="https://white-stone-0b0565103.5.azurestaticapps.net/test-trip.html" />');
+    expect(html).toContain('<meta property="og:image:type" content="image/jpeg" />');
+    expect(html).toContain('<meta property="og:image:alt" content="Test Trip — 1–3 May 2026" />');
+    expect(html).toContain('<meta name="twitter:image:alt" content="Test Trip — 1–3 May 2026" />');
     expect(html).toContain('id="trip-quick-expense-root"');
     // Food gallery: hidden section + full-screen viewer, driven by the shared asset.
     expect(html).toContain('<section id="trip-food-gallery" class="trip-food-gallery" aria-labelledby="trip-food-gallery-title" hidden>');
@@ -132,23 +148,15 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(html).toContain('<span aria-hidden="true">·</span><span>3 days</span>');
   });
 
-  it("generates a valid 1200x630 PNG preview image", () => {
-    const pngPath = path.join(outputDir, "og", "test-trip.png");
-    expect(fs.existsSync(pngPath)).toBe(true);
-
-    const buffer = fs.readFileSync(pngPath);
-    // PNG magic bytes.
-    expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
-    // IHDR chunk: width/height are the first 8 bytes after the 8-byte magic + 4-byte length + 4-byte "IHDR".
-    const width = buffer.readUInt32BE(16);
-    const height = buffer.readUInt32BE(20);
-    expect(width).toBe(1200);
-    expect(height).toBe(630);
+  it("generates a 1200x630 JPEG preview image (the generated card, without a photo)", async () => {
+    await expectOgJpeg(path.join(outputDir, "og", "test-trip.jpg"));
+    expect(fs.existsSync(path.join(outputDir, "og", "test-trip.png"))).toBe(false);
   });
 
-  it("generates a public share card that links to the real (gated) page", () => {
+  it("keeps the older share card, now linking straight to the public page", () => {
     const shareHtml = fs.readFileSync(path.join(outputDir, "share", "test-trip.html"), "utf-8");
-    expect(shareHtml).toContain("Sign in to view this trip");
+    expect(shareHtml).toContain(">View this trip</a>");
+    expect(shareHtml).not.toContain("Sign in");
     expect(shareHtml).toContain('href="/test-trip.html"');
     expect(shareHtml).toContain(
       '<meta property="og:url" content="https://white-stone-0b0565103.5.azurestaticapps.net/share/test-trip.html" />'
@@ -178,6 +186,12 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(indexHtml).toContain('<meta name="description" content="Itineraries, dates and booked costs for 1 trip across 1 year." />');
     expect(indexHtml).toContain('href="dashboard/"');
     expect(indexHtml).toContain('<meta name="robots" content="noindex, nofollow" />');
+    // The index is shareable too: its own preview, using the newest trip's image.
+    expect(indexHtml).toContain('<link rel="canonical" href="https://white-stone-0b0565103.5.azurestaticapps.net/" />');
+    expect(indexHtml).toContain('<meta property="og:title" content="Travel Pages" />');
+    expect(indexHtml).toContain('<meta property="og:url" content="https://white-stone-0b0565103.5.azurestaticapps.net/" />');
+    expect(indexHtml).toContain('<meta property="og:image" content="https://white-stone-0b0565103.5.azurestaticapps.net/og/test-trip.jpg" />');
+    expect(indexHtml).toContain('<meta name="twitter:card" content="summary_large_image" />');
     expect(indexHtml).toContain('data-auth-show="signed-out" hidden');
     expect(indexHtml).toContain('<script src="assets/auth-state.js" defer></script>');
     expect(fs.existsSync(path.join(outputDir, "assets", "trip-status.js"))).toBe(true);
@@ -229,7 +243,11 @@ describe("runBuild with SITE_ORIGIN / SITE_ENV / SITE_REF (stage builds)", () =>
   it("uses SITE_ORIGIN (trailing slash trimmed) for absolute URLs instead of the prod host", () => {
     const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
     expect(html).toContain('<meta property="og:url" content="https://stage.example.test/test-trip.html" />');
-    expect(html).toContain('<meta property="og:image" content="https://stage.example.test/og/test-trip.png" />');
+    expect(html).toContain('<meta property="og:image" content="https://stage.example.test/og/test-trip.jpg" />');
+    expect(html).toContain('<link rel="canonical" href="https://stage.example.test/test-trip.html" />');
+    const stageIndex = fs.readFileSync(path.join(outputDir, "index.html"), "utf-8");
+    expect(stageIndex).toContain('<meta property="og:url" content="https://stage.example.test/" />');
+    expect(stageIndex).toContain('<meta property="og:image" content="https://stage.example.test/og/test-trip.jpg" />');
     const shareHtml = fs.readFileSync(path.join(outputDir, "share", "test-trip.html"), "utf-8");
     expect(shareHtml).toContain('<meta property="og:url" content="https://stage.example.test/share/test-trip.html" />');
     expect(html + shareHtml).not.toContain("white-stone-0b0565103");
@@ -291,12 +309,8 @@ places:
     fs.rmSync(sourceDir, { recursive: true, force: true });
   });
 
-  it("fetches and crops a real ogImage URL to a 1200x630 PNG", () => {
-    const pngPath = path.join(outputDir, "og", "photo-trip.png");
-    const buffer = fs.readFileSync(pngPath);
-    expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
-    expect(buffer.readUInt32BE(16)).toBe(1200);
-    expect(buffer.readUInt32BE(20)).toBe(630);
+  it("fetches and crops a real ogImage URL to a 1200x630 JPEG under 300 KB", async () => {
+    await expectOgJpeg(path.join(outputDir, "og", "photo-trip.jpg"));
   });
 
   it("writes WebP hero renditions from the ogImage and uses them on the trip page", () => {
@@ -322,12 +336,8 @@ places:
     expect(fs.existsSync(path.join(outputDir, "hero", "broken-photo-trip-800.webp"))).toBe(false);
   });
 
-  it("falls back to the generated title card when ogImage is unreachable", () => {
-    const pngPath = path.join(outputDir, "og", "broken-photo-trip.png");
-    const buffer = fs.readFileSync(pngPath);
-    expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
-    expect(buffer.readUInt32BE(16)).toBe(1200);
-    expect(buffer.readUInt32BE(20)).toBe(630);
+  it("falls back to the generated title card when ogImage is unreachable", async () => {
+    await expectOgJpeg(path.join(outputDir, "og", "broken-photo-trip.jpg"));
   });
 });
 

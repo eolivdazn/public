@@ -170,28 +170,44 @@ function buildOgImageSvg(trip) {
   `;
 }
 
-function buildOgTags(trip, pageUrl) {
-  const title = escapeHtml(trip.seoTitle);
-  const description = escapeHtml(trip.description);
-  const imageUrl = `${canonicalOrigin()}/og/${trip.slug}.png`;
-
+// Open Graph + Twitter Card tags read by link previews (WhatsApp, iMessage, Slack, …).
+// JPEG, not PNG: a 1200x630 photo as PNG is 1–2 MB, and WhatsApp drops link-preview images much
+// above ~300 KB. The JPEG renditions come out at roughly 50–250 KB.
+function ogTagsHtml({ title, description, url, imageUrl, imageAlt }) {
   return `<meta property="og:type" content="website" />
 <meta property="og:site_name" content="Travel Pages" />
 <meta property="og:title" content="${title}" />
 <meta property="og:description" content="${description}" />
-<meta property="og:url" content="${pageUrl}" />
+<meta property="og:url" content="${url}" />
 <meta property="og:image" content="${imageUrl}" />
+<meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="${imageAlt}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${title}" />
 <meta name="twitter:description" content="${description}" />
-<meta name="twitter:image" content="${imageUrl}" />`;
+<meta name="twitter:image" content="${imageUrl}" />
+<meta name="twitter:image:alt" content="${imageAlt}" />`;
 }
 
-// Share cards are public (staticwebapp.config.json only exposes /share/* and /og/* to anonymous
-// visitors), so they can't use the gated assets/ stylesheet or hero/ images: styles are inlined
-// here and the photo comes from /og/. Token values mirror scripts/templates/trip-page.css.
+function ogImageAlt(trip) {
+  return escapeHtml(`${trip.title.replace(/\p{Extended_Pictographic}\uFE0F?\s*/gu, "").trim()} — ${formatDateRange(trip.startDate, trip.endDate)}`);
+}
+
+function buildOgTags(trip, pageUrl) {
+  return ogTagsHtml({
+    title: escapeHtml(trip.seoTitle),
+    description: escapeHtml(trip.description),
+    url: pageUrl,
+    imageUrl: `${canonicalOrigin()}/og/${trip.slug}.jpg`,
+    imageAlt: ogImageAlt(trip)
+  });
+}
+
+// Share cards (/share/<slug>.html) predate public trip pages; they stay so links sent earlier keep
+// working and now point straight at the page. Their styles are inlined and the photo comes from
+// /og/, as when they were the only public pages. Token values mirror scripts/templates/trip-page.css.
 const SHARE_CARD_CSS = `
     :root {
       color-scheme: light;
@@ -295,8 +311,7 @@ function buildShareCardHtml(trip, hasPhoto) {
         <p class="share-meta">${icon("calendar", 16)}<span>${escapeHtml(formatDateRange(trip.startDate, trip.endDate))} · ${days}</span></p>
         <p class="share-meta">${icon("mapPin", 16)}<span>${escapeHtml(places)}</span></p>
         <p class="share-description">${description}</p>
-        <a class="share-cta" href="/${trip.slug}.html">Sign in to view this trip</a>
-        <p class="share-note">These travel pages are private. Signing in uses GitHub.</p>
+        <a class="share-cta" href="/${trip.slug}.html">View this trip</a>
       </div>
     </article>
   </main>
@@ -335,6 +350,7 @@ function renderIndexHtml(trips, heroSlugs) {
   const years = [...new Set(sorted.map((trip) => trip.year))];
   const totalDays = trips.reduce((sum, trip) => sum + trip.vacationDays, 0);
   const countryCount = new Set(trips.flatMap(tripCountries)).size;
+  const indexDescription = `Itineraries, dates and booked costs for ${trips.length} trip${trips.length === 1 ? "" : "s"} across ${years.length} year${years.length === 1 ? "" : "s"}.`;
   let cardIndex = 0;
 
   const yearSections = years
@@ -359,7 +375,15 @@ ${cards}
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>${titlePrefix()}Travel Pages</title>
   <meta name="robots" content="noindex, nofollow" />
-  <meta name="description" content="Itineraries, dates and booked costs for ${trips.length} trip${trips.length === 1 ? "" : "s"} across ${years.length} year${years.length === 1 ? "" : "s"}." />
+  <meta name="description" content="${escapeHtml(indexDescription)}" />
+  <link rel="canonical" href="${canonicalOrigin()}/" />
+  ${ogTagsHtml({
+    title: "Travel Pages",
+    description: escapeHtml(indexDescription),
+    url: `${canonicalOrigin()}/`,
+    imageUrl: `${canonicalOrigin()}/og/${sorted[0].slug}.jpg`,
+    imageAlt: ogImageAlt(sorted[0])
+  })}
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#111a2e" media="(prefers-color-scheme: dark)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -439,13 +463,13 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
   // Returns true when a hero photo was written for the trip page.
   async function writeOgImage(trip) {
     fs.mkdirSync(ogImageDir, { recursive: true });
-    const outputPath = path.join(ogImageDir, `${trip.slug}.png`);
+    const outputPath = path.join(ogImageDir, `${trip.slug}.jpg`);
+    const toOgJpeg = (image) => image.jpeg({ quality: 80, mozjpeg: true }).toBuffer();
 
     if (trip.ogImage) {
       try {
         const sourceBuffer = await fetchOgPhoto(trip);
-        const png = await sharp(sourceBuffer).resize(1200, 630, { fit: "cover" }).png().toBuffer();
-        fs.writeFileSync(outputPath, png);
+        fs.writeFileSync(outputPath, await toOgJpeg(sharp(sourceBuffer).resize(1200, 630, { fit: "cover" })));
         await writeHeroImages(trip, sourceBuffer);
         return true;
       } catch (error) {
@@ -455,7 +479,7 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
       }
     }
 
-    fs.writeFileSync(outputPath, renderOgImageCard(trip));
+    fs.writeFileSync(outputPath, await toOgJpeg(sharp(renderOgImageCard(trip))));
     return false;
   }
 
@@ -466,9 +490,10 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
     // Pandoc already emits <title> (from the -M title override below, so it gets the longer
     // seoTitle rather than the frontmatter's short title) and <meta name="description"> (from
     // the frontmatter's description field directly) — adding either again here would duplicate
-    // them. These tags are only ever seen by a logged-in viewer's own browser (the real page
-    // stays gated, so crawlers can't reach it) — see buildShareCardHtml() for the public preview.
+    // them. Trip pages are public, so link previews (WhatsApp, iMessage, Slack, …) read these
+    // tags straight from the page: sharing the page URL shows the trip's own preview.
     const html = `
+<link rel="canonical" href="${pageUrl}" />
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,${faviconPayload}" />
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
 <meta name="theme-color" content="#111a2e" media="(prefers-color-scheme: dark)" />
@@ -515,7 +540,7 @@ ${buildOgTags(trip, pageUrl)}
       <div class="app-bar-actions">
         <a class="app-bar-action" href="dashboard/" data-auth-show="signed-in">${icon("chart")}<span>Dashboard</span></a>
         <a class="app-bar-action app-bar-action-labelled" href="/.auth/login/github" data-auth-show="signed-out" hidden>${icon("logIn")}<span>Sign in</span></a>
-        <a class="app-bar-action" href="/share/${trip.slug}.html" data-trip-share data-title="${title}">${icon("share")}<span>Share</span></a>
+        <a class="app-bar-action" href="${trip.slug}.html" data-trip-share data-title="${title}">${icon("share")}<span data-share-label>Share</span></a>
       </div>
     </div>
   </header>

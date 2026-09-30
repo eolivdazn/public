@@ -20,9 +20,10 @@ jobs:
     runs-on: ubuntu-latest
     name: Build and Deploy to Stage
     env:
-      # Optional: absolute URLs in OG tags and share cards point at the stage host when the
-      # STAGE_SITE_ORIGIN repository variable is set; unset, they use the prod host.
-      SITE_ORIGIN: ${{ vars.STAGE_SITE_ORIGIN }}
+      # Absolute URLs in link-preview tags (og:url, og:image, canonical) must point at the stage
+      # host: pointing at prod sends previews to prod's page and images, which may not exist yet.
+      # The stage preview environment's host is fixed; STAGE_SITE_ORIGIN can override it.
+      SITE_ORIGIN: ${{ vars.STAGE_SITE_ORIGIN || 'https://white-stone-0b0565103-stage.westeurope.5.azurestaticapps.net' }}
       # Visible "Stage" label (top-bar badge with the branch name, "[Stage]" tab title) on the
       # trip pages, index and dashboard. Prod never sets these, so it has no label.
       SITE_ENV: stage
