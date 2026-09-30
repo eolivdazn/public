@@ -186,6 +186,12 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(indexHtml).toContain('<meta name="description" content="Itineraries, dates and booked costs for 1 trip across 1 year." />');
     expect(indexHtml).toContain('href="dashboard/"');
     expect(indexHtml).toContain('<meta name="robots" content="noindex, nofollow" />');
+    // The index is shareable too: its own preview, using the newest trip's image.
+    expect(indexHtml).toContain('<link rel="canonical" href="https://white-stone-0b0565103.5.azurestaticapps.net/" />');
+    expect(indexHtml).toContain('<meta property="og:title" content="Travel Pages" />');
+    expect(indexHtml).toContain('<meta property="og:url" content="https://white-stone-0b0565103.5.azurestaticapps.net/" />');
+    expect(indexHtml).toContain('<meta property="og:image" content="https://white-stone-0b0565103.5.azurestaticapps.net/og/test-trip.jpg" />');
+    expect(indexHtml).toContain('<meta name="twitter:card" content="summary_large_image" />');
     expect(indexHtml).toContain('data-auth-show="signed-out" hidden');
     expect(indexHtml).toContain('<script src="assets/auth-state.js" defer></script>');
     expect(fs.existsSync(path.join(outputDir, "assets", "trip-status.js"))).toBe(true);
@@ -239,6 +245,9 @@ describe("runBuild with SITE_ORIGIN / SITE_ENV / SITE_REF (stage builds)", () =>
     expect(html).toContain('<meta property="og:url" content="https://stage.example.test/test-trip.html" />');
     expect(html).toContain('<meta property="og:image" content="https://stage.example.test/og/test-trip.jpg" />');
     expect(html).toContain('<link rel="canonical" href="https://stage.example.test/test-trip.html" />');
+    const stageIndex = fs.readFileSync(path.join(outputDir, "index.html"), "utf-8");
+    expect(stageIndex).toContain('<meta property="og:url" content="https://stage.example.test/" />');
+    expect(stageIndex).toContain('<meta property="og:image" content="https://stage.example.test/og/test-trip.jpg" />');
     const shareHtml = fs.readFileSync(path.join(outputDir, "share", "test-trip.html"), "utf-8");
     expect(shareHtml).toContain('<meta property="og:url" content="https://stage.example.test/share/test-trip.html" />');
     expect(html + shareHtml).not.toContain("white-stone-0b0565103");

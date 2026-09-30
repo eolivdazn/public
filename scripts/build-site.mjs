@@ -170,19 +170,15 @@ function buildOgImageSvg(trip) {
   `;
 }
 
-function buildOgTags(trip, pageUrl) {
-  const title = escapeHtml(trip.seoTitle);
-  const description = escapeHtml(trip.description);
-  // JPEG, not PNG: a 1200x630 photo as PNG is 1–2 MB, and WhatsApp drops link-preview images
-  // much above ~300 KB. The JPEG renditions come out at roughly 100–250 KB.
-  const imageUrl = `${canonicalOrigin()}/og/${trip.slug}.jpg`;
-  const imageAlt = escapeHtml(`${trip.title.replace(/\p{Extended_Pictographic}\uFE0F?\s*/gu, "").trim()} — ${formatDateRange(trip.startDate, trip.endDate)}`);
-
+// Open Graph + Twitter Card tags read by link previews (WhatsApp, iMessage, Slack, …).
+// JPEG, not PNG: a 1200x630 photo as PNG is 1–2 MB, and WhatsApp drops link-preview images much
+// above ~300 KB. The JPEG renditions come out at roughly 50–250 KB.
+function ogTagsHtml({ title, description, url, imageUrl, imageAlt }) {
   return `<meta property="og:type" content="website" />
 <meta property="og:site_name" content="Travel Pages" />
 <meta property="og:title" content="${title}" />
 <meta property="og:description" content="${description}" />
-<meta property="og:url" content="${pageUrl}" />
+<meta property="og:url" content="${url}" />
 <meta property="og:image" content="${imageUrl}" />
 <meta property="og:image:type" content="image/jpeg" />
 <meta property="og:image:width" content="1200" />
@@ -193,6 +189,20 @@ function buildOgTags(trip, pageUrl) {
 <meta name="twitter:description" content="${description}" />
 <meta name="twitter:image" content="${imageUrl}" />
 <meta name="twitter:image:alt" content="${imageAlt}" />`;
+}
+
+function ogImageAlt(trip) {
+  return escapeHtml(`${trip.title.replace(/\p{Extended_Pictographic}\uFE0F?\s*/gu, "").trim()} — ${formatDateRange(trip.startDate, trip.endDate)}`);
+}
+
+function buildOgTags(trip, pageUrl) {
+  return ogTagsHtml({
+    title: escapeHtml(trip.seoTitle),
+    description: escapeHtml(trip.description),
+    url: pageUrl,
+    imageUrl: `${canonicalOrigin()}/og/${trip.slug}.jpg`,
+    imageAlt: ogImageAlt(trip)
+  });
 }
 
 // Share cards (/share/<slug>.html) predate public trip pages; they stay so links sent earlier keep
@@ -340,6 +350,7 @@ function renderIndexHtml(trips, heroSlugs) {
   const years = [...new Set(sorted.map((trip) => trip.year))];
   const totalDays = trips.reduce((sum, trip) => sum + trip.vacationDays, 0);
   const countryCount = new Set(trips.flatMap(tripCountries)).size;
+  const indexDescription = `Itineraries, dates and booked costs for ${trips.length} trip${trips.length === 1 ? "" : "s"} across ${years.length} year${years.length === 1 ? "" : "s"}.`;
   let cardIndex = 0;
 
   const yearSections = years
@@ -364,7 +375,15 @@ ${cards}
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>${titlePrefix()}Travel Pages</title>
   <meta name="robots" content="noindex, nofollow" />
-  <meta name="description" content="Itineraries, dates and booked costs for ${trips.length} trip${trips.length === 1 ? "" : "s"} across ${years.length} year${years.length === 1 ? "" : "s"}." />
+  <meta name="description" content="${escapeHtml(indexDescription)}" />
+  <link rel="canonical" href="${canonicalOrigin()}/" />
+  ${ogTagsHtml({
+    title: "Travel Pages",
+    description: escapeHtml(indexDescription),
+    url: `${canonicalOrigin()}/`,
+    imageUrl: `${canonicalOrigin()}/og/${sorted[0].slug}.jpg`,
+    imageAlt: ogImageAlt(sorted[0])
+  })}
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#111a2e" media="(prefers-color-scheme: dark)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
