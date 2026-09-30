@@ -164,6 +164,11 @@ main:focus {
   gap: var(--space-3);
 }
 
+/* Keep the signed-in/out variants (auth-state.js) hidden despite .app-bar-action's display. */
+.app-bar-actions [hidden] {
+  display: none !important;
+}
+
 .app-bar-actions {
   display: flex;
   gap: var(--space-1);

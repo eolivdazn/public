@@ -67,6 +67,7 @@ function appBarClass() {
 const ICON_PATHS = {
   arrowLeft: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
   chart: '<path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+  logIn: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/>',
   share:
     '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/>',
   calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
@@ -357,6 +358,7 @@ ${cards}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>${titlePrefix()}Travel Pages</title>
+  <meta name="robots" content="noindex, nofollow" />
   <meta name="description" content="Itineraries, dates and booked costs for ${trips.length} trip${trips.length === 1 ? "" : "s"} across ${years.length} year${years.length === 1 ? "" : "s"}." />
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#111a2e" media="(prefers-color-scheme: dark)" />
@@ -365,6 +367,7 @@ ${cards}
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Fira+Sans:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="assets/trip-page.css" />
   <script src="assets/trip-status.js" defer></script>
+  <script src="assets/auth-state.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
@@ -372,7 +375,8 @@ ${cards}
     <div class="app-bar-inner">
       <span class="app-bar-start"><span class="app-bar-brand">Travel Pages</span>${envBadgeHtml()}</span>
       <div class="app-bar-actions">
-        <a class="app-bar-action app-bar-action-labelled" href="dashboard/">${icon("chart")}<span>Dashboard</span></a>
+        <a class="app-bar-action app-bar-action-labelled" href="dashboard/" data-auth-show="signed-in">${icon("chart")}<span>Dashboard</span></a>
+        <a class="app-bar-action app-bar-action-labelled" href="/.auth/login/github" data-auth-show="signed-out" hidden>${icon("logIn")}<span>Sign in</span></a>
       </div>
     </div>
   </header>
@@ -396,6 +400,7 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
   const timelineFilter = path.join(templatesDir, "timeline.lua");
   const tripPageStylesheet = path.join(templatesDir, "trip-page.css");
   const tripStatusScript = path.join(templatesDir, "trip-status.js");
+  const authStateScript = path.join(templatesDir, "auth-state.js");
   const foodGalleryScript = path.join(templatesDir, "trip-food-gallery.js");
   const quickExpensePartial = path.join(templatesDir, "trip-page-quick-expense.html");
   const foodGalleryPartial = path.join(templatesDir, "trip-page-food-gallery.html");
@@ -508,7 +513,8 @@ ${buildOgTags(trip, pageUrl)}
     <div class="app-bar-inner">
       <span class="app-bar-start"><a class="back-link" href="index.html">${icon("arrowLeft")}<span>All trips</span></a>${envBadgeHtml()}</span>
       <div class="app-bar-actions">
-        <a class="app-bar-action" href="dashboard/">${icon("chart")}<span>Dashboard</span></a>
+        <a class="app-bar-action" href="dashboard/" data-auth-show="signed-in">${icon("chart")}<span>Dashboard</span></a>
+        <a class="app-bar-action app-bar-action-labelled" href="/.auth/login/github" data-auth-show="signed-out" hidden>${icon("logIn")}<span>Sign in</span></a>
         <a class="app-bar-action" href="/share/${trip.slug}.html" data-trip-share data-title="${title}">${icon("share")}<span>Share</span></a>
       </div>
     </div>
@@ -622,6 +628,7 @@ ${buildOgTags(trip, pageUrl)}
     fs.copyFileSync(tripPageStylesheet, path.join(assetsDir, "trip-page.css"));
     fs.copyFileSync(tripStatusScript, path.join(assetsDir, "trip-status.js"));
     fs.copyFileSync(foodGalleryScript, path.join(assetsDir, "trip-food-gallery.js"));
+    fs.copyFileSync(authStateScript, path.join(assetsDir, "auth-state.js"));
   }
 
   function copyStaticConfig() {

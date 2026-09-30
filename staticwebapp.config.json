@@ -9,20 +9,25 @@
       "allowedRoles": ["anonymous"]
     },
     {
-      "route": "/*",
+      "route": "/api/*",
+      "allowedRoles": ["approved"]
+    },
+    {
+      "route": "/dashboard*",
       "allowedRoles": ["approved"]
     }
   ],
   "responseOverrides": {
     "401": {
       "statusCode": 302,
-      "redirect": "/.auth/login/github"
+      "redirect": "/.auth/login/github?post_login_redirect_uri=.referrer"
     }
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",
     "X-Frame-Options": "DENY",
     "Content-Security-Policy": "frame-ancestors 'none'",
-    "Referrer-Policy": "strict-origin-when-cross-origin"
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Robots-Tag": "noindex, nofollow"
   }
 }

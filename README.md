@@ -73,8 +73,8 @@ cities/countries/trips-per-year breakdown).
 id'd by its own `id`. The database/container are created automatically on
 first use. The Function binding itself uses `authLevel: anonymous` — access
 control is actually enforced one layer up, by `staticwebapp.config.json`'s
-`allowedRoles: ["approved"]` on every route (including `/api/*`), which Azure
-evaluates before a request reaches the Function at all.
+`allowedRoles: ["approved"]` on `/api/*`, which Azure evaluates before a
+request reaches the Function at all.
 
 **Deployment.** The GitHub Actions workflow
 (`.github/workflows/azure-static-web-apps-white-stone-0b0565103.yml`, runs on
@@ -91,9 +91,24 @@ Static Web App.
 | Static Web App | `swa-public-pages` (`rg-public-pages`, West Europe) | Free |
 | Cosmos DB | `travel-eo-cosmos` (`rg-public-pages`, West Europe) | Free tier (1000 RU/s + 25GB included) |
 
-Auth is GitHub OAuth via Static Web Apps' built-in auth — unauthenticated or
-unapproved users are redirected to `/.auth/login/github` per
-`staticwebapp.config.json`.
+Auth is GitHub OAuth via Static Web Apps' built-in auth. What needs a login
+(`staticwebapp.config.json`):
+
+| Public (no login) | Requires the `approved` role |
+|---|---|
+| Index, trip pages, `assets/`, `hero/`, `vendor/`, `/share/*`, `/og/*` | `/dashboard*`, `/dashboard-data.json`, `/api/*` |
+
+The trip pages are public because Static Web Apps sessions last 8 hours and
+can't be extended on any plan, which made reading a trip page mean logging in
+again. Without a session, a trip page shows the itinerary; the photo gallery
+and the "Add expense" / "Add photos" cards stay hidden (they need the API),
+and the top bar offers **Sign in** (`assets/auth-state.js` checks
+`/.auth/me`) instead of **Dashboard**. Unauthenticated requests to protected
+paths redirect to `/.auth/login/github?post_login_redirect_uri=.referrer`,
+so you come back to the page you were on. Pages send
+`X-Robots-Tag: noindex, nofollow` (and a matching `<meta name="robots">`): anyone
+with a link can read them, including dates, addresses and booked costs, but
+they stay out of search engines.
 
 ## Staging
 
@@ -169,7 +184,7 @@ proxies `/api/*` to a local Functions host, enforcing the same
 3. Start: `swa start site --api-location api`
 4. Open `http://localhost:4280/dashboard/`.
 
-Every route requires the `approved` role, so you'll be redirected to
+The dashboard requires the `approved` role, so you'll be redirected to
 `/.auth/login/github`. The SWA CLI shows a **mock** login form (not real
 GitHub) — enter any username, add `approved` in the roles field, submit. To
 skip that form on later visits, run this once in the browser console instead
@@ -231,7 +246,7 @@ Locally, set these in an untracked `api/local.settings.json` (used by
 `func start` / `swa start`). On the deployed Static Web App, add them under
 **Configuration → Application settings** in the Azure Portal.
 
-**Who created/deleted an expense.** Every route is already gated behind
+**Who created/deleted an expense.** `/api/*` is gated behind
 `allowedRoles: ["approved"]` in `staticwebapp.config.json`, so by the time a
 request reaches `api/expenses` it has already been authenticated by the SWA
 auth layer, which injects an `x-ms-client-principal` header (base64 JSON with
