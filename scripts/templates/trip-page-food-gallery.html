@@ -1,144 +1,42 @@
-<!-- Styles live in assets/trip-page.css (.trip-food-*). -->
+<!--
+  "Food memories" gallery + full-screen photo viewer. Filled in from /api/expenses by
+  assets/trip-food-gallery.js; styles in assets/trip-page.css (.trip-food-*, .trip-lightbox*).
+  Stays hidden when there are no food photos or the API is unavailable.
+-->
 <section id="trip-food-gallery" class="trip-food-gallery" aria-labelledby="trip-food-gallery-title" hidden>
   <h2 id="trip-food-gallery-title">Food memories</h2>
   <p class="trip-food-gallery-subtitle"></p>
-  <div class="trip-food-gallery-grid"></div>
+  <div class="trip-food-days"></div>
 </section>
-<script>
-  (function () {
-    var STAR_CHARS = "★★★★★";
-    var MAP_PIN_ICON =
-      '<svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>';
-
-    function createStarRating(rating) {
-      var wrap = document.createElement("p");
-      wrap.className = "trip-food-rating";
-
-      var stars = document.createElement("span");
-      stars.className = "trip-food-stars";
-      stars.setAttribute("aria-hidden", "true");
-
-      var empty = document.createElement("span");
-      empty.className = "trip-food-stars-empty";
-      empty.textContent = STAR_CHARS;
-
-      var filled = document.createElement("span");
-      filled.className = "trip-food-stars-filled";
-      filled.textContent = STAR_CHARS;
-      filled.style.width = (Math.min(rating, 5) / 5) * 100 + "%";
-
-      stars.appendChild(empty);
-      stars.appendChild(filled);
-      wrap.appendChild(stars);
-
-      var value = document.createElement("span");
-      value.textContent = rating + "/5";
-      wrap.setAttribute("aria-label", "Rated " + rating + " out of 5");
-      wrap.appendChild(value);
-
-      return wrap;
-    }
-
-    function createPhotoLink(photo, altText) {
-      var link = document.createElement("a");
-      link.href = photo.url;
-      link.target = "_blank";
-      link.rel = "noreferrer";
-
-      var img = document.createElement("img");
-      img.src = photo.url;
-      img.alt = altText;
-      img.loading = "lazy";
-      img.decoding = "async";
-      link.appendChild(img);
-
-      return link;
-    }
-
-    function createMapLink(location) {
-      var link = document.createElement("a");
-      link.className = "trip-food-map-link";
-      link.href = "https://www.google.com/maps?q=" + location.latitude + "," + location.longitude;
-      link.target = "_blank";
-      link.rel = "noreferrer";
-      link.innerHTML = MAP_PIN_ICON;
-      link.appendChild(document.createTextNode("View on map"));
-      return link;
-    }
-
-    function createFoodCard(entry) {
-      var card = document.createElement("article");
-      card.className = "trip-food-card";
-
-      var altText = entry.description || "Food photo";
-      var photos = document.createElement("div");
-      photos.className = "trip-food-photos";
-      entry.photos
-        .filter(function (photo) {
-          return Boolean(photo.url);
-        })
-        .forEach(function (photo) {
-          photos.appendChild(createPhotoLink(photo, altText));
-        });
-      card.appendChild(photos);
-
-      if (entry.description) {
-        var desc = document.createElement("p");
-        desc.textContent = entry.description;
-        card.appendChild(desc);
-      }
-
-      if (entry.rating) {
-        card.appendChild(createStarRating(entry.rating));
-      }
-
-      if (entry.location) {
-        card.appendChild(createMapLink(entry.location));
-      }
-
-      return card;
-    }
-
-    var slug = location.pathname.split("/").pop().replace(/\.html$/, "");
-    if (!slug) {
-      return;
-    }
-
-    fetch("/api/expenses?tripSlug=" + encodeURIComponent(slug))
-      .then(function (res) {
-        return res.ok ? res.json() : null;
-      })
-      .then(function (data) {
-        var entries = (data && data.entries) || [];
-        var foodWithPhotos = entries
-          .filter(function (entry) {
-            return entry.category === "food" && Array.isArray(entry.photos) && entry.photos.length > 0;
-          })
-          .sort(function (a, b) {
-            return (a.date || "").localeCompare(b.date || "");
-          });
-
-        if (foodWithPhotos.length === 0) {
-          return;
-        }
-
-        var section = document.getElementById("trip-food-gallery");
-        var subtitle = section.querySelector(".trip-food-gallery-subtitle");
-        var grid = section.querySelector(".trip-food-gallery-grid");
-
-        subtitle.textContent =
-          foodWithPhotos.length === 1
-            ? "1 dish captured along the way"
-            : foodWithPhotos.length + " dishes captured along the way";
-
-        foodWithPhotos.forEach(function (entry) {
-          grid.appendChild(createFoodCard(entry));
-        });
-
-        section.hidden = false;
-      })
-      .catch(function () {
-        /* API unavailable (e.g. GitHub Pages mirror) — leave the section hidden. */
-      });
-  })();
-</script>
+<dialog id="trip-food-lightbox" class="trip-lightbox" aria-label="Food photos">
+  <div class="trip-lightbox-bar">
+    <span class="trip-lightbox-counter" aria-live="polite"></span>
+    <button type="button" class="trip-lightbox-button" data-lightbox-close aria-label="Close photos">
+      <svg class="icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+    </button>
+  </div>
+  <figure class="trip-lightbox-figure">
+    <img class="trip-lightbox-image" alt="" />
+    <button type="button" class="trip-lightbox-button trip-lightbox-prev" data-lightbox-prev aria-label="Previous photo">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m15 18-6-6 6-6"/></svg>
+    </button>
+    <button type="button" class="trip-lightbox-button trip-lightbox-next" data-lightbox-next aria-label="Next photo">
+      <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="m9 18 6-6-6-6"/></svg>
+    </button>
+  </figure>
+  <div class="trip-lightbox-caption">
+    <p class="trip-lightbox-title"></p>
+    <p class="trip-lightbox-meta"></p>
+    <p class="trip-lightbox-links">
+      <a data-lightbox-map href="#" target="_blank" rel="noreferrer" hidden>
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+        View on map
+      </a>
+      <a data-lightbox-original href="#" target="_blank" rel="noreferrer">
+        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+        Open original
+      </a>
+    </p>
+  </div>
+</dialog>
+<script src="assets/trip-food-gallery.js" defer></script>

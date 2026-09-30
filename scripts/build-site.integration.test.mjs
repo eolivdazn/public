@@ -90,6 +90,11 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(html).toMatch(/<h3 id="test-trip">Test Trip<\/h3>/);
     expect(html).toContain('href="/share/test-trip.html"');
     expect(html).toContain('id="trip-quick-expense-root"');
+    // Food gallery: hidden section + full-screen viewer, driven by the shared asset.
+    expect(html).toContain('<section id="trip-food-gallery" class="trip-food-gallery" aria-labelledby="trip-food-gallery-title" hidden>');
+    expect(html).toContain('<dialog id="trip-food-lightbox" class="trip-lightbox" aria-label="Food photos">');
+    expect(html).toContain('<script src="assets/trip-food-gallery.js" defer></script>');
+    expect(fs.existsSync(path.join(outputDir, "assets", "trip-food-gallery.js"))).toBe(true);
     // Head metadata belongs in <head>, not the body.
     expect(html.indexOf('property="og:title"')).toBeLessThan(html.indexOf("</head>"));
     expect(fs.existsSync(path.join(outputDir, "assets", "trip-page.css"))).toBe(true);
