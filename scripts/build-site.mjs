@@ -115,6 +115,27 @@ function formatMoney(amount, currency) {
   }).format(amount);
 }
 
+// The trip page's only <h1> is the hero title, so the markdown's top heading level must render
+// as <h2>. Trip files differ: some use "#" for sections, others start at "##". Returns the pandoc
+// --shift-heading-level-by value that maps the file's highest ATX heading to <h2> (1 for "#",
+// 0 for "##", ...). Headings inside fenced code blocks and the YAML frontmatter are ignored.
+export function headingShiftFor(markdown) {
+  const body = String(markdown).replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n/, "");
+  let inFence = false;
+  let topLevel = null;
+  for (const line of body.split(/\r?\n/)) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      inFence = !inFence;
+      continue;
+    }
+    const match = !inFence && /^(#{1,6})\s+\S/.exec(line);
+    if (match && (topLevel === null || match[1].length < topLevel)) {
+      topLevel = match[1].length;
+    }
+  }
+  return topLevel === null ? 1 : 2 - topLevel;
+}
+
 function encodeSvgFavicon(icon) {
   const svg = `
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
@@ -336,6 +357,7 @@ ${cards}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>${titlePrefix()}Travel Pages</title>
+  <meta name="description" content="Itineraries, dates and booked costs for ${trips.length} trip${trips.length === 1 ? "" : "s"} across ${years.length} year${years.length === 1 ? "" : "s"}." />
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#111a2e" media="(prefers-color-scheme: dark)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -541,11 +563,11 @@ ${buildOgTags(trip, pageUrl)}
         `title=${trip.seoTitle}`,
         "-V",
         `title-prefix=${titlePrefix()}`,
-        // The page's <h1> is the hero title, so the markdown's own "#" headings start at <h2>.
-        "--shift-heading-level-by=1",
+        // The page's <h1> is the hero title: shift so the file's top heading level becomes <h2>.
+        `--shift-heading-level-by=${headingShiftFor(fs.readFileSync(mdFile, "utf-8"))}`,
         "--toc",
-        // Depth 4 after the shift: trips written with "##" as their top level (e.g. the Algarve
-        // page) still get their "###" sections listed.
+        // Depth 4 counts <h2>–<h4> after the shift, so deeper itineraries (e.g. Valencia's
+        // per-day sections) are listed as well as the top-level sections.
         "--toc-depth=4",
         "-H",
         headMetadataPartial,

@@ -176,6 +176,91 @@ test("normalizeExpenseInput rejects a photo without a blobName", () => {
   );
 });
 
+test("normalizeExpenseInput accepts photo names in the shape uploadReceipt creates for the same trip", () => {
+  const photos = [
+    { blobName: "algarve2026/3f2b8c1e-9d4a-4f6b-8a2e-1c5d7e9f0a1b.jpg" },
+    { blobName: "algarve2026/exp_1727700000000_a1b2c3.png" },
+    { blobName: " algarve2026/c.webp " }
+  ];
+  const entry = store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 10, photos });
+  assert.deepEqual(
+    entry.photos.map((photo) => photo.blobName),
+    ["algarve2026/3f2b8c1e-9d4a-4f6b-8a2e-1c5d7e9f0a1b.jpg", "algarve2026/exp_1727700000000_a1b2c3.png", "algarve2026/c.webp"]
+  );
+});
+
+test("normalizeExpenseInput rejects photo names that could point at other receipts or blobs", () => {
+  const rejected = [
+    "valencia2026/a.jpg", // another trip's receipt
+    "a.jpg", // no trip prefix
+    "algarve2026/nested/a.jpg", // extra path segment
+    "algarve2026/../valencia2026/a.jpg",
+    "algarve2026/a.gif", // not a receipt extension
+    "algarve2026/a", // no extension
+    "algarve2026/.jpg", // empty id
+    "algarve2026/a b.jpg",
+    "algarve20266/a.jpg" // slug is only a prefix of this one
+  ];
+  for (const blobName of rejected) {
+    assert.throws(
+      () => store.normalizeExpenseInput({ tripSlug: "algarve2026", category: "food", amount: 10, photos: [{ blobName }] }),
+      /photos\[0\]\.blobName' is not a receipt uploaded for trip 'algarve2026'/,
+      `expected '${blobName}' to be rejected`
+    );
+  }
+});
+
+test("a photo already on one expense can't be claimed by another expense, so it can't be deleted through it", async () => {
+  const container = createFakeContainer();
+  const blobContainerClient = createFakeBlobContainerClient();
+  const testStore = store.createExpenseStore({ container, auditContainer: createFakeAuditContainer(), blobContainerClient });
+  await blobContainerClient.getBlockBlobClient("algarve2026/victim.jpg").uploadData(Buffer.from("x"), {});
+  await blobContainerClient.getBlockBlobClient("algarve2026/mine.jpg").uploadData(Buffer.from("y"), {});
+  await testStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 12, photos: [{ blobName: "algarve2026/victim.jpg" }] });
+  const mine = await testStore.addEntry({
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 5,
+    photos: [{ blobName: "algarve2026/mine.jpg" }]
+  });
+
+  // Same trip, valid-looking name, but it belongs to the other expense: rejected on create and on update.
+  await assert.rejects(
+    () => testStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 1, photos: [{ blobName: "algarve2026/victim.jpg" }] }),
+    /already belongs to another expense/
+  );
+  await assert.rejects(
+    () =>
+      testStore.updateEntry("algarve2026", mine.id, {
+        tripSlug: "algarve2026",
+        category: "food",
+        amount: 5,
+        photos: [{ blobName: "algarve2026/mine.jpg" }, { blobName: "algarve2026/victim.jpg" }]
+      }),
+    /already belongs to another expense/
+  );
+
+  // Deleting my expense only removes my own photo.
+  await testStore.removeEntry("algarve2026", mine.id);
+  assert.equal(blobContainerClient.blobs.has("algarve2026/victim.jpg"), true);
+  assert.equal(blobContainerClient.blobs.has("algarve2026/mine.jpg"), false);
+});
+
+test("updateEntry still accepts the expense's own existing photos", async () => {
+  const container = createFakeContainer();
+  const blobContainerClient = createFakeBlobContainerClient();
+  const testStore = store.createExpenseStore({ container, auditContainer: createFakeAuditContainer(), blobContainerClient });
+  const created = await testStore.addEntry({ tripSlug: "algarve2026", category: "food", amount: 5, photos: [{ blobName: "algarve2026/own.jpg" }] });
+  const updated = await testStore.updateEntry("algarve2026", created.id, {
+    tripSlug: "algarve2026",
+    category: "food",
+    amount: 7,
+    photos: [{ blobName: "algarve2026/own.jpg" }]
+  });
+  assert.equal(updated.amount, 7);
+  assert.deepEqual(updated.photos, [{ blobName: "algarve2026/own.jpg" }]);
+});
+
 test("normalizeExpenseInput rejects more than MAX_PHOTOS_PER_EXPENSE photos", () => {
   const photos = Array.from({ length: store.MAX_PHOTOS_PER_EXPENSE + 1 }, (_, index) => ({ blobName: `algarve2026/${index}.jpg` }));
   assert.throws(
