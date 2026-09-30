@@ -24,6 +24,9 @@
   --color-accent-soft: #fef3c7;
   --color-success: #047857;
   --color-ring: #1e40af;
+  --color-env: #d97706;
+  --color-env-soft: #fef3c7;
+  --color-env-text: #92400e;
 
   --font-sans: "Fira Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "Fira Code", ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -74,6 +77,9 @@
     --color-accent-soft: rgba(251, 191, 36, 0.12);
     --color-success: #34d399;
     --color-ring: #93c5fd;
+    --color-env: #fbbf24;
+    --color-env-soft: rgba(251, 191, 36, 0.14);
+    --color-env-text: #fcd34d;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.4);
@@ -192,6 +198,55 @@ main:focus {
 .back-link:hover,
 .app-bar-action:hover {
   background: var(--color-surface-muted);
+}
+
+/* Environment label on non-production builds (SITE_ENV, see build-site.mjs). */
+.app-bar-start {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.app-bar.is-env {
+  box-shadow: inset 0 3px 0 var(--color-env);
+}
+
+.env-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--color-env-soft);
+  color: var(--color-env-text);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.env-badge-ref {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 16ch;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.env-badge-ref::before {
+  content: "· ";
+}
+
+/* Phones: keep the label, drop the branch name (it stays in the tooltip). */
+@media (max-width: 419px) {
+  .env-badge-ref {
+    display: none;
+  }
 }
 
 /* Icon-only on small phones; the visible label stays for screen readers via the span. */
