@@ -100,6 +100,14 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(fs.existsSync(path.join(outputDir, "assets", "trip-page.css"))).toBe(true);
   });
 
+  it("has no environment label on a default (prod) build", () => {
+    const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
+    const indexHtml = fs.readFileSync(path.join(outputDir, "index.html"), "utf-8");
+    expect(html + indexHtml).not.toContain("env-badge");
+    expect(html + indexHtml).not.toContain("[Stage]");
+    expect(html).toContain('<header class="app-bar">');
+  });
+
   it("uses the favicon emblem instead of a hero photo when the trip has no ogImage", () => {
     const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
     expect(html).toContain('class="trip-hero-emblem"');
@@ -168,6 +176,55 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
   it("copies staticwebapp.config.json through unchanged", () => {
     const config = JSON.parse(fs.readFileSync(path.join(outputDir, "staticwebapp.config.json"), "utf-8"));
     expect(config.routes).toEqual([{ route: "/*", allowedRoles: ["approved"] }]);
+  });
+});
+
+describe("runBuild with SITE_ORIGIN / SITE_ENV / SITE_REF (stage builds)", () => {
+  let sourceDir;
+  let outputDir;
+  const STAGE_ENV = { SITE_ORIGIN: "https://stage.example.test/", SITE_ENV: "stage", SITE_REF: "feature/<x>" };
+  const previousEnv = {};
+
+  beforeAll(async () => {
+    for (const [key, value] of Object.entries(STAGE_ENV)) {
+      previousEnv[key] = process.env[key];
+      process.env[key] = value;
+    }
+    sourceDir = fs.mkdtempSync(path.join(os.tmpdir(), "build-site-origin-fixture-"));
+    outputDir = path.join(sourceDir, "site");
+    fs.writeFileSync(path.join(sourceDir, "test-trip.md"), FIXTURE_TRIP_MD);
+
+    await runBuild({ sourceDir, outputDir });
+  });
+
+  afterAll(() => {
+    for (const [key, value] of Object.entries(previousEnv)) {
+      if (value === undefined) {
+        delete process.env[key];
+      } else {
+        process.env[key] = value;
+      }
+    }
+    fs.rmSync(sourceDir, { recursive: true, force: true });
+  });
+
+  it("uses SITE_ORIGIN (trailing slash trimmed) for absolute URLs instead of the prod host", () => {
+    const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
+    expect(html).toContain('<meta property="og:url" content="https://stage.example.test/test-trip.html" />');
+    expect(html).toContain('<meta property="og:image" content="https://stage.example.test/og/test-trip.png" />');
+    const shareHtml = fs.readFileSync(path.join(outputDir, "share", "test-trip.html"), "utf-8");
+    expect(shareHtml).toContain('<meta property="og:url" content="https://stage.example.test/share/test-trip.html" />');
+    expect(html + shareHtml).not.toContain("white-stone-0b0565103");
+  });
+
+  it("labels stage pages: top-bar badge with the (escaped) branch name and a [Stage] tab title", () => {
+    const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
+    expect(html).toContain("<title>[Stage] 🧪 Test Trip Guide — A Fixture Adventure</title>");
+    expect(html).toContain('<header class="app-bar is-env">');
+    expect(html).toContain('<span class="env-badge-ref">feature/&lt;x&gt;</span>');
+    const indexHtml = fs.readFileSync(path.join(outputDir, "index.html"), "utf-8");
+    expect(indexHtml).toContain("<title>[Stage] Travel Pages</title>");
+    expect(indexHtml).toContain('class="env-badge"');
   });
 });
 

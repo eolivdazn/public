@@ -6,7 +6,14 @@ import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 import { buildDashboardData, loadTripEntries } from "./lib/travel-data.mjs";
 
-const canonicalOrigin = "https://white-stone-0b0565103.5.azurestaticapps.net";
+const PROD_ORIGIN = "https://white-stone-0b0565103.5.azurestaticapps.net";
+
+// Absolute URLs in OG/Twitter tags and share cards. The stage workflow sets SITE_ORIGIN to the
+// stage host so its pages don't advertise prod URLs; unset (prod, local, tests) means prod.
+// Read at call time rather than module load so a build can be pointed at another origin.
+function canonicalOrigin() {
+  return (process.env.SITE_ORIGIN || PROD_ORIGIN).replace(/\/+$/, "");
+}
 // Partial templates are script assets, not user content — resolve them relative to this file
 // (not the caller's sourceDir) so runBuild() works against any content directory, including
 // a test fixture that has no scripts/templates/ of its own.
@@ -24,6 +31,36 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+// Non-production builds (the stage workflow sets SITE_ENV=stage and SITE_REF=<branch>) get a
+// visible environment label: a badge in the top bar and a "[Stage]" prefix on the tab title.
+// Unset SITE_ENV (prod, local, tests) means no label at all.
+function siteEnvLabel() {
+  const env = (process.env.SITE_ENV || "").trim().replace(/[^a-z0-9-]/gi, "");
+  if (!env || env.toLowerCase() === "production") {
+    return "";
+  }
+  return env.charAt(0).toUpperCase() + env.slice(1).toLowerCase();
+}
+
+function titlePrefix() {
+  const label = siteEnvLabel();
+  return label ? `[${label}] ` : "";
+}
+
+function envBadgeHtml() {
+  const label = siteEnvLabel();
+  if (!label) {
+    return "";
+  }
+  const ref = (process.env.SITE_REF || "").trim();
+  const refHtml = ref ? `<span class="env-badge-ref">${escapeHtml(ref)}</span>` : "";
+  return `<span class="env-badge" title="${escapeHtml(ref ? `${label} build of branch ${ref}` : `${label} build`)}">${escapeHtml(label)}${refHtml}</span>`;
+}
+
+function appBarClass() {
+  return siteEnvLabel() ? "app-bar is-env" : "app-bar";
 }
 
 // Lucide-style inline icons (24px grid, 2px stroke) — same visual language as the dashboard's Icon.jsx.
@@ -114,7 +151,7 @@ function buildOgImageSvg(trip) {
 function buildOgTags(trip, pageUrl) {
   const title = escapeHtml(trip.seoTitle);
   const description = escapeHtml(trip.description);
-  const imageUrl = `${canonicalOrigin}/og/${trip.slug}.png`;
+  const imageUrl = `${canonicalOrigin()}/og/${trip.slug}.png`;
 
   return `<meta property="og:type" content="website" />
 <meta property="og:site_name" content="Travel Pages" />
@@ -203,7 +240,7 @@ function buildShareCardHtml(trip, hasPhoto) {
   const displayTitle = escapeHtml(trip.title);
   const description = escapeHtml(trip.description);
   const faviconPayload = encodeSvgFavicon(trip.favicon);
-  const pageUrl = `${canonicalOrigin}/share/${trip.slug}.html`;
+  const pageUrl = `${canonicalOrigin()}/share/${trip.slug}.html`;
   const days = `${trip.vacationDays} day${trip.vacationDays === 1 ? "" : "s"}`;
   const places = trip.places.map((place) => `${place.city}, ${place.country}`).join(" · ");
   const media = hasPhoto
@@ -298,7 +335,7 @@ ${cards}
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Travel Pages</title>
+  <title>${titlePrefix()}Travel Pages</title>
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
   <meta name="theme-color" content="#111a2e" media="(prefers-color-scheme: dark)" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -309,9 +346,9 @@ ${cards}
 </head>
 <body>
   <a class="skip-link" href="#content">Skip to content</a>
-  <header class="app-bar">
+  <header class="${appBarClass()}">
     <div class="app-bar-inner">
-      <span class="app-bar-brand">Travel Pages</span>
+      <span class="app-bar-start"><span class="app-bar-brand">Travel Pages</span>${envBadgeHtml()}</span>
       <div class="app-bar-actions">
         <a class="app-bar-action app-bar-action-labelled" href="dashboard/">${icon("chart")}<span>Dashboard</span></a>
       </div>
@@ -396,7 +433,7 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
 
   function buildHeadMetadataPartial(trip) {
     const faviconPayload = encodeSvgFavicon(trip.favicon);
-    const pageUrl = `${canonicalOrigin}/${trip.slug}.html`;
+    const pageUrl = `${canonicalOrigin()}/${trip.slug}.html`;
 
     // Pandoc already emits <title> (from the -M title override below, so it gets the longer
     // seoTitle rather than the frontmatter's short title) and <meta name="description"> (from
@@ -444,9 +481,9 @@ ${buildOgTags(trip, pageUrl)}
       ? `<img class="trip-hero-image" src="hero/${trip.slug}-1600.webp" srcset="hero/${trip.slug}-800.webp 800w, hero/${trip.slug}-1600.webp 1600w" sizes="100vw" width="1600" height="900" alt="" fetchpriority="high" />`
       : `<span class="trip-hero-emblem" aria-hidden="true">${escapeHtml(trip.favicon)}</span>`;
 
-    return `<header class="app-bar">
+    return `<header class="${appBarClass()}">
     <div class="app-bar-inner">
-      <a class="back-link" href="index.html">${icon("arrowLeft")}<span>All trips</span></a>
+      <span class="app-bar-start"><a class="back-link" href="index.html">${icon("arrowLeft")}<span>All trips</span></a>${envBadgeHtml()}</span>
       <div class="app-bar-actions">
         <a class="app-bar-action" href="dashboard/">${icon("chart")}<span>Dashboard</span></a>
         <a class="app-bar-action" href="/share/${trip.slug}.html" data-trip-share data-title="${title}">${icon("share")}<span>Share</span></a>
@@ -506,6 +543,8 @@ ${buildOgTags(trip, pageUrl)}
         tripPageTemplate,
         "-M",
         `title=${trip.seoTitle}`,
+        "-V",
+        `title-prefix=${titlePrefix()}`,
         // The page's <h1> is the hero title, so the markdown's own "#" headings start at <h2>.
         "--shift-heading-level-by=1",
         "--toc",
