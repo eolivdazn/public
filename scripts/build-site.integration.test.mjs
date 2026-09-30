@@ -93,8 +93,13 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(html).toContain('id="trip-quick-expense-root"');
     // Food gallery: hidden section + full-screen viewer, driven by the shared asset.
     expect(html).toContain('<section id="trip-food-gallery" class="trip-food-gallery" aria-labelledby="trip-food-gallery-title" hidden>');
-    expect(html).toContain('<dialog id="trip-food-lightbox" class="trip-lightbox" aria-label="Food photos">');
+    expect(html).toContain('<dialog id="trip-food-lightbox" class="trip-lightbox" aria-label="Trip photos">');
     expect(html).toContain('<script src="assets/trip-food-gallery.js" defer></script>');
+    // Trip photos: the "Add photos" card's mount point and the gallery's All / Trip / Food filter.
+    expect(html).toContain('<div id="trip-photo-upload-root"></div>');
+    expect(html).toContain('<h2 id="trip-food-gallery-title">Photos</h2>');
+    expect(html).toContain('<button type="button" data-filter="trip" aria-pressed="false">Trip</button>');
+    expect(html).toContain("data-lightbox-delete");
     expect(fs.existsSync(path.join(outputDir, "assets", "trip-food-gallery.js"))).toBe(true);
     // Head metadata belongs in <head>, not the body.
     expect(html.indexOf('property="og:title"')).toBeLessThan(html.indexOf("</head>"));

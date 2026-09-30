@@ -12,7 +12,7 @@ export function AuditEntryRow({ entry }) {
       <div className="audit-entry-main">
         <span className={`badge badge-${entry.action}`}>{ACTION_LABELS[entry.action] || entry.action}</span>
         <span className="audit-entry-trip">{entry.tripSlug}</span>
-        <span className="muted-text audit-entry-id">expense {entry.expenseId}</span>
+        <span className="muted-text audit-entry-id">{entry.kind === "photo" ? "trip photo" : `expense ${entry.expenseId}`}</span>
       </div>
       <div className="audit-entry-meta">
         <span>{entry.actor?.userDetails || "Unknown user"}</span>

@@ -112,6 +112,48 @@ export async function uploadReceipt(tripSlug, blob) {
   return result;
 }
 
+// ----- Trip photos -----
+
+export async function fetchTripPhotos(tripSlug) {
+  const response = await fetch(`/api/photos?tripSlug=${encodeURIComponent(tripSlug)}`);
+  const payload = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(payload?.error || `Could not load photos (${response.status}).`);
+  }
+
+  return Array.isArray(payload?.photos) ? payload.photos : [];
+}
+
+export async function postTripPhoto(payload) {
+  const response = await fetch("/api/photos", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(result?.error || `Could not save photo (${response.status}).`);
+  }
+
+  return result;
+}
+
+export async function deleteTripPhoto({ id, tripSlug }) {
+  const params = new URLSearchParams({ id, tripSlug });
+  const response = await fetch(`/api/photos?${params.toString()}`, { method: "DELETE" });
+  const result = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(result?.error || `Could not delete photo (${response.status}).`);
+  }
+
+  return result;
+}
+
 export async function fetchAiSuggestionsStatus() {
   try {
     const response = await fetch("/api/suggestions");

@@ -1275,6 +1275,126 @@ main:focus {
   overflow-wrap: anywhere;
 }
 
+/* ---------- Trip photo uploader (trip-page widget) ---------- */
+
+.photo-uploader {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.photo-uploader .section-copy {
+  margin: 0;
+}
+
+.photo-uploader-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.photo-uploader-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+}
+
+.photo-uploader-item.is-error {
+  border-color: var(--color-danger);
+}
+
+.photo-uploader-item.is-uploading {
+  opacity: 0.7;
+}
+
+.photo-uploader-thumb {
+  display: block;
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface-muted);
+}
+
+.photo-uploader-fields {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.photo-uploader-caption {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.photo-uploader-fields input {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px var(--space-3);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 1rem;
+}
+
+.photo-uploader-fields input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}
+
+.photo-uploader-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-3);
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.8125rem;
+}
+
+.photo-uploader-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.photo-uploader-item .status {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.photo-uploader-remove {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin: calc(var(--space-2) * -1) calc(var(--space-2) * -1) 0 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.photo-uploader-remove:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+  color: var(--color-danger);
+}
+
+.photo-uploader-remove:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* ---------- Live expenses ---------- */
 
 .expense-summary-list {

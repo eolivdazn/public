@@ -10,6 +10,12 @@ const RECEIPT_CONTENT_TYPES = {
 
 const MAX_PHOTOS_PER_EXPENSE = 6;
 
+// Trip photos (not tied to an expense) live in the same Cosmos container as expenses, in the same
+// tripSlug partition, marked with this docType. A separate container would reserve its own RU/s
+// and push the free-tier account over its 1000 RU/s allowance.
+const TRIP_PHOTO_DOC_TYPE = "tripPhoto";
+const MAX_CAPTION_LENGTH = 200;
+
 // Photo references must look exactly like the names uploadReceipt() creates:
 // "<tripSlug>/<generated id>.<receipt extension>". Blob names are stored on the expense and later
 // turned into read links and deleted with it, so an arbitrary name would let a request read or
@@ -45,9 +51,17 @@ function generateId() {
   return `exp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
 
+function isTripPhoto(doc) {
+  return Boolean(doc) && doc.docType === TRIP_PHOTO_DOC_TYPE;
+}
+
+// Blob names a document owns: an expense's photos (or its legacy single receipt), or a trip photo's image.
 function photoBlobNamesOf(entryLike) {
   if (!entryLike || typeof entryLike !== "object") {
     return [];
+  }
+  if (isTripPhoto(entryLike)) {
+    return entryLike.blobName ? [entryLike.blobName] : [];
   }
   if (Array.isArray(entryLike.photos)) {
     return entryLike.photos.map((photo) => photo.blobName);
@@ -65,6 +79,21 @@ function locationOf(entryLike) {
   return entryLike.location !== undefined ? entryLike.location : entryLike.photoLocation || null;
 }
 
+// null when absent; throws when present but out of range. Shared by expenses and trip photos.
+function parseLocation(rawLocation) {
+  if (!rawLocation || typeof rawLocation !== "object") {
+    return null;
+  }
+  const location = { latitude: Number(rawLocation.latitude), longitude: Number(rawLocation.longitude) };
+  if (!Number.isFinite(location.latitude) || location.latitude < -90 || location.latitude > 90) {
+    throw new Error("'location.latitude' must be a number between -90 and 90.");
+  }
+  if (!Number.isFinite(location.longitude) || location.longitude < -180 || location.longitude > 180) {
+    throw new Error("'location.longitude' must be a number between -180 and 180.");
+  }
+  return location;
+}
+
 function buildExpenseFields(payload) {
   if (!payload || typeof payload !== "object") {
     throw new Error("Request body must be a JSON object.");
@@ -78,11 +107,6 @@ function buildExpenseFields(payload) {
   const date = payload.date ? validateIsoDate(payload.date, "date") : new Date().toISOString().slice(0, 10);
   const rating = payload.rating === undefined || payload.rating === null || payload.rating === "" ? null : Number(payload.rating);
   const rawPhotos = Array.isArray(payload.photos) ? payload.photos : [];
-  const rawLocation = payload.location;
-  const location =
-    rawLocation && typeof rawLocation === "object"
-      ? { latitude: Number(rawLocation.latitude), longitude: Number(rawLocation.longitude) }
-      : null;
 
   if (!tripSlug) {
     throw new Error("'tripSlug' is required.");
@@ -99,12 +123,7 @@ function buildExpenseFields(payload) {
   if (rawPhotos.length > MAX_PHOTOS_PER_EXPENSE) {
     throw new Error(`'photos' must contain at most ${MAX_PHOTOS_PER_EXPENSE} items.`);
   }
-  if (location && (!Number.isFinite(location.latitude) || location.latitude < -90 || location.latitude > 90)) {
-    throw new Error("'location.latitude' must be a number between -90 and 90.");
-  }
-  if (location && (!Number.isFinite(location.longitude) || location.longitude < -180 || location.longitude > 180)) {
-    throw new Error("'location.longitude' must be a number between -180 and 180.");
-  }
+  const location = parseLocation(payload.location);
 
   const photos = rawPhotos.map((photo, index) => {
     if (!photo || typeof photo !== "object" || typeof photo.blobName !== "string" || !photo.blobName.trim()) {
@@ -148,11 +167,49 @@ function stripCosmosMetadata(resource) {
   return entry;
 }
 
-function normalizeAuditRecord({ action, expenseId, tripSlug, actor }) {
+// Validates a new trip photo. The image must already be uploaded (POST /api/receipts) for the same trip.
+function normalizePhotoInput(payload, actor = null) {
+  if (!payload || typeof payload !== "object") {
+    throw new Error("Request body must be a JSON object.");
+  }
+  const tripSlug = typeof payload.tripSlug === "string" ? payload.tripSlug.trim() : "";
+  const blobName = typeof payload.blobName === "string" ? payload.blobName.trim() : "";
+  const caption = typeof payload.caption === "string" ? payload.caption.trim() : "";
+
+  if (!tripSlug) {
+    throw new Error("'tripSlug' is required.");
+  }
+  if (!blobName) {
+    throw new Error("'blobName' is required.");
+  }
+  if (!isReceiptBlobNameForTrip(blobName, tripSlug)) {
+    throw new Error(`'blobName' is not an image uploaded for trip '${tripSlug}'.`);
+  }
+  if (caption.length > MAX_CAPTION_LENGTH) {
+    throw new Error(`'caption' must be at most ${MAX_CAPTION_LENGTH} characters.`);
+  }
+
+  return {
+    id: generateId(),
+    docType: TRIP_PHOTO_DOC_TYPE,
+    tripSlug,
+    blobName,
+    caption: caption || null,
+    takenOn: payload.takenOn ? validateIsoDate(payload.takenOn, "takenOn") : null,
+    location: parseLocation(payload.location),
+    createdBy: actor ? { userId: actor.userId, userDetails: actor.userDetails } : null,
+    createdAt: new Date().toISOString()
+  };
+}
+
+// Expense records keep their original shape; photo records add kind: "photo" and photoId.
+function normalizeAuditRecord({ action, expenseId = null, photoId, kind, tripSlug, actor }) {
   return {
     id: generateId(),
     action,
     expenseId,
+    ...(kind ? { kind } : {}),
+    ...(photoId ? { photoId } : {}),
     tripSlug,
     actor: actor ? { userId: actor.userId, userDetails: actor.userDetails } : null,
     at: new Date().toISOString()
@@ -266,7 +323,10 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
       resources = result.resources;
     }
 
-    const entries = resources.map(stripCosmosMetadata).sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+    const entries = resources
+      .filter((resource) => !isTripPhoto(resource))
+      .map(stripCosmosMetadata)
+      .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
 
     await Promise.all(
       entries.map(async (entry) => {
@@ -299,7 +359,7 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
     const claimed = new Set(resources.filter((entry) => entry.id !== ownId).flatMap(photoBlobNamesOf));
     const clash = blobNames.find((blobName) => claimed.has(blobName));
     if (clash) {
-      throw new Error(`Photo '${clash}' already belongs to another expense.`);
+      throw new Error(`Photo '${clash}' already belongs to another expense or photo.`);
     }
   }
 
@@ -320,7 +380,7 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
     const fields = normalizeExpenseUpdate(payload);
     const targetContainer = await getContainer();
     const { resource: existing } = await targetContainer.item(id, tripSlug).read();
-    if (!existing) {
+    if (!existing || isTripPhoto(existing)) {
       throw new Error("Expense not found.");
     }
     await assertPhotosNotClaimedByOtherExpenses(
@@ -364,6 +424,9 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
   async function removeEntry(tripSlug, id, actor = null) {
     const targetContainer = await getContainer();
     const { resource: existing } = await targetContainer.item(id, tripSlug).read();
+    if (isTripPhoto(existing)) {
+      throw new Error("Expense not found.");
+    }
     const blobNames = existing ? photoBlobNamesOf(existing) : [];
 
     await targetContainer.item(id, tripSlug).delete();
@@ -380,6 +443,62 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
           }
         })
       );
+    }
+  }
+
+  // ----- Trip photos -----
+
+  async function listPhotos(tripSlug) {
+    if (!tripSlug) {
+      throw new Error("'tripSlug' is required.");
+    }
+    const targetContainer = await getContainer();
+    const { resources } = await targetContainer.items
+      .query(
+        {
+          query: "SELECT * FROM c WHERE c.tripSlug = @tripSlug",
+          parameters: [{ name: "@tripSlug", value: tripSlug }]
+        },
+        { partitionKey: tripSlug }
+      )
+      .fetchAll();
+
+    const photos = resources
+      .filter(isTripPhoto)
+      .map(stripCosmosMetadata)
+      .sort((left, right) => left.createdAt.localeCompare(right.createdAt));
+    await Promise.all(
+      photos.map(async (photo) => {
+        photo.url = await generateReceiptSasUrl(photo.blobName);
+      })
+    );
+    return photos;
+  }
+
+  async function addPhoto(payload, actor = null) {
+    const photo = normalizePhotoInput(payload, actor);
+    const targetContainer = await getContainer();
+    await assertPhotosNotClaimedByOtherExpenses(targetContainer, photo.tripSlug, [photo.blobName]);
+    await targetContainer.items.create(photo);
+    await recordAudit({ action: "create", kind: "photo", photoId: photo.id, tripSlug: photo.tripSlug, actor });
+    return { ...photo, url: await generateReceiptSasUrl(photo.blobName) };
+  }
+
+  async function removePhoto(tripSlug, id, actor = null) {
+    const targetContainer = await getContainer();
+    const { resource: existing } = await targetContainer.item(id, tripSlug).read();
+    if (!isTripPhoto(existing)) {
+      throw new Error("Photo not found.");
+    }
+
+    await targetContainer.item(id, tripSlug).delete();
+    await recordAudit({ action: "delete", kind: "photo", photoId: id, tripSlug, actor });
+
+    try {
+      const targetBlobContainer = await getBlobContainerClient();
+      await targetBlobContainer.deleteBlob(existing.blobName);
+    } catch (error) {
+      console.warn(`Failed to delete trip photo blob (${existing.blobName}): ${error.message}`);
     }
   }
 
@@ -433,7 +552,17 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
     };
   }
 
-  return { listEntries, listAuditEntries, addEntry, updateEntry, removeEntry, uploadReceipt };
+  return {
+    listEntries,
+    listAuditEntries,
+    addEntry,
+    updateEntry,
+    removeEntry,
+    uploadReceipt,
+    listPhotos,
+    addPhoto,
+    removePhoto
+  };
 }
 
 let defaultStore = null;
@@ -448,6 +577,9 @@ module.exports = {
   createExpenseStore,
   normalizeExpenseInput,
   normalizeExpenseUpdate,
+  normalizePhotoInput,
+  isReceiptBlobNameForTrip,
+  TRIP_PHOTO_DOC_TYPE,
   RECEIPT_CONTENT_TYPES,
   MAX_PHOTOS_PER_EXPENSE,
   listEntries: (tripSlug) => getDefaultStore().listEntries(tripSlug),
@@ -455,5 +587,8 @@ module.exports = {
   addEntry: (payload, actor) => getDefaultStore().addEntry(payload, actor),
   updateEntry: (tripSlug, id, payload, actor) => getDefaultStore().updateEntry(tripSlug, id, payload, actor),
   removeEntry: (tripSlug, id, actor) => getDefaultStore().removeEntry(tripSlug, id, actor),
-  uploadReceipt: (tripSlug, buffer, contentType) => getDefaultStore().uploadReceipt(tripSlug, buffer, contentType)
+  uploadReceipt: (tripSlug, buffer, contentType) => getDefaultStore().uploadReceipt(tripSlug, buffer, contentType),
+  listPhotos: (tripSlug) => getDefaultStore().listPhotos(tripSlug),
+  addPhoto: (payload, actor) => getDefaultStore().addPhoto(payload, actor),
+  removePhoto: (tripSlug, id, actor) => getDefaultStore().removePhoto(tripSlug, id, actor)
 };

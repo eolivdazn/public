@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import ReactDOM from "react-dom/client";
 import { ExpenseForm } from "./components/ExpenseForm";
 import { Icon } from "./components/Icon";
+import { PhotoUploader } from "./components/PhotoUploader";
 import { submitExpense } from "./lib/submitExpense.js";
 import dashboardStyles from "./styles.css?inline";
 
@@ -69,32 +70,61 @@ function tripSlugFromLocation() {
   return window.location.pathname.split("/").pop().replace(/\.html$/, "");
 }
 
+// The trip is looked up once per page and shared by both cards (expense + photos).
+let tripPromise = null;
+function loadTrip() {
+  if (!tripPromise) {
+    const slug = tripSlugFromLocation();
+    const dataUrl = new URL("dashboard-data.json", window.location.href).toString();
+    tripPromise = slug
+      ? fetch(dataUrl)
+          .then((response) => (response.ok ? response.json() : null))
+          .then((data) => (data?.trips || []).find((item) => item.slug === slug) || null)
+          .catch(() => null)
+      : Promise.resolve(null);
+  }
+  return tripPromise;
+}
+
+function useTrip() {
+  const [trip, setTrip] = useState(undefined);
+  useEffect(() => {
+    let active = true;
+    loadTrip().then((found) => {
+      if (active) {
+        setTrip(found);
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+  return trip;
+}
+
+// Collapsible card shared by the trip-page widgets.
+function TripCard({ title, subtitle, children }) {
+  return (
+    <details className="trip-quick-expense-details">
+      <summary className="trip-quick-expense-summary">
+        <span className="expense-toggle-icon">
+          <Icon name="plus" size={20} />
+        </span>
+        <span className="trip-quick-expense-text">
+          <span className="trip-quick-expense-title">{title}</span>
+          <span className="trip-quick-expense-subtitle">{subtitle}</span>
+        </span>
+        <Icon name="chevronDown" size={20} className="expense-toggle-chevron" />
+      </summary>
+      <div className="trip-quick-expense-body">{children}</div>
+    </details>
+  );
+}
+
 function QuickExpenseWidget() {
-  const [trip, setTrip] = useState(null);
-  const [notFound, setNotFound] = useState(false);
+  const trip = useTrip();
   const [saving, setSaving] = useState(false);
   const [status, setStatus] = useState("");
-
-  useEffect(() => {
-    const slug = tripSlugFromLocation();
-    if (!slug) {
-      setNotFound(true);
-      return;
-    }
-
-    const dataUrl = new URL("dashboard-data.json", window.location.href).toString();
-    fetch(dataUrl)
-      .then((response) => (response.ok ? response.json() : null))
-      .then((data) => {
-        const match = (data?.trips || []).find((item) => item.slug === slug);
-        if (match) {
-          setTrip(match);
-        } else {
-          setNotFound(true);
-        }
-      })
-      .catch(() => setNotFound(true));
-  }, []);
 
   async function handleSubmit(formValues) {
     setSaving(true);
@@ -111,42 +141,42 @@ function QuickExpenseWidget() {
     }
   }
 
-  if (notFound || !trip) {
+  if (!trip) {
     return null;
   }
 
   return (
-    <details className="trip-quick-expense-details">
-      <summary className="trip-quick-expense-summary">
-        <span className="expense-toggle-icon">
-          <Icon name="plus" size={20} />
-        </span>
-        <span className="trip-quick-expense-text">
-          <span className="trip-quick-expense-title">Add expense</span>
-          <span className="trip-quick-expense-subtitle">Log food and fun while you're here</span>
-        </span>
-        <Icon name="chevronDown" size={20} className="expense-toggle-chevron" />
-      </summary>
-      <div className="trip-quick-expense-body">
-        <ExpenseForm
-          trips={[trip]}
-          selectedExpenseTripSlug={trip.slug}
-          onChangeTripSlug={() => {}}
-          tripSelectDisabled
-          selectedExpenseTrip={trip}
-          onSubmit={handleSubmit}
-          saving={saving}
-          status={status}
-          editingEntry={null}
-          onCancelEdit={() => {}}
-        />
-      </div>
-    </details>
+    <TripCard title="Add expense" subtitle="Log food and fun while you're here">
+      <ExpenseForm
+        trips={[trip]}
+        selectedExpenseTripSlug={trip.slug}
+        onChangeTripSlug={() => {}}
+        tripSelectDisabled
+        selectedExpenseTrip={trip}
+        onSubmit={handleSubmit}
+        saving={saving}
+        status={status}
+        editingEntry={null}
+        onCancelEdit={() => {}}
+      />
+    </TripCard>
   );
 }
 
-function mount() {
-  const host = document.getElementById("trip-quick-expense-root");
+function QuickPhotosWidget() {
+  const trip = useTrip();
+  if (!trip) {
+    return null;
+  }
+  return (
+    <TripCard title="Add photos" subtitle="Moments from the trip">
+      <PhotoUploader trip={trip} />
+    </TripCard>
+  );
+}
+
+function mount(hostId, element) {
+  const host = document.getElementById(hostId);
   if (!host) {
     return;
   }
@@ -167,11 +197,8 @@ function mount() {
   const container = document.createElement("div");
   shadowRoot.appendChild(container);
 
-  ReactDOM.createRoot(container).render(
-    <React.StrictMode>
-      <QuickExpenseWidget />
-    </React.StrictMode>
-  );
+  ReactDOM.createRoot(container).render(<React.StrictMode>{element}</React.StrictMode>);
 }
 
-mount();
+mount("trip-quick-expense-root", <QuickExpenseWidget />);
+mount("trip-photo-upload-root", <QuickPhotosWidget />);
