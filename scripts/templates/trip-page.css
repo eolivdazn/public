@@ -208,37 +208,62 @@ main:focus {
 
 /* ---------- Hero ---------- */
 
-.trip-hero {
-  max-width: var(--page-width);
-  margin: 0 auto;
-  padding: var(--space-4) var(--space-4) 0;
-}
-
-.trip-hero-media {
-  margin-bottom: var(--space-4);
+/* Full-width cover: photo edge to edge, title/dates/status over a scrim at the bottom.
+   Trips without a photo get a brand gradient with their emoji, so every page opens the same way. */
+.trip-hero-cover {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  min-height: clamp(340px, 58svh, 520px);
+  overflow: hidden;
+  background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 45%, #0f172a 100%);
+  color: #ffffff;
 }
 
 .trip-hero-image {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
-  aspect-ratio: 16 / 9;
+  height: 100%;
   object-fit: cover;
-  border-radius: var(--radius-lg);
   background: var(--color-surface-muted);
 }
 
+/* Scrim: dark enough at the bottom for white text on any photo. */
+.trip-hero.has-image .trip-hero-cover::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.82) 0%, rgba(0, 0, 0, 0.45) 38%, rgba(0, 0, 0, 0) 70%);
+}
+
+/* Without a photo there's nothing to look at, so the cover only needs room for the title. */
+.trip-hero.no-image .trip-hero-cover {
+  min-height: 260px;
+}
+
 .trip-hero-emblem {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 64px;
-  height: 64px;
-  border-radius: var(--radius-lg);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  font-size: 2rem;
+  position: absolute;
+  top: var(--space-4);
+  right: var(--space-4);
+  font-size: 6rem;
   line-height: 1;
+  opacity: 0.35;
+}
+
+.trip-hero-cover-inner {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-5);
+}
+
+.trip-hero-body {
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-4) 0;
 }
 
 .trip-status {
@@ -274,25 +299,48 @@ main:focus {
 
 .trip-hero h1 {
   margin: 0;
-  font-size: 1.875rem;
+  font-size: 2rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   text-wrap: balance;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
+}
+
+/* Status pill on the cover: translucent so it reads on any photo; the dot keeps the state colour. */
+.trip-hero-cover .trip-status {
+  background: rgba(15, 23, 42, 0.6);
+  color: #ffffff;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.trip-hero-cover .trip-status::before {
+  background: #93c5fd;
+}
+
+.trip-hero-cover .trip-status[data-state="live"]::before {
+  background: #34d399;
+}
+
+.trip-hero-cover .trip-status[data-state="past"]::before {
+  background: #cbd5e1;
 }
 
 .trip-dates {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--space-2);
   margin: var(--space-2) 0 0;
-  color: var(--color-text-muted);
+  color: rgba(255, 255, 255, 0.92);
   font-weight: 500;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.35);
 }
 
 .trip-description {
   max-width: var(--measure);
-  margin: var(--space-3) 0 0;
+  margin: 0;
   font-size: 1.0625rem;
 }
 
@@ -1132,7 +1180,8 @@ html.has-lightbox {
 
 @media (min-width: 768px) {
   .app-bar-inner,
-  .trip-hero,
+  .trip-hero-cover-inner,
+  .trip-hero-body,
   .trip-actions,
   .trip-index {
     padding-left: var(--space-5);
@@ -1143,12 +1192,16 @@ html.has-lightbox {
     padding: var(--space-6) var(--space-5) var(--space-7);
   }
 
-  .trip-hero {
-    padding-top: var(--space-5);
+  .trip-hero-cover {
+    min-height: 440px;
   }
 
-  .trip-hero-image {
-    aspect-ratio: 21 / 8;
+  .trip-hero-cover-inner {
+    padding-bottom: var(--space-6);
+  }
+
+  .trip-hero-body {
+    padding-top: var(--space-6);
   }
 
   .trip-hero h1,

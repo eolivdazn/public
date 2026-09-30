@@ -104,6 +104,10 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
     expect(html).toContain('class="trip-hero-emblem"');
     expect(html).not.toContain("trip-hero-image");
+    // Full-width cover: no photo -> brand gradient variant; the dates line also gives the length.
+    expect(html).toContain('<section class="trip-hero no-image" aria-labelledby="trip-title">');
+    expect(html).toMatch(/<div class="trip-hero-cover">[\s\S]*<h1 id="trip-title">/);
+    expect(html).toContain('<span aria-hidden="true">·</span><span>3 days</span>');
   });
 
   it("generates a valid 1200x630 PNG preview image", () => {

@@ -441,7 +441,7 @@ ${buildOgTags(trip, pageUrl)}
       .join("\n          ");
 
     const media = hasHeroImage
-      ? `<img class="trip-hero-image" src="hero/${trip.slug}-1600.webp" srcset="hero/${trip.slug}-800.webp 800w, hero/${trip.slug}-1600.webp 1600w" sizes="(min-width: 1200px) 1168px, 100vw" width="1600" height="900" alt="" fetchpriority="high" />`
+      ? `<img class="trip-hero-image" src="hero/${trip.slug}-1600.webp" srcset="hero/${trip.slug}-800.webp 800w, hero/${trip.slug}-1600.webp 1600w" sizes="100vw" width="1600" height="900" alt="" fetchpriority="high" />`
       : `<span class="trip-hero-emblem" aria-hidden="true">${escapeHtml(trip.favicon)}</span>`;
 
     return `<header class="app-bar">
@@ -453,12 +453,16 @@ ${buildOgTags(trip, pageUrl)}
       </div>
     </div>
   </header>
-  <section class="trip-hero${hasHeroImage ? " has-image" : ""}" aria-labelledby="trip-title">
-    <div class="trip-hero-media">${media}</div>
+  <section class="trip-hero ${hasHeroImage ? "has-image" : "no-image"}" aria-labelledby="trip-title">
+    <div class="trip-hero-cover">
+      ${media}
+      <div class="trip-hero-cover-inner">
+        <p class="trip-status" data-trip-status data-start="${trip.startDate}" data-end="${trip.endDate}" hidden></p>
+        <h1 id="trip-title">${title}</h1>
+        <p class="trip-dates">${icon("calendar")}<time datetime="${trip.startDate}">${escapeHtml(formatDateRange(trip.startDate, trip.endDate))}</time><span aria-hidden="true">·</span><span>${trip.vacationDays} day${trip.vacationDays === 1 ? "" : "s"}</span></p>
+      </div>
+    </div>
     <div class="trip-hero-body">
-      <p class="trip-status" data-trip-status data-start="${trip.startDate}" data-end="${trip.endDate}" hidden></p>
-      <h1 id="trip-title">${title}</h1>
-      <p class="trip-dates">${icon("calendar")}<time datetime="${trip.startDate}">${escapeHtml(formatDateRange(trip.startDate, trip.endDate))}</time></p>
       <p class="trip-description">${escapeHtml(trip.description)}</p>
       <ul class="trip-places" aria-label="Places">
           ${places}
