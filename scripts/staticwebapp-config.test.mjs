@@ -31,6 +31,18 @@ test("the index, trip pages, their assets, share cards and OG images are public"
   );
 });
 
+// The Static Web Apps deploy rejects a config where an earlier wildcard covers a later route
+// ("A route is covered up by a wildcard route and would not be evaluated"), e.g. "/dashboard*"
+// before "/dashboard-data.json".
+test("no route is covered up by an earlier wildcard route", () => {
+  config.routes.forEach((rule, index) => {
+    const earlierWildcard = config.routes
+      .slice(0, index)
+      .find((earlier) => earlier.route.endsWith("*") && rule.route.startsWith(earlier.route.slice(0, -1)));
+    assert.equal(earlierWildcard, undefined, `${rule.route} is covered by ${earlierWildcard && earlierWildcard.route}`);
+  });
+});
+
 test("signing in returns to the page you were on, and pages stay out of search engines", () => {
   assert.equal(config.responseOverrides["401"].statusCode, 302);
   assert.equal(config.responseOverrides["401"].redirect, "/.auth/login/github?post_login_redirect_uri=.referrer");

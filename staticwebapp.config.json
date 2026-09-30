@@ -15,10 +15,6 @@
     {
       "route": "/dashboard*",
       "allowedRoles": ["approved"]
-    },
-    {
-      "route": "/dashboard-data.json",
-      "allowedRoles": ["approved"]
     }
   ],
   "responseOverrides": {
