@@ -203,9 +203,15 @@ main:focus {
 /* Environment label on non-production builds (SITE_ENV, see build-site.mjs). */
 .app-bar-start {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
+}
+
+/* The back link / brand keep their size; the label takes what's left and shrinks first. */
+.app-bar-start > :not(.env-badge) {
+  flex: none;
 }
 
 .app-bar.is-env {
@@ -242,10 +248,21 @@ main:focus {
   content: "· ";
 }
 
-/* Phones: keep the label, drop the branch name (it stays in the tooltip). */
+/* Phones: the branch name uses whatever room is left in the bar and is cut with "…" only when it
+   doesn't fit (the full name stays in the tooltip). */
 @media (max-width: 419px) {
   .env-badge-ref {
-    display: none;
+    max-width: none;
+  }
+
+  /* With the label in the bar, the index's "Dashboard" link goes icon-only too (its text stays
+     available to screen readers), leaving the room for the branch name. */
+  .app-bar.is-env .app-bar-action-labelled span {
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    clip-path: inset(50%) !important;
   }
 }
 
@@ -1205,6 +1222,7 @@ html.has-lightbox {
 /* ---------- Trip index (index.html) ---------- */
 
 .app-bar-brand {
+  white-space: nowrap;
   font-weight: 700;
   font-size: 1rem;
   letter-spacing: -0.01em;
