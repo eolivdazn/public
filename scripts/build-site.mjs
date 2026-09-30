@@ -336,6 +336,7 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
   const tripPageTemplate = path.join(templatesDir, "trip-page.html");
   const tripPageStylesheet = path.join(templatesDir, "trip-page.css");
   const tripStatusScript = path.join(templatesDir, "trip-status.js");
+  const foodGalleryScript = path.join(templatesDir, "trip-food-gallery.js");
   const quickExpensePartial = path.join(templatesDir, "trip-page-quick-expense.html");
   const foodGalleryPartial = path.join(templatesDir, "trip-page-food-gallery.html");
 
@@ -551,6 +552,7 @@ ${buildOgTags(trip, pageUrl)}
     fs.mkdirSync(assetsDir, { recursive: true });
     fs.copyFileSync(tripPageStylesheet, path.join(assetsDir, "trip-page.css"));
     fs.copyFileSync(tripStatusScript, path.join(assetsDir, "trip-status.js"));
+    fs.copyFileSync(foodGalleryScript, path.join(assetsDir, "trip-food-gallery.js"));
   }
 
   function copyStaticConfig() {
