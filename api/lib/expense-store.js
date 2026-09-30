@@ -10,6 +10,23 @@ const RECEIPT_CONTENT_TYPES = {
 
 const MAX_PHOTOS_PER_EXPENSE = 6;
 
+// Photo references must look exactly like the names uploadReceipt() creates:
+// "<tripSlug>/<generated id>.<receipt extension>". Blob names are stored on the expense and later
+// turned into read links and deleted with it, so an arbitrary name would let a request read or
+// delete receipts that belong to other expenses or trips.
+const RECEIPT_EXTENSIONS = new Set(Object.values(RECEIPT_CONTENT_TYPES));
+const RECEIPT_ID_PATTERN = /^[A-Za-z0-9_-]+$/;
+
+function isReceiptBlobNameForTrip(blobName, tripSlug) {
+  const prefix = `${tripSlug}/`;
+  if (!tripSlug || !blobName.startsWith(prefix)) {
+    return false;
+  }
+  const file = blobName.slice(prefix.length);
+  const dot = file.lastIndexOf(".");
+  return dot > 0 && RECEIPT_ID_PATTERN.test(file.slice(0, dot)) && RECEIPT_EXTENSIONS.has(file.slice(dot + 1));
+}
+
 function validateIsoDate(value, fieldName) {
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
     throw new Error(`'${fieldName}' must be a YYYY-MM-DD string.`);
@@ -93,7 +110,11 @@ function buildExpenseFields(payload) {
     if (!photo || typeof photo !== "object" || typeof photo.blobName !== "string" || !photo.blobName.trim()) {
       throw new Error(`'photos[${index}].blobName' is required.`);
     }
-    return { blobName: photo.blobName.trim() };
+    const blobName = photo.blobName.trim();
+    if (!isReceiptBlobNameForTrip(blobName, tripSlug)) {
+      throw new Error(`'photos[${index}].blobName' is not a receipt uploaded for trip '${tripSlug}'.`);
+    }
+    return { blobName };
   });
 
   return {
@@ -260,9 +281,36 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
     return entries;
   }
 
+  // A photo belongs to one expense: deleting or editing an expense deletes its photo blobs, so
+  // letting a second expense reference the same blob would let it delete another expense's photo.
+  async function assertPhotosNotClaimedByOtherExpenses(targetContainer, tripSlug, blobNames, ownId = null) {
+    if (blobNames.length === 0) {
+      return;
+    }
+    const { resources } = await targetContainer.items
+      .query(
+        {
+          query: "SELECT * FROM c WHERE c.tripSlug = @tripSlug",
+          parameters: [{ name: "@tripSlug", value: tripSlug }]
+        },
+        { partitionKey: tripSlug }
+      )
+      .fetchAll();
+    const claimed = new Set(resources.filter((entry) => entry.id !== ownId).flatMap(photoBlobNamesOf));
+    const clash = blobNames.find((blobName) => claimed.has(blobName));
+    if (clash) {
+      throw new Error(`Photo '${clash}' already belongs to another expense.`);
+    }
+  }
+
   async function addEntry(payload, actor = null) {
     const entry = normalizeExpenseInput(payload, actor);
     const targetContainer = await getContainer();
+    await assertPhotosNotClaimedByOtherExpenses(
+      targetContainer,
+      entry.tripSlug,
+      entry.photos.map((photo) => photo.blobName)
+    );
     await targetContainer.items.create(entry);
     await recordAudit({ action: "create", expenseId: entry.id, tripSlug: entry.tripSlug, actor });
     return entry;
@@ -275,6 +323,12 @@ function createExpenseStore({ container, auditContainer, blobContainerClient } =
     if (!existing) {
       throw new Error("Expense not found.");
     }
+    await assertPhotosNotClaimedByOtherExpenses(
+      targetContainer,
+      tripSlug,
+      fields.photos.map((photo) => photo.blobName),
+      id
+    );
 
     const { receiptBlobName: _legacyBlobName, photoLocation: _legacyPhotoLocation, ...existingWithoutLegacyPhoto } = existing;
     const previousBlobNames = new Set(photoBlobNamesOf(existing));

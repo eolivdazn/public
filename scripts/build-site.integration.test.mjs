@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
-import { runBuild } from "./build-site.mjs";
+import { runBuild, headingShiftFor } from "./build-site.mjs";
 
 const FIXTURE_TRIP_MD = `---
 title: "🧪 Test Trip"
@@ -86,8 +86,9 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(html).toContain("<span>Testville, Testland</span>");
     expect(html).toContain("<dt>Booked</dt><dd>€300</dd>");
     expect(html).toContain("<dt>Per person (2)</dt><dd>€150</dd>");
-    // The markdown's "## Test Trip" sits under the hero <h1>.
-    expect(html).toMatch(/<h3 id="test-trip">Test Trip<\/h3>/);
+    // The fixture's top heading is "##", so it renders as <h2> directly under the hero <h1> (no skipped level).
+    expect(html).toMatch(/<h2 id="test-trip">Test Trip<\/h2>/);
+    expect(html).not.toMatch(/<h3[ >]/);
     expect(html).toContain('href="/share/test-trip.html"');
     expect(html).toContain('id="trip-quick-expense-root"');
     // Food gallery: hidden section + full-screen viewer, driven by the shared asset.
@@ -161,6 +162,7 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(indexHtml).toContain('<h3 class="trip-card-title">🧪 Test Trip</h3>');
     expect(indexHtml).toContain("3 days · €300 booked");
     expect(indexHtml).toContain("1 trip · 3 days · 1 country");
+    expect(indexHtml).toContain('<meta name="description" content="Itineraries, dates and booked costs for 1 trip across 1 year." />');
     expect(indexHtml).toContain('href="dashboard/"');
     expect(fs.existsSync(path.join(outputDir, "assets", "trip-status.js"))).toBe(true);
   });
@@ -310,5 +312,20 @@ places:
     expect(buffer.subarray(0, 8).toString("hex")).toBe("89504e470d0a1a0a");
     expect(buffer.readUInt32BE(16)).toBe(1200);
     expect(buffer.readUInt32BE(20)).toBe(630);
+  });
+});
+
+describe("headingShiftFor", () => {
+  it("maps each file's top heading level to <h2> under the hero <h1>", () => {
+    expect(headingShiftFor("# Section\n## Sub")).toBe(1);
+    expect(headingShiftFor("## Section\n### Sub")).toBe(0);
+    // Order doesn't matter: the highest level anywhere in the file wins.
+    expect(headingShiftFor("## Intro\n# Section")).toBe(1);
+  });
+
+  it("ignores the frontmatter and fenced code, and defaults to 1 without headings", () => {
+    expect(headingShiftFor("---\ntitle: x\n---\n```\n# not a heading\n```\n## Real")).toBe(0);
+    expect(headingShiftFor("#hashtag, not a heading\n## Real")).toBe(0);
+    expect(headingShiftFor("just text")).toBe(1);
   });
 });
