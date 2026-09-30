@@ -99,6 +99,12 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(html).toContain('<script src="assets/trip-food-gallery.js" defer></script>');
     // Trip photos: the "Add photos" card's mount point and the gallery's All / Trip / Food filter.
     expect(html).toContain('<div id="trip-photo-upload-root"></div>');
+    // Public page: kept out of search engines, and "Sign in" (hidden until auth-state.js finds no session).
+    expect(html).toContain('<meta name="robots" content="noindex, nofollow" />');
+    expect(html).toContain('<script src="assets/auth-state.js" defer></script>');
+    expect(html).toMatch(/<a class="app-bar-action app-bar-action-labelled" href="\/\.auth\/login\/github" data-auth-show="signed-out" hidden>/);
+    expect(html).toMatch(/<a class="app-bar-action" href="dashboard\/" data-auth-show="signed-in">/);
+    expect(fs.existsSync(path.join(outputDir, "assets", "auth-state.js"))).toBe(true);
     expect(html).toContain('<h2 id="trip-food-gallery-title">Photos</h2>');
     expect(html).toContain('<button type="button" data-filter="trip" aria-pressed="false">Trip</button>');
     expect(html).toContain("data-lightbox-delete");
@@ -171,6 +177,9 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(indexHtml).toContain("1 trip · 3 days · 1 country");
     expect(indexHtml).toContain('<meta name="description" content="Itineraries, dates and booked costs for 1 trip across 1 year." />');
     expect(indexHtml).toContain('href="dashboard/"');
+    expect(indexHtml).toContain('<meta name="robots" content="noindex, nofollow" />');
+    expect(indexHtml).toContain('data-auth-show="signed-out" hidden');
+    expect(indexHtml).toContain('<script src="assets/auth-state.js" defer></script>');
     expect(fs.existsSync(path.join(outputDir, "assets", "trip-status.js"))).toBe(true);
   });
 
