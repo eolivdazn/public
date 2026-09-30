@@ -15,20 +15,19 @@
       return res.ok ? res.json() : null;
     })
     .then(function (payload) {
-      if (!payload || payload.clientPrincipal) {
+      if (!payload || !payload.clientPrincipal) {
+        var loginUrl = "/.auth/login/github?post_login_redirect_uri=" + encodeURIComponent(location.href);
+        document.querySelectorAll('[data-auth-show="signed-out"]').forEach(function (node) {
+          if (node.tagName === "A") {
+            node.href = loginUrl;
+          }
+          node.hidden = false;
+        });
+        document.querySelectorAll('[data-auth-show="signed-in"]').forEach(function (node) {
+          node.hidden = true;
+        });
         return;
       }
-      // Come back to this exact page after signing in.
-      var loginUrl = "/.auth/login/github?post_login_redirect_uri=" + encodeURIComponent(location.href);
-      document.querySelectorAll('[data-auth-show="signed-out"]').forEach(function (node) {
-        if (node.tagName === "A") {
-          node.href = loginUrl;
-        }
-        node.hidden = false;
-      });
-      document.querySelectorAll('[data-auth-show="signed-in"]').forEach(function (node) {
-        node.hidden = true;
-      });
     })
     .catch(function () {
       /* No auth endpoint (local server) — keep the default chrome. */
