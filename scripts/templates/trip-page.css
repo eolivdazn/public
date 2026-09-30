@@ -730,6 +730,131 @@ main:focus {
   border-bottom: none;
 }
 
+/* ---------- Itinerary timeline (from timeline.lua) ---------- */
+/* Lists whose items start with a bold date: a rail with a dot per stop. On phones the date sits
+   above the stop; from 640px it gets its own right-aligned column left of the rail. */
+
+.prose .timeline > ul {
+  list-style: none;
+  margin: var(--space-4) 0 var(--space-5);
+  padding: 0;
+}
+
+.prose .timeline > ul > li {
+  position: relative;
+  margin: 0;
+  padding: 0 0 var(--space-4) var(--space-6);
+}
+
+/* Rail: each stop draws its segment; it starts at the first dot and ends at the last one. */
+.prose .timeline > ul > li::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 7px;
+  width: 2px;
+  background: var(--color-border);
+}
+
+.prose .timeline > ul > li:first-child::before {
+  top: 0.5rem;
+}
+
+.prose .timeline > ul > li:last-child::before {
+  bottom: auto;
+  height: 0.5rem;
+}
+
+/* Dot. */
+.prose .timeline > ul > li::after {
+  content: "";
+  position: absolute;
+  top: 0.2rem;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  border: 3px solid var(--color-primary);
+  border-radius: 50%;
+  background: var(--color-surface);
+}
+
+/* Stops without a date: a smaller, quieter dot. */
+.prose .timeline > ul > li:not(:has(> .timeline-date))::after {
+  top: 0.45rem;
+  left: 4px;
+  width: 8px;
+  height: 8px;
+  border-width: 2px;
+  border-color: var(--color-border-strong);
+}
+
+.timeline-date {
+  color: var(--color-primary);
+  font-size: 0.8125rem;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.timeline-date strong {
+  font-weight: inherit;
+}
+
+.timeline-body {
+  min-width: 0;
+}
+
+.prose .timeline-body > :first-child {
+  margin-top: 0;
+}
+
+.prose .timeline-body > :last-child {
+  margin-bottom: 0;
+}
+
+.prose .timeline-body p {
+  margin: var(--space-1) 0;
+}
+
+@media (min-width: 640px) {
+  .prose .timeline > ul > li {
+    display: grid;
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    column-gap: var(--space-6);
+    padding-left: 0;
+  }
+
+  .prose .timeline > ul > li::before {
+    left: calc(7.5rem + 11px);
+  }
+
+  .prose .timeline > ul > li:first-child::before {
+    top: 0.55rem;
+  }
+
+  .prose .timeline > ul > li::after {
+    top: 0.4rem;
+    left: calc(7.5rem + 6px);
+  }
+
+  .prose .timeline > ul > li:not(:has(> .timeline-date))::after {
+    top: 0.55rem;
+    left: calc(7.5rem + 8px);
+  }
+
+  .timeline-date {
+    padding-top: 0.15rem;
+    text-align: right;
+  }
+
+  .timeline-body {
+    grid-column: 2;
+  }
+}
+
 /* ---------- Food gallery (filled in from the expenses API) ---------- */
 
 .trip-food-gallery {

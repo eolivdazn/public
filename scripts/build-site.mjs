@@ -393,6 +393,7 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
   const shareCardDir = path.join(outputDir, "share");
   const heroImageDir = path.join(outputDir, "hero");
   const tripPageTemplate = path.join(templatesDir, "trip-page.html");
+  const timelineFilter = path.join(templatesDir, "timeline.lua");
   const tripPageStylesheet = path.join(templatesDir, "trip-page.css");
   const tripStatusScript = path.join(templatesDir, "trip-status.js");
   const foodGalleryScript = path.join(templatesDir, "trip-food-gallery.js");
@@ -569,6 +570,9 @@ ${buildOgTags(trip, pageUrl)}
         `title-prefix=${titlePrefix()}`,
         // The page's <h1> is the hero title: shift so the file's top heading level becomes <h2>.
         `--shift-heading-level-by=${headingShiftFor(fs.readFileSync(mdFile, "utf-8"))}`,
+        // Itinerary lists that start with bold dates become a timeline (see timeline.lua).
+        "--lua-filter",
+        timelineFilter,
         "--toc",
         // Depth 4 counts <h2>–<h4> after the shift, so deeper itineraries (e.g. Valencia's
         // per-day sections) are listed as well as the top-level sections.
