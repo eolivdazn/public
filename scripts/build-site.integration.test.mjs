@@ -2,6 +2,8 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { spawnSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { runBuild, headingShiftFor } from "./build-site.mjs";
 
 const FIXTURE_TRIP_MD = `---
@@ -113,6 +115,10 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     const html = fs.readFileSync(path.join(outputDir, "test-trip.html"), "utf-8");
     expect(html).toContain('class="trip-hero-emblem"');
     expect(html).not.toContain("trip-hero-image");
+    // Full-width cover: no photo -> brand gradient variant; the dates line also gives the length.
+    expect(html).toContain('<section class="trip-hero no-image" aria-labelledby="trip-title">');
+    expect(html).toMatch(/<div class="trip-hero-cover">[\s\S]*<h1 id="trip-title">/);
+    expect(html).toContain('<span aria-hidden="true">·</span><span>3 days</span>');
   });
 
   it("generates a valid 1200x630 PNG preview image", () => {
@@ -323,5 +329,42 @@ describe("headingShiftFor", () => {
     expect(headingShiftFor("---\ntitle: x\n---\n```\n# not a heading\n```\n## Real")).toBe(0);
     expect(headingShiftFor("#hashtag, not a heading\n## Real")).toBe(0);
     expect(headingShiftFor("just text")).toBe(1);
+  });
+});
+
+describe("timeline.lua (real pandoc)", () => {
+  const filter = fileURLToPath(new URL("./templates/timeline.lua", import.meta.url));
+  const render = (markdown) => {
+    const result = spawnSync("pandoc", ["-f", "markdown", "-t", "html", "--lua-filter", filter], {
+      input: markdown,
+      encoding: "utf-8"
+    });
+    expect(result.status).toBe(0);
+    return result.stdout;
+  };
+
+  it("turns a list of bold-dated items into a timeline with separate date and body cells", () => {
+    const html = render("- **16 Feb** 🚌 Bus to KL\n- **Tue 03 Mar** ✈️ Flight home\n");
+    expect(html).toContain('<div class="timeline">');
+    expect(html).toMatch(/<div class="timeline-date">\s*<strong>16 Feb<\/strong>\s*<\/div>/);
+    expect(html).toMatch(/<div class="timeline-body">\s*🚌 Bus to KL\s*<\/div>/);
+    expect(html).toMatch(/<strong>Tue 03 Mar<\/strong>/);
+  });
+
+  it("recognises en-dash ranges and Portuguese month names", () => {
+    const html = render("- **16–19 outubro** 🏨 Hotel\n- **23–31 Jan** 🏨 Resort\n- **19 março** ✈️ Voo\n");
+    expect((html.match(/class="timeline-date"/g) || []).length).toBe(3);
+  });
+
+  it("leaves lists alone when their bold lead isn't a date, or when most items have no date", () => {
+    expect(render("- **Dica:** reserva\n- **🍽 Comer:** bravas\n")).not.toContain("timeline");
+    expect(render("- **16 Feb** Bus\n- note one\n- note two\n")).not.toContain("timeline");
+  });
+
+  it("keeps undated items in the timeline without a date cell, and keeps sub-lists in the body", () => {
+    const html = render("- **14 Feb** Walking tour\n    - Bike rent\n- **15 Feb** Free day\n- a note\n");
+    expect((html.match(/class="timeline-date"/g) || []).length).toBe(2);
+    expect((html.match(/class="timeline-body"/g) || []).length).toBe(3);
+    expect(html).toMatch(/<div class="timeline-body">[\s\S]*Walking tour[\s\S]*<li>Bike rent<\/li>/);
   });
 });

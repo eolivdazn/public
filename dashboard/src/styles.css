@@ -296,9 +296,15 @@ main:focus {
 /* Environment label on non-production builds (SITE_ENV, see lib/siteEnv.js). */
 .app-bar-start {
   display: flex;
+  flex: 1 1 auto;
   align-items: center;
   gap: var(--space-2);
   min-width: 0;
+}
+
+/* The back link / brand keep their size; the label takes what's left and shrinks first. */
+.app-bar-start > :not(.env-badge) {
+  flex: none;
 }
 
 .app-bar.is-env {
@@ -335,8 +341,15 @@ main:focus {
   content: "· ";
 }
 
+/* Phones: the branch name uses whatever room is left in the bar and is cut with "…" only when it
+   doesn't fit (the full name stays in the tooltip). The page title below already says "Travel
+   Dashboard", so the top-bar copy makes room for the label. */
 @media (max-width: 419px) {
   .env-badge-ref {
+    max-width: none;
+  }
+
+  .app-bar.is-env .app-bar-title {
     display: none;
   }
 }
