@@ -59,16 +59,40 @@ $endfor$
         });
       }
 
-      // Share: native share sheet where available, otherwise follow the link to the public card.
+      // Share this page: the native share sheet where available (phones), otherwise copy the link.
+      // The page is public and carries its own preview tags, so the URL itself is what's shared.
       var share = document.querySelector("[data-trip-share]");
-      if (share && navigator.share) {
+      if (share) {
+        var label = share.querySelector("[data-share-label]");
+        var status = document.createElement("span");
+        status.className = "visually-hidden";
+        status.setAttribute("role", "status");
+        share.after(status);
+        var announce = function (text) {
+          status.textContent = text;
+          if (label) {
+            label.textContent = text;
+            setTimeout(function () {
+              label.textContent = "Share";
+            }, 2000);
+          }
+        };
         share.addEventListener("click", function (event) {
           event.preventDefault();
-          navigator
-            .share({ title: share.getAttribute("data-title"), url: share.href })
-            .catch(function () {
+          if (navigator.share) {
+            navigator.share({ title: share.getAttribute("data-title"), url: share.href }).catch(function () {
               /* Dismissed by the user — nothing to do. */
             });
+          } else if (navigator.clipboard) {
+            navigator.clipboard.writeText(share.href).then(
+              function () {
+                announce("Link copied");
+              },
+              function () {
+                announce("Couldn't copy");
+              }
+            );
+          }
         });
       }
     })();
