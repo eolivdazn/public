@@ -889,6 +889,50 @@ main:focus {
   color: var(--color-text-muted);
 }
 
+/* Receives focus after a photo is deleted from the viewer; no visible ring for that. */
+.trip-food-gallery-subtitle:focus {
+  outline: none;
+}
+
+/* All / Trip / Food filter (only shown when both kinds of photos are on the page). */
+.trip-gallery-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.trip-gallery-filters[hidden] {
+  display: none;
+}
+
+.trip-gallery-filters button {
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.trip-gallery-filters button:hover {
+  border-color: var(--color-primary);
+}
+
+.trip-gallery-filters button[aria-pressed="true"] {
+  border-color: var(--color-primary);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
 .trip-food-day {
   margin-top: var(--space-5);
 }
@@ -1067,9 +1111,10 @@ html.has-lightbox {
   background: rgba(0, 0, 0, 0.9);
 }
 
-/* Beats the display rules below so hidden controls stay hidden. */
+/* Hidden controls (map link, delete, prev/next) must stay hidden even where a more specific rule
+   sets display (e.g. ".prose .trip-lightbox-links a"), hence !important. */
 .trip-lightbox [hidden] {
-  display: none;
+  display: none !important;
 }
 
 .trip-lightbox-bar {
@@ -1203,6 +1248,50 @@ html.has-lightbox {
 
 .prose .trip-lightbox-links a:hover {
   background: rgba(255, 255, 255, 0.22);
+}
+
+/* Delete (trip photos only): a second tap confirms. */
+.trip-lightbox-delete {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--space-4);
+  border: 1px solid rgba(248, 113, 113, 0.7);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: #fca5a5;
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.trip-lightbox-delete:hover:not(:disabled),
+.trip-lightbox-delete.is-confirming {
+  border-color: #dc2626;
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.trip-lightbox-delete:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.trip-lightbox-delete:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+.prose .trip-lightbox-error {
+  margin: var(--space-2) 0 0;
+  color: #fca5a5;
+  font-size: 0.875rem;
+}
+
+.prose .trip-lightbox-error:empty {
+  margin: 0;
 }
 
 @media (min-width: 768px) {

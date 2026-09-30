@@ -104,14 +104,73 @@ test("cardLabel names the action, the dish, the photo count and the rating", () 
   assert.equal(gallery.cardLabel(entry({ description: null })), "Open photo: Dish");
 });
 
-test("summaryLabel counts dishes and days with correct plurals", () => {
-  assert.equal(gallery.summaryLabel([entry({})]), "1 dish · 1 day");
+test("summaryLabel counts photos (not items) and days with correct plurals", () => {
+  assert.equal(gallery.summaryLabel([entry({})]), "1 photo · 1 day");
   assert.equal(
     gallery.summaryLabel([
-      entry({ id: "a" }),
+      entry({ id: "a", photos: [{ url: "u1" }, { url: "u2" }] }),
       entry({ id: "b" }),
       entry({ id: "c", date: "2026-10-18" })
     ]),
-    "3 dishes · 2 days"
+    "4 photos · 2 days"
   );
+});
+
+function tripPhoto(overrides) {
+  return {
+    id: "p1",
+    docType: "tripPhoto",
+    tripSlug: "valencia2026",
+    caption: "Sunset",
+    takenOn: "2026-10-17",
+    location: { latitude: 39.47, longitude: -0.32 },
+    createdBy: { userId: "u1", userDetails: "eduardo" },
+    createdAt: "2026-10-18T09:00:00Z",
+    url: "https://blob.test/p1.jpg",
+    ...overrides
+  };
+}
+
+test("tripPhotoItems turns photos into gallery items dated by their EXIF day, else the day they were added", () => {
+  const items = plain(
+    gallery.tripPhotoItems([
+      tripPhoto({ id: "exif" }),
+      tripPhoto({ id: "no-exif", takenOn: null, createdAt: "2026-10-19T08:00:00Z", caption: null }),
+      tripPhoto({ id: "no-url", url: null })
+    ])
+  );
+  assert.deepEqual(
+    items.map((item) => [item.id, item.kind, item.date, item.description, item.photos.length]),
+    [
+      ["exif", "trip", "2026-10-17", "Sunset", 1],
+      ["no-exif", "trip", "2026-10-19", null, 1]
+    ]
+  );
+  assert.deepEqual(items[0].createdBy, { userId: "u1", userDetails: "eduardo" });
+  assert.equal(items[0].rating, null);
+});
+
+test("galleryItems merges food and trip photos in trip order, and filterItems narrows by kind", () => {
+  const items = gallery.galleryItems(
+    [entry({ id: "lunch", date: "2026-10-17", createdAt: "2026-10-17T13:00:00Z" }), entry({ id: "hotel", category: "hotel" })],
+    [
+      tripPhoto({ id: "morning", takenOn: "2026-10-17", createdAt: "2026-10-17T09:00:00Z" }),
+      tripPhoto({ id: "next-day", takenOn: "2026-10-18" })
+    ]
+  );
+  assert.deepEqual(plain(items.map((item) => [item.id, item.kind])), [
+    ["morning", "trip"],
+    ["lunch", "food"],
+    ["next-day", "trip"]
+  ]);
+  assert.deepEqual(plain(gallery.filterItems(items, "trip").map((item) => item.id)), ["morning", "next-day"]);
+  assert.deepEqual(plain(gallery.filterItems(items, "food").map((item) => item.id)), ["lunch"]);
+  assert.equal(gallery.filterItems(items, "all").length, 3);
+  assert.deepEqual(plain(gallery.galleryItems(undefined, undefined)), []);
+});
+
+test("cardLabel names trip photos by caption, or as a trip photo without one", () => {
+  const [captioned, bare] = gallery.tripPhotoItems([tripPhoto({ id: "a" }), tripPhoto({ id: "b", caption: null })]);
+  assert.equal(gallery.cardLabel(captioned), "Open photo: Sunset");
+  assert.equal(gallery.cardLabel(bare), "Open photo: Trip photo");
 });

@@ -1,14 +1,20 @@
 <!--
-  "Food memories" gallery + full-screen photo viewer. Filled in from /api/expenses by
-  assets/trip-food-gallery.js; styles in assets/trip-page.css (.trip-food-*, .trip-lightbox*).
-  Stays hidden when there are no food photos or the API is unavailable.
+  "Photos" gallery (trip photos + food-expense photos) and full-screen viewer. Filled in from
+  /api/photos and /api/expenses by assets/trip-food-gallery.js; styles in assets/trip-page.css
+  (.trip-food-*, .trip-gallery-*, .trip-lightbox*). Stays hidden when there are no photos or the
+  API is unavailable.
 -->
 <section id="trip-food-gallery" class="trip-food-gallery" aria-labelledby="trip-food-gallery-title" hidden>
-  <h2 id="trip-food-gallery-title">Food memories</h2>
-  <p class="trip-food-gallery-subtitle"></p>
+  <h2 id="trip-food-gallery-title">Photos</h2>
+  <p class="trip-food-gallery-subtitle" tabindex="-1"></p>
+  <div class="trip-gallery-filters" role="group" aria-label="Show photos" hidden>
+    <button type="button" data-filter="all" aria-pressed="true">All</button>
+    <button type="button" data-filter="trip" aria-pressed="false">Trip</button>
+    <button type="button" data-filter="food" aria-pressed="false">Food</button>
+  </div>
   <div class="trip-food-days"></div>
 </section>
-<dialog id="trip-food-lightbox" class="trip-lightbox" aria-label="Food photos">
+<dialog id="trip-food-lightbox" class="trip-lightbox" aria-label="Trip photos">
   <div class="trip-lightbox-bar">
     <span class="trip-lightbox-counter" aria-live="polite"></span>
     <button type="button" class="trip-lightbox-button" data-lightbox-close aria-label="Close photos">
@@ -36,7 +42,9 @@
         <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
         Open original
       </a>
+      <button type="button" class="trip-lightbox-delete" data-lightbox-delete hidden>Delete photo</button>
     </p>
+    <p class="trip-lightbox-error" role="alert"></p>
   </div>
 </dialog>
 <script src="assets/trip-food-gallery.js" defer></script>
