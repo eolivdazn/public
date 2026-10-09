@@ -153,6 +153,24 @@ az staticwebapp users invite -n swa-public-pages -g rg-public-pages \
 The Free plan allows 3 preview environments. Stage uses one; old PR
 environments can be removed in the portal (Static Web App → Environments).
 
+## Flight check
+
+`npm run check:flights` (`scripts/check-flights.mjs`) reads the upcoming flights
+from the trip Markdown files and compares each one with the airline's published
+timetable on [flightmapper.net](https://info.flightmapper.net/). The
+[Flight check workflow](.github/workflows/flight-check.yml) runs it every day at
+06:00 UTC; the run fails, and GitHub emails the failure, when a flight's times
+changed (❌ with the new times) or the flight is no longer in the timetable for
+that day.
+
+A flight is checked when its itinerary line carries the route, flight number and
+times, e.g. `GVA → KRK — EZS1353 (17:45 → 19:45)` under a `- **Fri 13 Nov** ✈️`
+item. Flights are reported as not checked (⚠️, without failing the run) when the
+line has no flight number, the airline isn't easyJet (the only one mapped in
+`scripts/lib/flight-check.mjs`), the timetable isn't published that far ahead
+yet, or the timetable site couldn't be reached. It checks the published
+schedule, not your booking: a cancellation on the day won't show here.
+
 ## Running locally
 
 ### Prerequisites
