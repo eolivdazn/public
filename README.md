@@ -163,6 +163,15 @@ timetable on [flightmapper.net](https://info.flightmapper.net/). The
 changed (❌ with the new times) or the flight is no longer in the timetable for
 that day.
 
+**On the trip pages.** The deploy workflows also run the check, with
+`--report-only --output site/flight-status.json`, and `assets/flight-status.js`
+shows the result under each flight of the itinerary ("On schedule · checked
+9 Oct", "Schedule changed: now 21:10 → 23:00"). The prod deploy runs every day
+at 06:30 UTC as well as on push, so the status is at most a day old; the date in
+the line says when it was checked. Local builds have no `flight-status.json`
+unless you run that command yourself after `npm run build:site`, and the pages
+simply show no status line without it.
+
 A flight is checked when its itinerary line carries the route, flight number and
 times, e.g. `GVA → KRK — EZS1353 (17:45 → 19:45)` under a `- **Fri 13 Nov** ✈️`
 item. Flights are reported as not checked (⚠️, without failing the run) when the

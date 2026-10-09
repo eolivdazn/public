@@ -424,6 +424,7 @@ export async function runBuild({ sourceDir, outputDir, skipPandoc = false }) {
   const timelineFilter = path.join(templatesDir, "timeline.lua");
   const tripPageStylesheet = path.join(templatesDir, "trip-page.css");
   const tripStatusScript = path.join(templatesDir, "trip-status.js");
+  const flightStatusScript = path.join(templatesDir, "flight-status.js");
   const authStateScript = path.join(templatesDir, "auth-state.js");
   const foodGalleryScript = path.join(templatesDir, "trip-food-gallery.js");
   const quickExpensePartial = path.join(templatesDir, "trip-page-quick-expense.html");
@@ -652,6 +653,7 @@ ${buildOgTags(trip, pageUrl)}
     fs.mkdirSync(assetsDir, { recursive: true });
     fs.copyFileSync(tripPageStylesheet, path.join(assetsDir, "trip-page.css"));
     fs.copyFileSync(tripStatusScript, path.join(assetsDir, "trip-status.js"));
+    fs.copyFileSync(flightStatusScript, path.join(assetsDir, "flight-status.js"));
     fs.copyFileSync(foodGalleryScript, path.join(assetsDir, "trip-food-gallery.js"));
     fs.copyFileSync(authStateScript, path.join(assetsDir, "auth-state.js"));
   }

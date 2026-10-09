@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { checkFlight, parseSchedule, parseTripFlights, scheduleUrl } from "./lib/flight-check.mjs";
+import { buildStatusReport, checkFlight, parseSchedule, parseTripFlights, scheduleUrl } from "./lib/flight-check.mjs";
 
 const trip = { slug: "krakow2026", startDate: "2026-11-13", endDate: "2026-11-16" };
 
@@ -134,4 +134,30 @@ test("checkFlight cannot verify a flight beyond the published timetable", () => 
   const summerOnly = { ...winterFriday, validity: "Effective 2026-06-25 through 2026-08-27" };
   const result = checkFlight(outbound, parseSchedule(schedulePage([summerOnly])));
   assert.equal(result.status, "unverified");
+});
+
+test("buildStatusReport keeps what the trip page shows, with the new times of a changed flight", () => {
+  const report = buildStatusReport(
+    [
+      { flight: outbound, status: "ok", message: "matches the timetable" },
+      { flight: { ...outbound, date: "2026-11-20" }, status: "changed", message: "timetable now shows 18:30 → 20:30", departure: "18:30", arrival: "20:30" }
+    ],
+    "2026-10-09T06:00:00.000Z"
+  );
+
+  assert.deepEqual(report, {
+    checkedAt: "2026-10-09T06:00:00.000Z",
+    flights: [
+      { tripSlug: "krakow2026", date: "2026-11-13", flightNumber: "EZS1353", status: "ok", message: "matches the timetable" },
+      {
+        tripSlug: "krakow2026",
+        date: "2026-11-20",
+        flightNumber: "EZS1353",
+        status: "changed",
+        message: "timetable now shows 18:30 → 20:30",
+        departure: "18:30",
+        arrival: "20:30"
+      }
+    ]
+  });
 });

@@ -154,6 +154,22 @@ export function parseSchedule(html) {
   return { horizon, rows };
 }
 
+// The check results as the flight-status.json the trip pages read (scripts/templates/flight-status.js).
+export function buildStatusReport(results, checkedAt) {
+  return {
+    checkedAt,
+    flights: results.map(({ flight, status, message, departure, arrival }) => ({
+      tripSlug: flight.tripSlug,
+      date: flight.date,
+      flightNumber: flight.flightNumber,
+      status,
+      message,
+      // Only set for "changed": the times the timetable shows now.
+      ...(departure ? { departure, arrival } : {})
+    }))
+  };
+}
+
 // Compares one flight with the parsed timetable. Statuses:
 //   ok         - the timetable has this flight on that day at the same times
 //   changed    - the flight runs that day but at different times

@@ -1,16 +1,21 @@
 // Flight health check: compares the upcoming flights written in the trip markdown files with the
 // airline's published timetable and exits non-zero when one changed or disappeared.
 //
-//   node scripts/check-flights.mjs
+//   node scripts/check-flights.mjs [--output site/flight-status.json] [--report-only]
 //
 // Run daily by .github/workflows/flight-check.yml; a failed run is how a change gets noticed.
+// The deploy workflows run it with --output, to publish the result for the trip pages, and
+// --report-only, so a changed flight is shown on the page instead of failing the deploy.
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadTripEntries } from "./lib/travel-data.mjs";
-import { checkFlight, parseSchedule, parseTripFlights, scheduleUrl } from "./lib/flight-check.mjs";
+import { buildStatusReport, checkFlight, parseSchedule, parseTripFlights, scheduleUrl } from "./lib/flight-check.mjs";
 
 const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const reportOnly = process.argv.includes("--report-only");
+const outputIndex = process.argv.indexOf("--output");
+const outputPath = outputIndex === -1 ? null : process.argv[outputIndex + 1];
 
 const ICONS = { ok: "✅", changed: "❌", missing: "❌", unverified: "⚠️" };
 const RETRY_DELAYS_MS = [0, 5000, 15000];
@@ -99,8 +104,13 @@ async function main() {
     fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `${table.join("\n")}\n`);
   }
 
+  if (outputPath) {
+    fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+    fs.writeFileSync(outputPath, `${JSON.stringify(buildStatusReport(results, new Date().toISOString()), null, 2)}\n`);
+  }
+
   const problems = results.filter(({ status }) => status === "changed" || status === "missing");
-  if (problems.length > 0) {
+  if (problems.length > 0 && !reportOnly) {
     console.error(`\n${problems.length} flight(s) no longer match the published timetable.`);
     process.exitCode = 1;
   }

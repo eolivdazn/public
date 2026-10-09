@@ -121,6 +121,9 @@ describe("runBuild (real pandoc + resvg, fixture content dir)", () => {
     expect(html).toMatch(/<a class="app-bar-action app-bar-action-labelled" href="\/\.auth\/login\/github" data-auth-show="signed-out" hidden>/);
     expect(html).toMatch(/<a class="app-bar-action" href="dashboard\/" data-auth-show="signed-in">/);
     expect(fs.existsSync(path.join(outputDir, "assets", "auth-state.js"))).toBe(true);
+    // Flight schedule check: the script is always shipped; flight-status.json only exists on deploys.
+    expect(html).toContain('<script src="assets/flight-status.js" defer></script>');
+    expect(fs.existsSync(path.join(outputDir, "assets", "flight-status.js"))).toBe(true);
     expect(html).toContain('<h2 id="trip-food-gallery-title">Photos</h2>');
     expect(html).toContain('<button type="button" data-filter="trip" aria-pressed="false">Trip</button>');
     expect(html).toContain("data-lightbox-delete");
