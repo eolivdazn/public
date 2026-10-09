@@ -8,6 +8,7 @@
 - El Gouna: [https://white-stone-0b0565103.5.azurestaticapps.net/el-gouna2027.html](https://white-stone-0b0565103.5.azurestaticapps.net/el-gouna2027.html)
 - Algarve: [https://white-stone-0b0565103.5.azurestaticapps.net/algarve2026.html](https://white-stone-0b0565103.5.azurestaticapps.net/algarve2026.html)
 - Valencia: [https://white-stone-0b0565103.5.azurestaticapps.net/valencia2026.html](https://white-stone-0b0565103.5.azurestaticapps.net/valencia2026.html)
+- Kraków: [https://white-stone-0b0565103.5.azurestaticapps.net/krakow2026.html](https://white-stone-0b0565103.5.azurestaticapps.net/krakow2026.html)
 
 ## Actions Workflow
 
