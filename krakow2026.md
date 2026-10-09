@@ -4,6 +4,7 @@ slug: krakow2026
 favicon: "🥟"
 description: "A long weekend in Kraków, Poland — the Old Town and Wawel Castle, Kazimierz's bars and pierogi, flying direct from Geneva."
 seoTitle: "🏰 Kraków Trip Guide 2026 — Long Weekend Itinerary & Tips"
+ogImage: "https://i.pinimg.com/originals/f8/61/05/f861055772c4d4876b23cd4fcd869a94.jpg"
 schema: travel-dashboard/v1
 tripType: vacation
 startDate: "2026-11-13"
