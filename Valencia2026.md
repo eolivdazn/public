@@ -29,9 +29,9 @@ expenses:
 
 # 🏙️ Valencia Trip
 
-- **16 outubro** ✈️ Voo de ida · 18:05 ·
+- **16 outubro** ✈️ Voo de ida · GVA → VLC — EZS1371 (18:05 → 19:55)
 - **16–19 outubro** 🏨 [Carrer de Felip Vives de Canyamars, Valência, Comunidad Valenciana 46011, Espanha](https://www.google.com/maps/search/?api=1&query=Carrer%20de%20Felip%20Vives%20de%20Canyamars%2C%20Val%C3%AAncia%2C%20Comunidad%20Valenciana%2046011%2C%20Espanha)
-- **19 outubro** ✈️ Voo de volta · 21:00 ·
+- **19 outubro** ✈️ Voo de volta · VLC → GVA — EZS1372 (21:10 → 23:00)
 
 ---
 

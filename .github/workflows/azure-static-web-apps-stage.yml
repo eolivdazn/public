@@ -64,6 +64,11 @@ jobs:
       - name: Build static pages and dashboard data
         run: npm run build:site
 
+      # Publishes the flight schedule check the trip pages show (assets/flight-status.js).
+      # --report-only: a changed flight is shown on the page, it must not block the deploy.
+      - name: Check flights against the timetable
+        run: npm run check:flights -- --report-only --output site/flight-status.json
+
       - name: Build React dashboard
         run: npm run build:dashboard
 
