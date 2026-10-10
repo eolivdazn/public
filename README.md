@@ -155,30 +155,25 @@ environments can be removed in the portal (Static Web App → Environments).
 
 ## Flight check
 
-`npm run check:flights` (`scripts/check-flights.mjs`) reads the upcoming flights
-from the trip Markdown files and compares each one with the airline's published
-timetable on [flightmapper.net](https://info.flightmapper.net/). The
-[Flight check workflow](.github/workflows/flight-check.yml) runs it every day at
-06:00 UTC; the run fails, and GitHub emails the failure, when a flight's times
-changed (❌ with the new times) or the flight is no longer in the timetable for
-that day.
-
-**On the trip pages.** The check also runs when a trip page is opened. The build
-writes the flights of every itinerary to `site/flights.json`, and
-`assets/flight-status.js` asks the public `GET /api/flight-status`
+Each upcoming flight on a trip page is compared with the airline's published
+timetable on [flightmapper.net](https://info.flightmapper.net/) when the page is
+opened. The build writes the flights of every itinerary to `site/flights.json`,
+and `assets/flight-status.js` asks the public `GET /api/flight-status`
 (`api/flight-status/`) about each upcoming flight of the trip, then shows the
 answer under it ("On schedule · checked 14:32", "Schedule changed: now 21:10 →
-23:00"). The function fetches the timetable at that moment and keeps it in
+23:00", "Not in the timetable for this day"). There is no scheduled check and no
+email alert: a change is seen when the page is opened. The function fetches the
+timetable at that moment and keeps it in
 memory for 15 minutes, because the timetable site refuses rapid requests; the
 time in the line is when the timetable was really fetched. Without the API (a
 static preview of `site/`) the pages simply show no status line.
 
 A flight is checked when its itinerary line carries the route, flight number and
 times, e.g. `GVA → KRK — EZS1353 (17:45 → 19:45)` under a `- **Fri 13 Nov** ✈️`
-item. Flights are reported as not checked (⚠️, without failing the run) when the
-line has no flight number, the airline isn't easyJet (the only one mapped in
-`api/lib/flight-check.js`), the timetable isn't published that far ahead
-yet, or the timetable site couldn't be reached. It checks the published
+item. A flight without a flight number gets no status line; one is shown as
+"Not checked" when the airline isn't easyJet (the only one mapped in
+`api/lib/flight-check.js`), the timetable isn't published that far ahead yet, or
+the timetable site couldn't be reached. It checks the published
 schedule, not your booking: a cancellation on the day won't show here.
 
 ## Running locally
