@@ -1,11 +1,12 @@
-// Flight health check: reads the flights written in the trip markdown files and compares them
-// with the airline's published timetable, so a schedule change shows up before the trip.
+// Flight schedule check: reads the flights written in the trip markdown files (for the build,
+// scripts/build-site.mjs) and compares one with the airline's published timetable (for
+// api/flight-status), so a schedule change shows up on the trip page before the trip.
 //
 // A flight is read from an itinerary item like
 //   - **Fri 13 Nov** ✈️ Flight
 //     GVA → KRK — EZS1353 (17:45 → 19:45)
 // The year comes from the trip's startDate/endDate. Items with ✈️ but no flight number
-// ("Voo de ida · 18:05") are still returned, so the report can say they could not be checked.
+// ("Voo de ida · 18:05") are still returned, so the caller decides what to do with them.
 
 // English abbreviations and Portuguese month names, keyed by their first three letters.
 const MONTHS = {
