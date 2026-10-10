@@ -21,7 +21,7 @@ test("the dashboard, its data and the whole API require the approved role", () =
 });
 
 test("the index, trip pages, their assets, share cards and OG images are public", () => {
-  for (const path of ["/", "/index.html", "/valencia2026.html", "/assets/trip-page.css", "/assets/auth-state.js", "/assets/flight-status.js", "/flight-status.json", "/hero/valencia2026-800.webp", "/vendor/quick-expense.js", "/share/valencia2026.html", "/og/valencia2026.png"]) {
+  for (const path of ["/", "/index.html", "/valencia2026.html", "/assets/trip-page.css", "/assets/auth-state.js", "/assets/flight-status.js", "/flights.json", "/api/flight-status", "/hero/valencia2026-800.webp", "/vendor/quick-expense.js", "/share/valencia2026.html", "/og/valencia2026.png"]) {
     assert.deepEqual(rolesFor(path), ["anonymous"], path);
   }
   assert.equal(

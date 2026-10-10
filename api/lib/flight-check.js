@@ -49,7 +49,7 @@ function resolveDate(label, trip) {
   return `${startYear}-${pad(month)}-${pad(match[1])}`;
 }
 
-export function parseTripFlights(markdown, trip) {
+function parseTripFlights(markdown, trip) {
   const lines = markdown.split(/\r?\n/);
   const flights = [];
 
@@ -95,7 +95,7 @@ export function parseTripFlights(markdown, trip) {
 }
 
 // The timetable page for a flight's airline and route, or null when the airline is not supported.
-export function scheduleUrl(flight) {
+function scheduleUrl(flight) {
   const airline = SCHEDULE_AIRLINES[flight.airline];
   if (!airline) {
     return null;
@@ -106,7 +106,7 @@ export function scheduleUrl(flight) {
 // Parses a flightmapper route page. Each timetable row is one table cell:
 //   Fri 17:45 Geneva (GVA) 1 19:45 Krakow (KRK) EasyJet U2 1353 Non-stop ... Effective from 2026-10-30
 // `horizon` is the last date the site's calendar offers, i.e. how far the timetable is published.
-export function parseSchedule(html) {
+function parseSchedule(html) {
   const horizonMatch = html.match(/rangeHigh:"(\d{4})(\d{2})(\d{2})"/);
   const horizon = horizonMatch ? `${horizonMatch[1]}-${horizonMatch[2]}-${horizonMatch[3]}` : null;
 
@@ -154,28 +154,12 @@ export function parseSchedule(html) {
   return { horizon, rows };
 }
 
-// The check results as the flight-status.json the trip pages read (scripts/templates/flight-status.js).
-export function buildStatusReport(results, checkedAt) {
-  return {
-    checkedAt,
-    flights: results.map(({ flight, status, message, departure, arrival }) => ({
-      tripSlug: flight.tripSlug,
-      date: flight.date,
-      flightNumber: flight.flightNumber,
-      status,
-      message,
-      // Only set for "changed": the times the timetable shows now.
-      ...(departure ? { departure, arrival } : {})
-    }))
-  };
-}
-
 // Compares one flight with the parsed timetable. Statuses:
 //   ok         - the timetable has this flight on that day at the same times
 //   changed    - the flight runs that day but at different times
 //   missing    - the timetable covers that day and the flight is not in it
 //   unverified - the timetable is not published that far ahead yet
-export function checkFlight(flight, schedule) {
+function checkFlight(flight, schedule) {
   const weekday = WEEKDAYS[new Date(`${flight.date}T00:00:00Z`).getUTCDay()];
   const onDay = schedule.rows.filter(
     (row) =>
@@ -203,3 +187,5 @@ export function checkFlight(flight, schedule) {
   }
   return { status: "missing", message: "not in the timetable for that day" };
 }
+
+module.exports = { parseTripFlights, scheduleUrl, parseSchedule, checkFlight };

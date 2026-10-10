@@ -163,20 +163,21 @@ timetable on [flightmapper.net](https://info.flightmapper.net/). The
 changed (❌ with the new times) or the flight is no longer in the timetable for
 that day.
 
-**On the trip pages.** The deploy workflows also run the check, with
-`--report-only --output site/flight-status.json`, and `assets/flight-status.js`
-shows the result under each flight of the itinerary ("On schedule · checked
-9 Oct", "Schedule changed: now 21:10 → 23:00"). The prod deploy runs every day
-at 06:30 UTC as well as on push, so the status is at most a day old; the date in
-the line says when it was checked. Local builds have no `flight-status.json`
-unless you run that command yourself after `npm run build:site`, and the pages
-simply show no status line without it.
+**On the trip pages.** The check also runs when a trip page is opened. The build
+writes the flights of every itinerary to `site/flights.json`, and
+`assets/flight-status.js` asks the public `GET /api/flight-status`
+(`api/flight-status/`) about each upcoming flight of the trip, then shows the
+answer under it ("On schedule · checked 14:32", "Schedule changed: now 21:10 →
+23:00"). The function fetches the timetable at that moment and keeps it in
+memory for 15 minutes, because the timetable site refuses rapid requests; the
+time in the line is when the timetable was really fetched. Without the API (a
+static preview of `site/`) the pages simply show no status line.
 
 A flight is checked when its itinerary line carries the route, flight number and
 times, e.g. `GVA → KRK — EZS1353 (17:45 → 19:45)` under a `- **Fri 13 Nov** ✈️`
 item. Flights are reported as not checked (⚠️, without failing the run) when the
 line has no flight number, the airline isn't easyJet (the only one mapped in
-`scripts/lib/flight-check.mjs`), the timetable isn't published that far ahead
+`api/lib/flight-check.js`), the timetable isn't published that far ahead
 yet, or the timetable site couldn't be reached. It checks the published
 schedule, not your booking: a cancellation on the day won't show here.
 
