@@ -1488,6 +1488,27 @@ html.has-lightbox {
   margin-top: 3px;
 }
 
+/* "Flight status" on a card (flight-status.js): only the icon of the current result is shown,
+   and it carries the colour. The shape changes with the state too, not just the colour. */
+.trip-card-flight[hidden],
+.trip-card-flight-icon {
+  display: none;
+}
+
+.trip-card-flight[data-state="ok"] [data-icon="ok"],
+.trip-card-flight[data-state="changed"] [data-icon="changed"],
+.trip-card-flight[data-state="unverified"] [data-icon="unverified"] {
+  display: flex;
+}
+
+.trip-card-flight [data-icon="ok"] {
+  color: var(--color-success);
+}
+
+.trip-card-flight [data-icon="changed"] {
+  color: var(--color-env-text);
+}
+
 .trip-card-meta {
   margin-top: 2px;
   font-family: var(--font-mono);
