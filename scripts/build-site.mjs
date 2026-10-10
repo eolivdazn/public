@@ -5,6 +5,7 @@ import { spawnSync } from "node:child_process";
 import { Resvg } from "@resvg/resvg-js";
 import sharp from "sharp";
 import { buildDashboardData, loadTripEntries } from "./lib/travel-data.mjs";
+import { parseTripFlights } from "../api/lib/flight-check.js";
 
 const PROD_ORIGIN = "https://white-stone-0b0565103.5.azurestaticapps.net";
 
@@ -677,6 +678,13 @@ ${buildOgTags(trip, pageUrl)}
 
   fs.writeFileSync(path.join(outputDir, "dashboard-data.json"), `${JSON.stringify(dashboardData, null, 2)}\n`);
   fs.writeFileSync(path.join(outputDir, "index.html"), renderIndexHtml(trips, heroSlugs));
+
+  // The flights written in the itineraries, for the schedule check the trip pages ask
+  // api/flight-status for (assets/flight-status.js). Only flights with a number can be checked.
+  const flights = tripEntries
+    .flatMap(({ fileName, trip }) => parseTripFlights(fs.readFileSync(path.join(sourceDir, fileName), "utf-8"), trip))
+    .filter((flight) => flight.flightNumber);
+  fs.writeFileSync(path.join(outputDir, "flights.json"), `${JSON.stringify(flights, null, 2)}\n`);
 
   copyStaticConfig();
 
