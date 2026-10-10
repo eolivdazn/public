@@ -71,6 +71,10 @@ const ICON_PATHS = {
   logIn: '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><path d="m10 17 5-5-5-5"/><path d="M15 12H3"/>',
   share:
     '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.59 13.51 6.83 3.98"/><path d="m15.41 6.51-6.82 3.98"/>',
+  circleCheck: '<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+  triangleAlert:
+    '<path d="m21.73 18-8-14a2 2 0 0 0-3.46 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+  circleHelp: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>',
   calendar: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
   mapPin:
     '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>'
@@ -321,7 +325,21 @@ function buildShareCardHtml(trip, hasPhoto) {
 `;
 }
 
-function renderTripCard(trip, hasHeroImage, index) {
+// The card's "Flight status" line: hidden until assets/flight-status.js has checked the trip's
+// upcoming flights, then it shows the icon of the result (see .trip-card-flight in the CSS).
+function flightStatusLineHtml(trip) {
+  const icons = [
+    ["ok", "circleCheck"],
+    ["changed", "triangleAlert"],
+    ["unverified", "circleHelp"]
+  ]
+    .map(([state, name]) => `<span class="trip-card-flight-icon" data-icon="${state}">${icon(name, 16)}</span>`)
+    .join("");
+  return `
+              <span class="trip-card-line trip-card-flight" data-flight-status="${trip.slug}" hidden>${icons}<span>Flight status<span class="visually-hidden" data-flight-status-label></span></span></span>`;
+}
+
+function renderTripCard(trip, hasHeroImage, index, hasFlights) {
   const { expenses } = trip;
   const media = hasHeroImage
     ? `<img src="hero/${trip.slug}-800.webp" width="800" height="450" alt=""${index === 0 ? ' fetchpriority="high"' : ' loading="lazy"'} decoding="async" />`
@@ -338,7 +356,7 @@ function renderTripCard(trip, hasHeroImage, index) {
               <span class="trip-status" data-trip-status data-start="${trip.startDate}" data-end="${trip.endDate}" hidden></span>
               <h3 class="trip-card-title">${escapeHtml(trip.title)}</h3>
               <span class="trip-card-line">${icon("calendar", 16)}<time datetime="${trip.startDate}">${escapeHtml(formatDateRange(trip.startDate, trip.endDate))}</time></span>
-              <span class="trip-card-line">${icon("mapPin", 16)}<span>${escapeHtml(tripCities(trip).join(" · "))}</span></span>
+              <span class="trip-card-line">${icon("mapPin", 16)}<span>${escapeHtml(tripCities(trip).join(" · "))}</span></span>${hasFlights ? flightStatusLineHtml(trip) : ""}
               <span class="trip-card-meta">${escapeHtml(meta.join(" · "))}</span>
             </span>
           </a>
@@ -346,7 +364,7 @@ function renderTripCard(trip, hasHeroImage, index) {
 }
 
 // Trip index: grouped by year (newest first), newest trip first within a year.
-function renderIndexHtml(trips, heroSlugs) {
+function renderIndexHtml(trips, heroSlugs, flightSlugs) {
   const sorted = trips.slice().sort((a, b) => (a.startDate < b.startDate ? 1 : -1));
   const years = [...new Set(sorted.map((trip) => trip.year))];
   const totalDays = trips.reduce((sum, trip) => sum + trip.vacationDays, 0);
@@ -358,7 +376,7 @@ function renderIndexHtml(trips, heroSlugs) {
     .map((year) => {
       const cards = sorted
         .filter((trip) => trip.year === year)
-        .map((trip) => renderTripCard(trip, heroSlugs.has(trip.slug), cardIndex++))
+        .map((trip) => renderTripCard(trip, heroSlugs.has(trip.slug), cardIndex++, flightSlugs.has(trip.slug)))
         .join("\n");
       return `    <section class="trip-year" aria-labelledby="year-${year}">
       <h2 id="year-${year}">${year}</h2>
@@ -392,6 +410,7 @@ ${cards}
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500;600&family=Fira+Sans:wght@400;500;600;700&display=swap" />
   <link rel="stylesheet" href="assets/trip-page.css" />
   <script src="assets/trip-status.js" defer></script>
+  <script src="assets/flight-status.js" defer></script>
   <script src="assets/auth-state.js" defer></script>
 </head>
 <body>
@@ -677,14 +696,17 @@ ${buildOgTags(trip, pageUrl)}
   const dashboardData = buildDashboardData(trips);
 
   fs.writeFileSync(path.join(outputDir, "dashboard-data.json"), `${JSON.stringify(dashboardData, null, 2)}\n`);
-  fs.writeFileSync(path.join(outputDir, "index.html"), renderIndexHtml(trips, heroSlugs));
 
-  // The flights written in the itineraries, for the schedule check the trip pages ask
-  // api/flight-status for (assets/flight-status.js). Only flights with a number can be checked.
+  // The flights written in the itineraries, for the schedule check the trip pages and the
+  // index cards ask api/flight-status for (assets/flight-status.js). Only flights with a number
+  // can be checked.
   const flights = tripEntries
     .flatMap(({ fileName, trip }) => parseTripFlights(fs.readFileSync(path.join(sourceDir, fileName), "utf-8"), trip))
     .filter((flight) => flight.flightNumber);
   fs.writeFileSync(path.join(outputDir, "flights.json"), `${JSON.stringify(flights, null, 2)}\n`);
+
+  const flightSlugs = new Set(flights.map((flight) => flight.tripSlug));
+  fs.writeFileSync(path.join(outputDir, "index.html"), renderIndexHtml(trips, heroSlugs, flightSlugs));
 
   copyStaticConfig();
 
