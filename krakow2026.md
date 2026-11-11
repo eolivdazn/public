@@ -32,6 +32,11 @@ expenses:
 - **Mon 16 Nov** ✈️ Flight
   KRK → GVA — EZS1354 (20:40 → 22:45)
 
+## 🏨 Accommodation
+- **Hotel:** Aparthotel Inspire Miodova
+- **Stay:** Kraków, Poland — for the trip from 13 to 16 November 2026
+- **Status:** booked / reserved for the trip (update with booking details if needed)
+
 ## 🗓️ Plan
 - **Fri 13 Nov** 🌙 Land 19:45, in town around 21:00 — zapiekanka at Plac Nowy and a first beer in Kazimierz
 - **Sat 14 Nov** 🏭 Nowa Huta tour in the morning · 🍻 Kazimierz bar hop at night
@@ -49,9 +54,9 @@ The "ideal socialist city" built in the 1950s around the Lenin Steelworks: Plac 
 | [Crazy Guides — Communism Tour](https://www.crazyguides.com/krakow-tours/communism-tour-of-nowa-huta-district) | Private tour in a Trabant or Lada, pick-up in the Old Town, old-style restaurant stop, 1950s shop, a drink included | 2h30 | 850 PLN (≈ €200) for one person |
 | [Crazy Guides — Communism Deluxe](https://www.crazyguides.com/krakow-tours/communism-deluxe-tour) | Same, plus the former steelworks headquarters | 3h30 | Ask when booking |
 
-- **Getting there:** tram to *Plac Centralny im. R. Reagana*, about 25–30 minutes from the centre (line 4 from Teatr Bagatela / Dworzec Główny — check [Jakdojade](https://jakdojade.pl/krakow) on the day).
+- **Getting there:** tram to *Plac Centralny im. R. Reagana*, about 25–30 minutes from the centre (line 4 from Teatr Bagatela / Dworzec Główny — check [Jakdojade](https://jakdojade.pl/krakow) and [Google Maps](https://maps.google.com/))
 - **Tip:** travelling solo, the walking tour is far better value; the Trabant tour is priced per car, so it only makes sense shared.
-- **After the tour:** [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w), on the main avenue off Plac Centralny, is the classic communist-era dining room.
+- **After the tour:** [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w), on the main avenue off Plac Centralny, is the classic late lunch stop.
 
 ## 🥟 Food tour or 🍺 beer tour
 Pick one for Sunday — both are small-group and should be booked at least 48 hours ahead.
@@ -68,7 +73,7 @@ Pick one for Sunday — both are small-group and should be booked at least 48 ho
 ## 🍻 Bar hopping in Kazimierz
 The old Jewish quarter is the best area for a night out: candle-lit bars with junk-shop furniture, all within a ten-minute walk. Start at Plac Wolnica and finish around Plac Nowy.
 
-🗺️ [See the route on Google Maps](https://www.google.com/maps/dir/?api=1&origin=Ursa%20Maior%2C%20Plac%20Wolnica%2010%2C%20Krak%C3%B3w&waypoints=Strefa%20Piwa%2C%20J%C3%B3zefa%206%2C%20Krak%C3%B3w%7CEszeweria%2C%20J%C3%B3zefa%209%2C%20Krak%C3%B3w%7COmerta%20Pub%2C%20Kupa%203%2C%20Krak%C3%B3w%7CAlchemia%2C%20Estery%205%2C%20Krak%C3%B3w%7CSinger%2C%20Estery%2020%2C%20Krak%C3%B3w&destination=Propaganda%2C%20Miodowa%2020%2C%20Krak%C3%B3w&travelmode=walking)
+🗺️ [See the route on Google Maps](https://www.google.com/maps/dir/?api=1&origin=Ursa%20Maior%2C%20Plac%20Wolnica%2010%2C%20Krak%C3%B3w&waypoints=Strefa%20Piwa%2C%20J%C3%B3zefa%206%2C%20Krak%C3%B3w%7CEszeweria%2C%20J%C3%B3zefa%209%2C%20Krak%C3%B3w%7COmerta%20Pub%2C%20Kupa%203%2C%20Krak%C3%B3w%7CAlchemia%2C%20Estery%205%2C%20Krak%C3%B3w%7CSinger%2C%20Estery%2020%2C%20Krak%C3%B3w%7CPropaganda%2C%20Miodowa%2020%2C%20Krak%C3%B3w&destination=Plac%20Nowy%2C%20Krak%C3%B3w)
 
 #### 1. Ursa Maior
 📍 [Plac Wolnica 10](https://www.google.com/maps/search/?api=1&query=Ursa%20Maior%20Plac%20Wolnica%2010%20Krak%C3%B3w)
