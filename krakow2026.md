@@ -39,7 +39,7 @@ expenses:
 
 ## 🗓️ Plan
 - **Fri 13 Nov** 🌙 Land 19:45, in town around 21:00 — 🍲 Polish soup around 22:00 near the hotel · 🎧 techno night
-- **Sat 14 Nov** 🏭 Nowa Huta free walking tour at 11:00 · 🍽️ lunch in Nowa Huta · ☢️ Cold War bunker (optional) · 🏨 "Hotel Forum" exhibition at the Podgórze Museum · 🍻 Kazimierz bar hop at night · 🎧 techno after midnight
+- **Sat 14 Nov** 🏭 Nowa Huta free walking tour at 11:00 · 🍽️ lunch on Plac Centralny + a vodka at Stylowa · ☢️ Cold War bunker (optional) · 🏨 "Hotel Forum" exhibition at the Podgórze Museum · 🍻 Kazimierz bar hop at night · 🎧 techno after midnight
 - **Sun 15 Nov** 🏢 Hotel Forum in daylight (~11:00) · 🥟 Food tour (13:00) or beer tour · Old Town and Wawel around it
 - **Mon 16 Nov** 🏰 Free day — leave for the airport by about 18:00 for the 20:40 flight
 
@@ -104,13 +104,23 @@ The "ideal socialist city" built in the 1950s around the Lenin Steelworks: Plac 
 - **Tip:** travelling solo, the walking tour is far better value; the Trabant tour is priced per car, so it only makes sense shared.
 - **After the tour:** [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w), on the main avenue off Plac Centralny, is the classic communist-era dining room.
 
+### 🍽️ Where to eat in Nowa Huta
+
+| Place | Why | Where |
+|---|---|---|
+| [Skarbnica Smaków](https://www.google.com/maps/search/?api=1&query=Skarbnica%20Smak%C3%B3w%20Os.%20Centrum%20C1%20Krak%C3%B3w) ⭐ | Best food of the three. The old "Skarbnica" bookshop, with some of the shelves kept. Polish comfort food: pierogi and huge breaded pork cutlets. Open 09:00–21:00. | Os. Centrum C1, on Plac Centralny |
+| [Bar Mleczny Centralny](https://www.google.com/maps/search/?api=1&query=Bar%20Mleczny%20Centralny%20Nowa%20Huta%20Krak%C3%B3w) | On the square since the early 1950s; one of the most genuine milk bars in Poland. Cheap canteen food. | Plac Centralny |
+| [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w) | Open since 1956 and barely changed: communist-era service, decor and atmosphere. Come for the experience, not the food. | Os. Centrum C3 |
+
+- **Plan:** eat at Skarbnica Smaków or the milk bar, then stop at Stylowa for a shot of cherry vodka and a look at the interior.
+
 ## 🗓️ Saturday 14 Nov — Nowa Huta and the Hotel Forum exhibition
 
 | Time | What | Where |
 |---|---|---|
 | 10:15 | Leave the hotel — tram to Plac Centralny (~30 min) | Line 4 from Teatr Bagatela / Dworzec Główny |
 | 11:00 → ~13:30 | Walkative Nowa Huta walking tour | Plac Centralny (yellow umbrella) |
-| ~13:45 → 14:45 | 🍽️ Lunch at [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w) | Off Plac Centralny |
+| ~13:45 → 14:45 | 🍽️ Lunch at [Skarbnica Smaków](https://www.google.com/maps/search/?api=1&query=Skarbnica%20Smak%C3%B3w%20Os.%20Centrum%20C1%20Krak%C3%B3w) or [Bar Mleczny Centralny](https://www.google.com/maps/search/?api=1&query=Bar%20Mleczny%20Centralny%20Nowa%20Huta%20Krak%C3%B3w), then a cherry-vodka shot at [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w) (see below) | Plac Centralny |
 | ~14:50 → 15:30 | ☢️ **Optional:** Cold War shelter — [Nowa Huta Underground](https://www.google.com/maps/search/?api=1&query=Podziemna%20Nowa%20Huta%20os.%20Szkolne%2037%20Krak%C3%B3w) (~45 min visit) | os. Szkolne 37 ("State of Emergency") or os. Szkolne 22 ("Bunkers in Nowa Huta"), ~10 min walk from the square |
 | ~15:35 → 16:10 | 🚕 Bolt/taxi to Podgórze (~25–35 min); the tram is slower | — |
 | by 16:30 | 🏨 **"Hotel Forum" exhibition** at the [Podgórze Museum](https://muzeumkrakowa.pl/wystawy/hotel-forum) — 20 PLN | ul. Limanowskiego 51 |
