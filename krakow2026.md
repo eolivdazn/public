@@ -39,8 +39,8 @@ expenses:
 
 ## 🗓️ Plan
 - **Fri 13 Nov** 🌙 Land 19:45, in town around 21:00 — 🍲 Polish soup around 22:00 near the hotel · 🎧 techno night
-- **Sat 14 Nov** 🏭 Nowa Huta free walking tour at 11:00 · 🍽️ lunch in Nowa Huta · ☢️ Cold War bunker (optional) · 🏨 "Hotel Forum" exhibition at the Podgórze Museum, then the Forum itself · 🍻 Kazimierz bar hop at night · 🎧 techno after midnight
-- **Sun 15 Nov** 🥟 Food tour (13:00) or beer tour · Old Town and Wawel around it
+- **Sat 14 Nov** 🏭 Nowa Huta free walking tour at 11:00 · 🍽️ lunch in Nowa Huta · ☢️ Cold War bunker (optional) · 🏨 "Hotel Forum" exhibition at the Podgórze Museum · 🍻 Kazimierz bar hop at night · 🎧 techno after midnight
+- **Sun 15 Nov** 🏢 Hotel Forum in daylight (~11:00) · 🥟 Food tour (13:00) or beer tour · Old Town and Wawel around it
 - **Mon 16 Nov** 🏰 Free day — leave for the airport by about 18:00 for the 20:40 flight
 
 > 💡 Nothing here is booked yet. Tour days, start times and prices change by season — confirm on the operator's site when booking.
@@ -104,7 +104,7 @@ The "ideal socialist city" built in the 1950s around the Lenin Steelworks: Plac 
 - **Tip:** travelling solo, the walking tour is far better value; the Trabant tour is priced per car, so it only makes sense shared.
 - **After the tour:** [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w), on the main avenue off Plac Centralny, is the classic communist-era dining room.
 
-## 🗓️ Saturday 14 Nov — Nowa Huta to the Hotel Forum
+## 🗓️ Saturday 14 Nov — Nowa Huta and the Hotel Forum exhibition
 
 | Time | What | Where |
 |---|---|---|
@@ -114,13 +114,17 @@ The "ideal socialist city" built in the 1950s around the Lenin Steelworks: Plac 
 | ~14:50 → 15:30 | ☢️ **Optional:** Cold War shelter — [Nowa Huta Underground](https://www.google.com/maps/search/?api=1&query=Podziemna%20Nowa%20Huta%20os.%20Szkolne%2037%20Krak%C3%B3w) (~45 min visit) | os. Szkolne 37 ("State of Emergency") or os. Szkolne 22 ("Bunkers in Nowa Huta"), ~10 min walk from the square |
 | ~15:35 → 16:10 | 🚕 Bolt/taxi to Podgórze (~25–35 min); the tram is slower | — |
 | by 16:30 | 🏨 **"Hotel Forum" exhibition** at the [Podgórze Museum](https://muzeumkrakowa.pl/wystawy/hotel-forum) — 20 PLN | ul. Limanowskiego 51 |
-| ~17:00 | 🏢 Walk to the [Hotel Forum](https://www.google.com/maps/search/?api=1&query=Hotel%20Forum%20Konopnickiej%2028%20Krak%C3%B3w) (~20 min) — the brutalist hotel on the river, murals at the back | ul. Marii Konopnickiej 28 |
-| ~18:00 | Cross the river to Plac Wolnica (~15 min) and start the Kazimierz bar hop (below) | Ursa Maior, Plac Wolnica 10 |
+| ~17:00 | Walk to Plac Wolnica (~15–20 min) and start the Kazimierz bar hop (below) | Ursa Maior, Plac Wolnica 10 |
 
 - **The museum is the hard deadline:** open Thu–Sun 10:00–17:00, **last entry 16:30**, closed Mon–Tue. If lunch runs late, skip the bunker — the museum can't move to Monday.
 - **Bunker:** check that day's opening hours on [muzeumkrakowa.pl](https://muzeumkrakowa.pl/) before going; a ticket for one Nowa Huta Underground site is also valid at the Nowa Huta Museum branches.
 - **Exhibition language:** the descriptions are in Polish — take photos of the panels and translate them with Claude.
-- **Forum at dusk:** sunset is around 16:00 in mid-November, so you'll see the Forum lit up in the dark. Forum Przestrzenie (the bar in the old lobby) may be closed — check Google Maps.
+- **The Forum itself is on Sunday morning:** the building is abandoned and not lit at night, so see it in daylight (below).
+
+## 🏢 Sunday 15 Nov morning — the Hotel Forum in daylight
+- **~11:00 → 12:00:** walk to the [Hotel Forum](https://www.google.com/maps/search/?api=1&query=Hotel%20Forum%20Konopnickiej%2028%20Krak%C3%B3w) (ul. Marii Konopnickiej 28, ~20 min from the hotel) — the brutalist 1978–88 hotel on the river, facing Wawel. Look at the concrete stilts from the riverbank and the murals at the back.
+- **Then:** cross back towards Wawel and the Old Town for the 13:00 food tour.
+- **Tip:** Forum Przestrzenie (the bar in the old lobby) may be closed — check Google Maps.
 
 ## 🥟 Food tour or 🍺 beer tour
 Pick one for Sunday — both are small-group and should be booked at least 48 hours ahead.
