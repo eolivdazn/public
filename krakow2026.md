@@ -38,38 +38,69 @@ expenses:
 - **Status:** booked / reserved for the trip (update with booking details if needed)
 
 ## 🗓️ Plan
-- **Fri 13 Nov** 🌙 Land 19:45, in town around 21:00 — zapiekanka at Plac Nowy and a first beer in Kazimierz
-- **Sat 14 Nov** 🏭 Nowa Huta tour in the morning · 🍻 Kazimierz bar hop at night
+- **Fri 13 Nov** 🌙 Land 19:45, in town around 21:00 — 🍲 Polish soup around 22:00 near the hotel · 🎧 techno night
+- **Sat 14 Nov** 🏭 Nowa Huta free walking tour at 11:00 · 🍻 Kazimierz bar hop at night · 🎧 techno after midnight
 - **Sun 15 Nov** 🥟 Food tour (13:00) or beer tour · Old Town and Wawel around it
 - **Mon 16 Nov** 🏰 Free day — leave for the airport by about 18:00 for the 20:40 flight
 
 > 💡 Nothing here is booked yet. Tour days, start times and prices change by season — confirm on the operator's site when booking.
 
-## 🏨 Nearby dinner + soup options near the hotel
-If you land late on Friday, these are the kinds of places to check first near the hotel area in Kraków. They are useful for a simple warm meal, soup and a quick local dinner before late-night drinks.
+## 🍲 Polish soup on Friday at 22:00
+Places near the hotel (Miodowa, Kazimierz) that serve Polish soup — `żurek`, `barszcz` — and are still open on a Friday at 22:00.
 
-- **[Miodowa 13 / around Miodowa](https://maps.google.com/?q=Miodowa%20Krakow)** — good area for a short walk after check-in; look for a classic Polish place serving `zupa` and grilled mains.
-- **[Plac Nowy / Kazimierz](https://maps.google.com/?q=Plac%20Nowy%20Krakow)** — the most practical late-evening option if you're already in the old town; many places serve soup and stay open late, but times should be checked before the trip.
-- **[Zurek and pierogi spots around Kazimierz](https://maps.google.com/?q=Krakow%20Kazimierz%20pierogi%20zurek)** — ideal if you want a traditional warm meal after arrival; many neighbourhood spots offer `bigos`, `barszcz`, or `zurek`.
-- **[Local taverns around Miodowa / Market Square](https://maps.google.com/?q=Krakow%20Miodowa%20restaurant)** — easiest for a casual dinner after check-in; generally better for soup + main than upscale dining.
+| Place | Soup | Friday hours | Walk from hotel |
+|---|---|---|---|
+| [Kazimir](https://www.google.com/maps/search/?api=1&query=Kazimir%20Miodowa%2011%20Krak%C3%B3w) — Miodowa 11 | Żurek on the menu, plus pierogi | Until ~23:30–24:00 | On the same street |
+| [Klezmer Hois](https://www.google.com/maps/search/?api=1&query=Klezmer%20Hois%20Szeroka%206%20Krak%C3%B3w) — Szeroka 6 | Polish and Jewish soups | Until 23:00 | ~5 min |
+| [Szara Kazimierz](https://www.google.com/maps/search/?api=1&query=Szara%20Kazimierz%20Szeroka%2039%20Krak%C3%B3w) — Szeroka 39 | Polish menu with soups | Until 23:00 | ~5 min |
 
-### Good first choices for a Friday arrival
-- **Classic Polish pub / tavern near the hotel** — best on a late arrival night: soup, pierogi, grilled meats, simple beer.
-- **Kazimierz small restaurant** — more atmospheric, and easier to find open later than central tourist restaurants.
-- **A late-night zapiekanka stop** — if you end up eating after 22:00, this is the safest fallback, especially around Plac Nowy.
+- **Best pick:** Kazimir — żurek, on Miodowa itself, and open the latest.
+- **After 23:00:** no soup, but [Endzior](https://www.google.com/maps/search/?api=1&query=Endzior%20Plac%20Nowy%20Krak%C3%B3w) at Plac Nowy sells zapiekanka until 03:00.
 
-> ℹ️ Hours vary by season and by the exact restaurant. For a Friday night close to 22:00, it is smart to check Google Maps before leaving the hotel, especially around Miodowa and Kazimierz.
+> ℹ️ Hours come from listing sites and may have changed — check Google Maps before leaving the hotel. Kitchens often close 30–60 min before the bar.
+
+## 🎧 Techno on Friday and Saturday night
+
+### Friday 13 Nov
+
+| Club | Friday 13 Nov | Start | Where |
+|---|---|---|---|
+| [Sekta Selekta](https://www.google.com/maps/search/?api=1&query=Sekta%20Selekta%20Nowa%203%20Krak%C3%B3w) | exo_series: 004 — Olivia, MATRIX3K, Aim Ana | 21:00 · from 30 PLN | Nowa 3, Kazimierz — ~5 min walk |
+| [Prozak 2.0](https://ra.co/clubs/76369) | 14th birthday weekend — Speedup Friday with GUNZ, Meg, Forest | 23:59 | Plac Dominikański 6, Old Town — ~15 min walk |
+| [STK47 Warehouse](https://schissma.com/events) | SCHISSMA hard techno — WRK, KRVZL, VRAXX, Józef Keuner | 23:00 → 08:00 | Zabłocie — taxi/Bolt ~10 min |
+| [Noce KRK](https://ra.co/events/2570911) | FEED #11 with Adriana Lopez | 22:00 · from ~45 PLN | Dajwór 14/16, Kazimierz — ~5 min walk |
+
+- **Easiest:** soup at Kazimir, then Sekta Selekta round the corner; move on to Prozak 2.0 after midnight if you still want more.
+- **Biggest night:** STK47 for proper warehouse hard techno until morning — buy the ticket in advance.
+- **Don't stay too late:** Saturday starts with the 11:00 tour.
+
+### Saturday 14 Nov
+Best after the Kazimierz bar hop. Sekta Selekta and Noce KRK are both in Kazimierz, so it's a short walk from the last bar.
+
+| Club | Saturday 14 Nov | Start | Where |
+|---|---|---|---|
+| [Sekta Selekta](https://ra.co/events/2571026) | Tunamelt Records — Marlon Clark (UK), Ilya Semashkevich (live), Hozy | 21:00 · 20 PLN presale / 30 PLN at the door | Nowa 3, Kazimierz — ~5 min walk |
+| [Noce KRK](https://ra.co/events/2574954) | Terror Heaven — 8 years, with innominepatrix | 22:00 → 06:00 | Dajwór 14/16, Kazimierz — ~5 min walk |
+| [Prozak 2.0](https://ra.co/clubs/76369) | 14th birthday, day III — LOVE MESSAGE with BUBBLEGUN, VIT., QUBE, Meg, Kuriozum and more | 23:59 | Plac Dominikański 6, Old Town — ~15 min walk |
+| [STK47 Warehouse](https://events.musicofourdesire.com/venue/stk47-warehouse) | Warehouse takeover with DJ ZAMOCNO and Toutestmagnifique | Late · check the listing | Zabłocie — taxi/Bolt ~10 min |
+
+- **Easiest:** finish the bar hop at Propaganda (Miodowa 20), then Noce KRK or Sekta Selekta a few minutes away.
+- **Biggest night:** Prozak 2.0's birthday weekend closes on Saturday.
+- **Sunday:** the food tour starts at 13:00, so there's time to sleep in.
+
+> ℹ️ Line-ups come from event listings (RA and aggregators) — confirm on the club or ticket page before going. Start times for Prozak and STK47 differ between sources.
 
 ## 🏭 Nowa Huta
 The "ideal socialist city" built in the 1950s around the Lenin Steelworks: Plac Centralny, the monumental housing blocks, the steelworks gates and the Lord's Ark church.
 
 | Option | What | Time | Price |
 |---|---|---|---|
-| [Walkative — Nowa Huta walking tour](https://freewalkingtour.com/) | Guided walk, meets in the middle of Plac Centralny (yellow umbrella). Booking required. | 2h30 | Pay what you wish (most give €15–50) |
+| [Walkative — Nowa Huta free walking tour](https://freewalkingtour.com/krakow/communist-krakow-nowa-huta) ⭐ | **Sat 14 Nov, 11:00.** Guided walk, meets in the middle of Plac Centralny (yellow umbrella). Booking required. | 11:00 → ~13:30 | Pay what you wish (most give €15–50) |
 | [Crazy Guides — Communism Tour](https://www.crazyguides.com/krakow-tours/communism-tour-of-nowa-huta-district) | Private tour in a Trabant or Lada, pick-up in the Old Town, old-style restaurant stop, 1950s shop, a drink included | 2h30 | 850 PLN (≈ €200) for one person |
 | [Crazy Guides — Communism Deluxe](https://www.crazyguides.com/krakow-tours/communism-deluxe-tour) | Same, plus the former steelworks headquarters | 3h30 | Ask when booking |
 
 - **Getting there:** tram to *Plac Centralny im. R. Reagana*, about 25–30 minutes from the centre (line 4 from Teatr Bagatela / Dworzec Główny — check [Jakdojade](https://jakdojade.pl/krakow) and [Google Maps](https://maps.google.com/))
+- **Saturday 11:00:** be at Plac Centralny by 10:50 — leave the hotel around 10:15 for the ~30 min tram ride.
 - **Tip:** travelling solo, the walking tour is far better value; the Trabant tour is priced per car, so it only makes sense shared.
 - **After the tour:** [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w), on the main avenue off Plac Centralny, is the classic communist-era dining room.
 
