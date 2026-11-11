@@ -45,6 +45,21 @@ expenses:
 
 > 💡 Nothing here is booked yet. Tour days, start times and prices change by season — confirm on the operator's site when booking.
 
+## 🏨 Nearby dinner + soup options near the hotel
+If you land late on Friday, these are the kinds of places to check first near the hotel area in Kraków. They are useful for a simple warm meal, soup and a quick local dinner before late-night drinks.
+
+- **[Miodowa 13 / around Miodowa](https://maps.google.com/?q=Miodowa%20Krakow)** — good area for a short walk after check-in; look for a classic Polish place serving `zupa` and grilled mains.
+- **[Plac Nowy / Kazimierz](https://maps.google.com/?q=Plac%20Nowy%20Krakow)** — the most practical late-evening option if you're already in the old town; many places serve soup and stay open late, but times should be checked before the trip.
+- **[Zurek and pierogi spots around Kazimierz](https://maps.google.com/?q=Krakow%20Kazimierz%20pierogi%20zurek)** — ideal if you want a traditional warm meal after arrival; many neighbourhood spots offer `bigos`, `barszcz`, or `zurek`.
+- **[Local taverns around Miodowa / Market Square](https://maps.google.com/?q=Krakow%20Miodowa%20restaurant)** — easiest for a casual dinner after check-in; generally better for soup + main than upscale dining.
+
+### Good first choices for a Friday arrival
+- **Classic Polish pub / tavern near the hotel** — best on a late arrival night: soup, pierogi, grilled meats, simple beer.
+- **Kazimierz small restaurant** — more atmospheric, and easier to find open later than central tourist restaurants.
+- **A late-night zapiekanka stop** — if you end up eating after 22:00, this is the safest fallback, especially around Plac Nowy.
+
+> ℹ️ Hours vary by season and by the exact restaurant. For a Friday night close to 22:00, it is smart to check Google Maps before leaving the hotel, especially around Miodowa and Kazimierz.
+
 ## 🏭 Nowa Huta
 The "ideal socialist city" built in the 1950s around the Lenin Steelworks: Plac Centralny, the monumental housing blocks, the steelworks gates and the Lord's Ark church.
 
@@ -56,7 +71,7 @@ The "ideal socialist city" built in the 1950s around the Lenin Steelworks: Plac 
 
 - **Getting there:** tram to *Plac Centralny im. R. Reagana*, about 25–30 minutes from the centre (line 4 from Teatr Bagatela / Dworzec Główny — check [Jakdojade](https://jakdojade.pl/krakow) and [Google Maps](https://maps.google.com/))
 - **Tip:** travelling solo, the walking tour is far better value; the Trabant tour is priced per car, so it only makes sense shared.
-- **After the tour:** [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w), on the main avenue off Plac Centralny, is the classic late lunch stop.
+- **After the tour:** [Restauracja Stylowa](https://www.google.com/maps/search/?api=1&query=Restauracja%20Stylowa%20Nowa%20Huta%20Krak%C3%B3w), on the main avenue off Plac Centralny, is the classic communist-era dining room.
 
 ## 🥟 Food tour or 🍺 beer tour
 Pick one for Sunday — both are small-group and should be booked at least 48 hours ahead.
